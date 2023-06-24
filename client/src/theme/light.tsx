@@ -8,7 +8,11 @@ const lightTheme = createTheme({
       light: "#4ec18b",
       dark: "#458768",
     },
-    secondary: { main: "#3ae5c0" },
+    secondary: { main: "#fb9002" },
+    text: {
+      primary: "#373c59",
+      secondary: "#fff",
+    },
   },
   typography: {
     fontFamily: "Inter, sans-serif",
