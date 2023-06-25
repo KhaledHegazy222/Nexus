@@ -4,7 +4,8 @@ WORKDIR /app
 
 COPY package.json yarn.lock* ./
 
-RUN yarn
+RUN yarn --prefer-offline
+
 
 COPY entrypoint.sh /usr/local/bin/
 

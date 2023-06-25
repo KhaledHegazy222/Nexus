@@ -1,16 +1,14 @@
 import { CssBaseline, ThemeProvider } from "@mui/material";
 import lightTheme from "@/theme/light";
-import Navbar from "./components/Navbar";
-import Hero from "./components/Hero";
+
+import routes from "./pages/routes";
 
 function App() {
   return (
     <>
       <ThemeProvider theme={lightTheme}>
         <CssBaseline />
-
-        <Navbar />
-        <Hero />
+        {routes}
       </ThemeProvider>
     </>
   );

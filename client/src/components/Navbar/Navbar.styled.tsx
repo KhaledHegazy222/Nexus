@@ -11,9 +11,11 @@ import {
   Typography,
   styled,
 } from "@mui/material";
+import { Link } from "react-router-dom";
 
 export const StyledAppBar = styled(AppBar)<AppBarProps>(({ theme }) => ({
-  backgroundColor: "transparent",
+  backgroundColor: "#eef9f6",
+  // backgroundColor: "transparent",
   boxShadow: "none",
   color: `${theme.palette.text.primary}`,
 }));
@@ -22,6 +24,11 @@ export const StyledToolbar = styled(Toolbar)<ToolbarProps>(() => ({
   display: "flex",
   justifyContent: "space-between",
   padding: "10px",
+}));
+
+export const StyledLink = styled(Link)(({ theme }) => ({
+  textDecoration: "none",
+  color: `${theme.palette.text.primary}`,
 }));
 
 // Logo Image
