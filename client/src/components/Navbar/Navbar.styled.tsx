@@ -12,10 +12,10 @@ import {
   styled,
 } from "@mui/material";
 
-export const StyledAppBar = styled(AppBar)<AppBarProps>(() => ({
+export const StyledAppBar = styled(AppBar)<AppBarProps>(({ theme }) => ({
   backgroundColor: "transparent",
   boxShadow: "none",
-  color: "black",
+  color: `${theme.palette.text.primary}`,
 }));
 
 export const StyledToolbar = styled(Toolbar)<ToolbarProps>(() => ({
@@ -54,9 +54,9 @@ export const StyledListButton = styled(ListItemButton)(({ theme }) => ({
 }));
 
 // Login Button
-export const StyledLoginButton = styled(Button)<ButtonProps>(() => ({
-  color: "black",
-  border: "1px solid black",
+export const StyledLoginButton = styled(Button)<ButtonProps>(({ theme }) => ({
+  border: `1px solid ${theme.palette.text.primary}`,
+  color: `${theme.palette.text.primary}`,
   fontSize: "1.2rem",
   textTransform: "none",
   fontWeight: "600",
@@ -64,7 +64,7 @@ export const StyledLoginButton = styled(Button)<ButtonProps>(() => ({
   borderRadius: "10px",
   margin: "0 10px",
   "&:hover": {
-    borderColor: "black",
+    borderColor: `${theme.palette.text.primary}`,
   },
 }));
 
