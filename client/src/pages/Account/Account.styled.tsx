@@ -22,8 +22,12 @@ export const StyledFormTitle = styled(Typography)(() => ({
   margin: "20px",
 }));
 
-export const StyledFormContainer = styled("form")(() => ({
-  width: "clamp(300px,80%,450px)",
+export const StyledFormContainer = styled("form")(({ theme }) => ({
+  padding: "20px 50px",
+  backgroundColor: "rgba(255,255,255,0.2)",
+  border: `1px solid ${theme.palette.primary.main}`,
+  borderRadius: "20px",
+  width: "clamp(350px,80%,500px)",
   margin: "auto",
 }));
 
