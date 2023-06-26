@@ -9,10 +9,11 @@ import {
 
 export const StyledAccountBody = styled(Box)(() => ({
   backgroundImage: "linear-gradient(180deg, #eef9f6 37%, #b4e6d9 100%)",
-  height: "100vh",
+  minHeight: "100vh",
   display: "flex",
   flexDirection: "column",
   justifyContent: "center",
+  padding: "120px 0",
 }));
 
 export const StyledFormTitle = styled(Typography)(() => ({

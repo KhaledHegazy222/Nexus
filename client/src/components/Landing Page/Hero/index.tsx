@@ -1,4 +1,3 @@
-import { Button, TextField, Typography } from "@mui/material";
 import {
   StyledExploreButton,
   StyledHeroBody,
