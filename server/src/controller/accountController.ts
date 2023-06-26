@@ -43,7 +43,7 @@ export const accountSignupPost = [
         [mail]
       )
       if (queryResp.rows.length !== 0) {
-        _res.status(400).json({ msg: 'Account already exists' })
+        return _res.status(400).json({ msg: 'Account already exists' })
       }
 
       await dbConnection.dbQuery('begin')
