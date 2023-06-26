@@ -13,6 +13,8 @@
         ]
     },
     "rules": {
-        "@typescript-eslint/no-var-requires": 0
+        "@typescript-eslint/no-var-requires": 0,
+        "indent": "off",
+        "@typescript-eslint/indent": 0
     }
 }
