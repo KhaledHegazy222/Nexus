@@ -8,9 +8,9 @@ import {
   StyledTextField,
 } from "./Account.styled";
 import { useForm, Controller, SubmitHandler } from "react-hook-form";
-import { GoogleLogin } from "@react-oauth/google";
+import { CredentialResponse, GoogleLogin } from "@react-oauth/google";
 import { Divider } from "@mui/material";
-
+import axios from "axios";
 type loginFormDataType = {
   email: string;
   password: string;
@@ -48,8 +48,15 @@ const AccountPage = ({ login = false }: AccountPageProps) => {
           <StyledFormContainer onSubmit={handleSubmit(loginOnSubmit)}>
             <StyledFormTitle>Login</StyledFormTitle>
             <GoogleLogin
-              onSuccess={() => {
-                console.log("Done");
+              onSuccess={async (credentialResponse: CredentialResponse) => {
+                console.log(credentialResponse.credential);
+                axios.post(
+                  `${import.meta.env.VITE_API_ROOT_URL}/api/v1/oauth/google`,
+                  {},
+                  {
+                    headers: { Authorization: credentialResponse.credential },
+                  }
+                );
               }}
               onError={() => {
                 console.log("Failed");
