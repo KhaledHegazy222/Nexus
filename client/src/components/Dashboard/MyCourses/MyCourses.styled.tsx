@@ -1,6 +1,9 @@
 import {
   Box,
   BoxProps,
+  Card,
+  Grid,
+  GridProps,
   Paper,
   PaperProps,
   Typography,
@@ -13,7 +16,7 @@ export const StyledCoursesContainer = styled(Box)<BoxProps>(() => ({
   padding: "20px",
   margin: "auto",
   flex: "1",
-  height: "100%",
+  height: "50%",
 }));
 
 export const StyledPaper = styled(Paper)<PaperProps>(() => ({
@@ -21,11 +24,21 @@ export const StyledPaper = styled(Paper)<PaperProps>(() => ({
   flexDirection: "column",
   alignItems: "center",
   height: "100%",
-  overflow: "auto",
+  overflow: "scroll",
   padding: "10px",
 }));
 
 export const StyledTitle = styled(Typography)<TypographyProps>(() => ({
   marginTop: "30px",
   marginBottom: "60px",
+}));
+
+export const StyledGridItem = styled(Grid)<GridProps>(() => ({
+  padding: "10px",
+  aspectRatio: "1 /1",
+}));
+
+export const StyledCard = styled(Card)(() => ({
+  width: "100%",
+  height: "300px",
 }));

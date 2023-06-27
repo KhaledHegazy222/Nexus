@@ -19,7 +19,7 @@ const DashboardNavbar = () => {
   return (
     <StyledAppBar position="static">
       <StyledToolbar>
-        <StyledLink to="/instructor">
+        <StyledLink to="/">
           <StyledLogoContainer>
             <StyledLogoImage src={Logo} />
             <StyledLogoText>exsus</StyledLogoText>
