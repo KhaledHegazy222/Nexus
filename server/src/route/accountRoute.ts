@@ -5,6 +5,7 @@ const router = express.Router()
 
 router.post('/signup', accountController.accountSignupPost)
 router.post('/login', accountController.accountLoginPost)
+router.post('/oauth/google', accountController.googleOauthHandler)
 router.get('/details', accountController.accountDetailsGet)
 
 router.post('/verify', accountController.accountSendVerificationPost)

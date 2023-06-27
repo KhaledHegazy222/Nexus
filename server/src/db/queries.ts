@@ -1,6 +1,8 @@
 exports.queryList = {
   ADD_ACCOUNT:
     'insert into account(mail, password, first_name, last_name) values($1, $2, $3, $4)',
+  ADD_GOOGLE_ACCOUNT:
+    "insert into account(mail, password, active, first_name, last_name) values($1, 'google password', true, $2, $3)",
   VERIFY_ACCOUNT: 'update account set active = true where id = $1',
   UPDATE_ACCOUNT_PASSWORD: 'update account set password = $1 where id = $2',
   GET_ACCOUNT: 'select * from account where mail = $1',

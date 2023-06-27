@@ -7,6 +7,7 @@ const dbConnection = require('../db/connection')
 const queries = require('../db/queries')
 const authHelper = require('../middleware/authHelper')
 const mailHelper = require('../middleware/mailHelper')
+const googleOauthHelper = require('../middleware/googleOauthHelper')
 
 export const accountSignupPost = [
   body('mail').isEmail().escape().withMessage('invalid email'),
@@ -100,6 +101,54 @@ export const accountLoginPost = [
           })
         : _res.sendStatus(401)
     } catch (err) {
+      return _res.sendStatus(500)
+    }
+  }
+]
+
+export const googleOauthHandler = [
+  async (_req: Request, _res: Response, _next: NextFunction) => {
+    try {
+      const token = _req.headers.authorization as string
+      if (token === '') {
+        return _res
+          .status(400)
+          .json({ msg: 'Authorization token not provided!' })
+      }
+
+      const accountDetails = await googleOauthHelper.verifyIdToken({ token })
+      if (accountDetails == null) {
+        return _res.status(400).json({ msg: 'Google account does not exist' })
+      }
+      if (accountDetails.emailVerified === false) {
+        return _res.status(400).json({ msg: 'Google account is not verified' })
+      }
+
+      const queryResp = await dbConnection.dbQuery(
+        queries.queryList.GET_ACCOUNT,
+        [accountDetails.email]
+      )
+      if (queryResp.rows.length === 0) {
+        // sign in - account doesn't exist in db
+        await dbConnection.dbQuery(queries.queryList.ADD_GOOGLE_ACCOUNT, [
+          accountDetails.email,
+          accountDetails.firstName,
+          accountDetails.lastName
+        ])
+        return _res.sendStatus(201)
+      } else {
+        // log in - account exists in db
+        const existingAccount = queryResp.rows[0]
+        if (existingAccount.active === false) {
+          await dbConnection.dbQuery(queries.queryList.VERIFY_ACCOUNT, [
+            existingAccount.id
+          ])
+        }
+        return _res.status(200).json({
+          token: authHelper.generateAccessToken(existingAccount.id.toString())
+        })
+      }
+    } catch {
       return _res.sendStatus(500)
     }
   }
