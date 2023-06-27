@@ -18,7 +18,7 @@ import {
 } from "./MyCourses.styled";
 import useCourses from "@/contexts/useCourses";
 import { Add } from "@mui/icons-material";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 const MyCourses = () => {
   const skeletonItems = Array(10).fill(null);
@@ -53,22 +53,29 @@ const MyCourses = () => {
                 </StyledCard>
               </StyledGridItem>
               {courses.map((course) => (
-                <StyledGridItem item xs={3} key={course.title}>
-                  <StyledCard sx={{}}>
-                    <CardMedia
-                      sx={{
-                        height: "150px",
-                      }}
-                      image={course.image}
-                      title={course.title}
-                    />
-                    <CardContent>
-                      <Typography variant="h5">{course.title}</Typography>
-                      <Typography variant="subtitle2">
-                        {course.description}
-                      </Typography>
-                    </CardContent>
-                  </StyledCard>
+                <StyledGridItem item xs={3} key={course.id}>
+                  <Link
+                    to={`/instructor/course/${course.id}`}
+                    style={{
+                      textDecoration: "none",
+                    }}
+                  >
+                    <StyledCard sx={{}}>
+                      <CardMedia
+                        sx={{
+                          height: "150px",
+                        }}
+                        image={course.image}
+                        title={course.title}
+                      />
+                      <CardContent>
+                        <Typography variant="h5">{course.title}</Typography>
+                        <Typography variant="subtitle2">
+                          {course.description}
+                        </Typography>
+                      </CardContent>
+                    </StyledCard>
+                  </Link>
                 </StyledGridItem>
               ))}
             </>
