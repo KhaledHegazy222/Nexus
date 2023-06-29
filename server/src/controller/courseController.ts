@@ -85,6 +85,7 @@ export const courseEditContentPatch = [
   body('content.*.type')
     .isIn(['video', 'reading', 'quiz'])
     .withMessage('invalid value.'),
+  body('content.*.public').isBoolean().withMessage('public must be boolean.'),
   authHelper.authenticateToken,
   async (_req: Request, _res: Response) => {
     const errors: Result<ValidationError> = validationResult(_req)
