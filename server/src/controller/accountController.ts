@@ -7,6 +7,7 @@ const dbConnection = require('../db/connection')
 const queries = require('../db/queries')
 const authHelper = require('../middleware/authHelper')
 const mailHelper = require('../middleware/mailHelper')
+const roleHelper = require('../middleware/roleHelper')
 const googleOauthHelper = require('../middleware/googleOauthHelper')
 
 export const accountSignupPost = [
@@ -156,17 +157,51 @@ export const googleOauthHandler = [
 
 export const accountDetailsGet = [
   authHelper.authenticateToken,
+  roleHelper.getRole,
   async (_req: Request, _res: Response) => {
     try {
       const accountId: string = _res.locals.accountId
+      const role: string = _res.locals.role
 
       const queryResp = await dbConnection.dbQuery(
-        queries.queryList.GET_ACCOUNT_DETAILS_BY_ID,
+        role === 'student'
+          ? queries.queryList.GET_STUDENT_ACCOUNT_DETAILS_BY_ID
+          : queries.queryList.GET_INSTRUCTOR_ACCOUNT_DETAILS_BY_ID,
         [accountId]
       )
       if (queryResp.rows.length === 0) return _res.sendStatus(404)
 
       return _res.status(200).json(queryResp.rows[0])
+    } catch {
+      return _res.sendStatus(500)
+    }
+  }
+]
+
+export const accountDetailPost = [
+  authHelper.authenticateToken,
+  async (_req: Request, _res: Response) => {
+    try {
+      const queryResp = await dbConnection.dbQuery(
+        queries.queryList.CHECK_INSTRUCTOR_DATA,
+        [_res.locals.accountId]
+      )
+
+      if (queryResp.rows[0].exists === false) {
+        await dbConnection.dbQuery(queries.queryList.ADD_INSTRUCTOR_DATA, [
+          _res.locals.accountId,
+          _req.body.bio,
+          _req.body.contacts
+        ])
+      } else {
+        await dbConnection.dbQuery(queries.queryList.UPDATE_INSTRUCTOR_DATA, [
+          _req.body.bio,
+          _req.body.contacts,
+          _res.locals.accountId
+        ])
+      }
+
+      return _res.sendStatus(200)
     } catch {
       return _res.sendStatus(500)
     }

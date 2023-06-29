@@ -6,11 +6,20 @@ exports.queryList = {
   VERIFY_ACCOUNT: 'update account set active = true where id = $1',
   UPDATE_ACCOUNT_PASSWORD: 'update account set password = $1 where id = $2',
   GET_ACCOUNT: 'select * from account where mail = $1',
-  GET_ACCOUNT_DETAILS_BY_ID:
+  GET_STUDENT_ACCOUNT_DETAILS_BY_ID:
     'select id, mail, role, first_name, last_name from account where id = $1',
+  GET_INSTRUCTOR_ACCOUNT_DETAILS_BY_ID:
+    'select a.id, a.mail, a.role, a.first_name, a.last_name, i.bio, i.contacts from (select id, mail, role, first_name, last_name from account where id = $1) as a inner join instructor_data as i on i.account_id = a.id',
   GET_ACCOUNT_DETAILS_BY_MAIL:
     'select id, mail, role, first_name, last_name from account where mail = $1',
   GET_ACCOUNT_ROLE: 'select role from account where id = $1',
+
+  CHECK_INSTRUCTOR_DATA:
+    'select exists(select account_id from instructor_data where account_id = $1)',
+  ADD_INSTRUCTOR_DATA:
+    'insert into instructor_data(account_id, bio, contacts) values($1, $2, $3)',
+  UPDATE_INSTRUCTOR_DATA:
+    'update instructor_data set bio = $1, contacts = $2 where account_id = $3',
 
   ADD_VERIFICATION_ID:
     "insert into verification values((SELECT currval('account_id_seq')), $1)",

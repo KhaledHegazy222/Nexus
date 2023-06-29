@@ -36,14 +36,7 @@ CREATE TABLE instructor_data (
   account_id INT NOT NULL,
   pic_id VARCHAR(255),
   bio TEXT,
-  FOREIGN KEY (account_id) REFERENCES account (id)
-);
-
--- Create the 'instructor_contacts' table
-CREATE TABLE instructor_contacts (
-  account_id INT NOT NULL,
-  contact_label VARCHAR(255),
-  contact_content VARCHAR(255),
+  contacts JSON,
   FOREIGN KEY (account_id) REFERENCES account (id)
 );
 
