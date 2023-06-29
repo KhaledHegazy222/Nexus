@@ -10,6 +10,7 @@ exports.queryList = {
     'select id, mail, role, first_name, last_name from account where id = $1',
   GET_ACCOUNT_DETAILS_BY_MAIL:
     'select id, mail, role, first_name, last_name from account where mail = $1',
+  GET_ACCOUNT_ROLE: 'select role from account where id = $1',
 
   ADD_VERIFICATION_ID:
     "insert into verification values((SELECT currval('account_id_seq')), $1)",
@@ -24,5 +25,12 @@ exports.queryList = {
   GET_RESET_ID: 'select * from reset_password where account_id = $1',
   GET_ACCOUNT_ID_BY_RESET_ID:
     'select account_id from reset_password where reset_id = $1',
-  DELETE_RESET_ID: 'delete from reset_password where account_id = $1'
+  DELETE_RESET_ID: 'delete from reset_password where account_id = $1',
+
+  ADD_COURSE:
+    'insert into course(author_id, title, level, field, department, price, description, what_you_will_learn, requirements) values($1, $2, $3, $4, $5, $6, $7, $8, $9)',
+  CHECK_COURSE_AUTHOR:
+    'select exists(select id from course where id = $1 and author_id = $2)',
+  GET_COURSE_CONTENT: 'select content from course where id = $1',
+  UPDATE_COURSE_CONTENT: 'update course set content = $1 where id = $2'
 }
