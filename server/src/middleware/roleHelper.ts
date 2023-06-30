@@ -20,3 +20,60 @@ export const getRole = async (
   _res.locals.role = queryResp.rows[0].role
   _next()
 }
+
+export const checkAuthor = async (
+  _req: Request,
+  _res: Response,
+  _next: NextFunction
+): Promise<any> => {
+  const accountId: string = _res.locals.accountId
+  const courseId: string = _req.params.courseId
+
+  try {
+    if (accountId == null) return _res.sendStatus(401)
+    if (!/^[0-9]+$/.test(courseId)) return _res.sendStatus(400)
+
+    const queryResp = await dbConnection.dbQuery(
+      queries.queryList.CHECK_COURSE_AUTHOR,
+      [courseId, accountId]
+    )
+
+    _res.locals.isAuthor = queryResp.rows[0].exists
+    _next()
+  } catch {
+    return _res.sendStatus(500)
+  }
+}
+
+export const checkCourseFullAccess = async (
+  _req: Request,
+  _res: Response,
+  _next: NextFunction
+): Promise<any> => {
+  const accountId: string = _res.locals.accountId
+  const courseId: string = _req.params.courseId
+
+  try {
+    if (accountId == null) return _res.sendStatus(401)
+    if (!/^[0-9]+$/.test(courseId)) return _res.sendStatus(400)
+
+    const queryResp = await Promise.all([
+      dbConnection.dbQuery(queries.queryList.CHECK_COURSE_AUTHOR, [
+        courseId,
+        accountId
+      ]),
+      dbConnection.dbQuery(queries.queryList.CHECK_PURCHASE, [
+        accountId,
+        courseId
+      ])
+    ])
+
+    // author or bought it
+    _res.locals.hasFullAccess =
+      Boolean(queryResp[0].rows[0].exists) ||
+      Boolean(queryResp[1].rows[0].exists)
+    _next()
+  } catch {
+    return _res.sendStatus(500)
+  }
+}

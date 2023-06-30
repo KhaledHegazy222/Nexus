@@ -55,3 +55,11 @@ CREATE TABLE course (
   content JSON,
   FOREIGN KEY (author_id) REFERENCES account (id)
 );
+
+-- Create the 'purchase' table
+CREATE TABLE purchase (
+  account_id INT NOT NULL,
+  course_id INT NOT NULL,
+  FOREIGN KEY (account_id) REFERENCES account (id),
+  FOREIGN KEY (course_id) REFERENCES course (id)
+);

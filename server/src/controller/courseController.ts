@@ -132,3 +132,40 @@ export const courseEditContentPatch = [
     }
   }
 ]
+
+export const courseDetailsGet = [
+  authHelper.authenticateToken,
+  roleHelper.checkCourseFullAccess,
+  async (_req: Request, _res: Response) => {
+    try {
+      const queryResp1 = await dbConnection.dbQuery(
+        queries.queryList.GET_COURSE,
+        [_req.params.courseId]
+      )
+      const course = queryResp1.rows[0]
+
+      const queryResp2 = await dbConnection.dbQuery(
+        queries.queryList.GET_INSTRUCTOR_ACCOUNT_DETAILS_BY_ID,
+        [course.author_id]
+      )
+      const author = queryResp2.rows[0]
+
+      course.author = author
+      if (_res.locals.hasFullAccess === true) {
+        return _res.status(200).json(course)
+      }
+
+      const publicCourseContent: Record<string, any> = {}
+      Object.keys(course.content).forEach((key: string) => {
+        if (course.content[key].public === 'true') {
+          publicCourseContent[key] = course.content[key]
+        }
+      })
+      course.content = publicCourseContent
+
+      return _res.status(200).json(course)
+    } catch {
+      return _res.sendStatus(500)
+    }
+  }
+]

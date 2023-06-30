@@ -41,5 +41,10 @@ exports.queryList = {
   CHECK_COURSE_AUTHOR:
     'select exists(select id from course where id = $1 and author_id = $2)',
   GET_COURSE_CONTENT: 'select content from course where id = $1',
-  UPDATE_COURSE_CONTENT: 'update course set content = $1 where id = $2'
+  UPDATE_COURSE_CONTENT: 'update course set content = $1 where id = $2',
+  GET_COURSE: 'select * from course where id = $1',
+
+  ADD_PURCHASE: 'insert into purchase(account_id, course_id) values($1, $2)',
+  CHECK_PURCHASE:
+    'select exists(select * from purchase where account_id = $1 and course_id = $2)'
 }
