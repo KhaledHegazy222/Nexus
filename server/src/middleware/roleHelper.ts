@@ -7,18 +7,22 @@ export const getRole = async (
   _res: Response,
   _next: NextFunction
 ): Promise<any> => {
-  const accountId: string = _res.locals.accountId
+  try {
+    const accountId: string = _res.locals.accountId
 
-  if (accountId == null) return _res.sendStatus(401)
+    if (accountId == null) return _res.sendStatus(401)
 
-  const queryResp = await dbConnection.dbQuery(
-    queries.queryList.GET_ACCOUNT_ROLE,
-    [accountId]
-  )
-  if (queryResp.rows.length === 0) return _res.sendStatus(403)
+    const queryResp = await dbConnection.dbQuery(
+      queries.queryList.GET_ACCOUNT_ROLE,
+      [accountId]
+    )
+    if (queryResp.rows.length === 0) return _res.sendStatus(403)
 
-  _res.locals.role = queryResp.rows[0].role
-  _next()
+    _res.locals.role = queryResp.rows[0].role
+    _next()
+  } catch {
+    return _res.sendStatus(500)
+  }
 }
 
 export const checkAuthor = async (
@@ -26,10 +30,10 @@ export const checkAuthor = async (
   _res: Response,
   _next: NextFunction
 ): Promise<any> => {
-  const accountId: string = _res.locals.accountId
-  const courseId: string = _req.params.courseId
-
   try {
+    const accountId: string = _res.locals.accountId
+    const courseId: string = _req.params.courseId
+
     if (accountId == null) return _res.sendStatus(401)
     if (!/^[0-9]+$/.test(courseId)) return _res.sendStatus(400)
 
@@ -50,10 +54,10 @@ export const checkCourseFullAccess = async (
   _res: Response,
   _next: NextFunction
 ): Promise<any> => {
-  const accountId: string = _res.locals.accountId
-  const courseId: string = _req.params.courseId
-
   try {
+    const accountId: string = _res.locals.accountId
+    const courseId: string = _req.params.courseId
+
     if (accountId == null) return _res.sendStatus(401)
     if (!/^[0-9]+$/.test(courseId)) return _res.sendStatus(400)
 
