@@ -2,7 +2,7 @@ import React from "react";
 import { Route, Routes } from "react-router-dom";
 import Dashboard from "./MyCourses";
 import CoursePage from "./Course";
-import { Box, Paper } from "@mui/material";
+
 import DashboardNavbar from "@/components/instructor/Navbar";
 import {
   StyledContentContainer,

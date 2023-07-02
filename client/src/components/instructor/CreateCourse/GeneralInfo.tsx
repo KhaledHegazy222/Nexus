@@ -1,9 +1,8 @@
-import React, { FC } from "react";
+import { FC } from "react";
 import { Box, Typography } from "@mui/material";
 
-import { useState } from "react";
 import TextField from "./TextField";
-import { UseFormRegister, UseFormSetValue } from "react-hook-form";
+import { UseFormRegister } from "react-hook-form";
 import { FormValuesType } from "./CreateCourse";
 import SelectField from "./SelectField";
 
@@ -15,11 +14,11 @@ export type GeneralInfoType = {
   price: number;
 };
 
-type ComponentProps = {
+type GeneralInfoProps = {
   register: UseFormRegister<FormValuesType>;
 };
 
-const GeneralInfo: FC<ComponentProps> = ({ register }) => {
+const GeneralInfo: FC<GeneralInfoProps> = ({ register }) => {
   return (
     <Box
       sx={{
