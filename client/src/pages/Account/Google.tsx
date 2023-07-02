@@ -15,7 +15,6 @@ const GoogleLogin = () => {
     >
       <ContinueWithGoogle
         onSuccess={async (credentialResponse: CredentialResponse) => {
-          console.log(credentialResponse.credential);
           axios.post(
             `${import.meta.env.VITE_API_ROOT_URL}/api/v1/oauth/google`,
             {},

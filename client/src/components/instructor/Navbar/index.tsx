@@ -22,7 +22,7 @@ const DashboardNavbar = () => {
         <StyledLink to="/">
           <StyledLogoContainer>
             <StyledLogoImage src={Logo} />
-            <StyledLogoText>exsus</StyledLogoText>
+            <StyledLogoText>exus</StyledLogoText>
           </StyledLogoContainer>
         </StyledLink>
         <Button onClick={accountMenu.handleClick}>

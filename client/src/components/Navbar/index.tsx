@@ -27,7 +27,7 @@ const Navbar = () => {
             }}
           >
             <StyledLogoImage src={Logo} alt="Logo" />
-            <StyledLogoText>exsus</StyledLogoText>
+            <StyledLogoText>exus</StyledLogoText>
           </Box>
         </StyledLink>
 

@@ -7,7 +7,7 @@ export type pageType = {
   path: string;
   component: JSX.Element;
 };
-console.log(import.meta.env.VITE_GOOGLE_OAUTH_CLIENT_ID)
+
 export const pagesData: pageType[] = [
   {
     name: "Home",
@@ -18,7 +18,9 @@ export const pagesData: pageType[] = [
     name: "Account",
     path: "/account/*",
     component: (
-      <GoogleOAuthProvider clientId={import.meta.env.VITE_GOOGLE_OAUTH_CLIENT_ID}>
+      <GoogleOAuthProvider
+        clientId={import.meta.env.VITE_GOOGLE_OAUTH_CLIENT_ID}
+      >
         <Account />
       </GoogleOAuthProvider>
     ),
