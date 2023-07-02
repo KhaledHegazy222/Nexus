@@ -9,8 +9,8 @@ import SelectField from "./SelectField";
 export type GeneralInfoType = {
   title: string;
   description: string;
-  level: string;
-  field: string;
+  level: "Beginner" | "Intermediate" | "Advanced";
+  field: "Software" | "Hardware" | "Mechanical";
   price: number;
 };
 

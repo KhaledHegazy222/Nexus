@@ -1,9 +1,7 @@
-import React from 'react'
-
+import React from "react";
+import { default as CourseOverviewComponent } from "@/components/instructor/CourseOverview/CourseOverview";
 const CourseOverview = () => {
-  return (
-    <div>CourseOverview</div>
-  )
-}
+  return <CourseOverviewComponent />;
+};
 
-export default CourseOverview
+export default CourseOverview;
