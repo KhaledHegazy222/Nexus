@@ -2,38 +2,12 @@ import React, { useState } from "react";
 import { useParams } from "react-router-dom";
 import { GeneralInfoType } from "../CreateCourse/GeneralInfo";
 import { RequirementsType } from "../CreateCourse/Requirements";
-import {
-  Box,
-  Collapse,
-  IconButton,
-  List,
-  ListItem,
-  ListItemButton,
-  Typography,
-} from "@mui/material";
-import {
-  ArrowRight,
-  AutoStories,
-  AutoStoriesOutlined,
-  ExpandLess,
-  ExpandMore,
-  OndemandVideo,
-  OndemandVideoOutlined,
-  Quiz,
-  QuizOutlined,
-  TextSnippetOutlined,
-} from "@mui/icons-material";
+import { Box, List, ListItem, Typography } from "@mui/material";
+import { ArrowRight } from "@mui/icons-material";
 import CourseImage from "@/assets/images/course.jpg";
-import useCollapseList from "@/hooks/useCollapseList";
+
+import TableOfContent from "./TableOfContent";
 type CourseValueType = GeneralInfoType & RequirementsType;
-type LessonValueType = {
-  title: string;
-  type: "Video" | "Reading" | "Quiz";
-};
-type WeekValueType = {
-  title: string;
-  lessons: LessonValueType[];
-};
 
 const CourseInitialValue: CourseValueType = {
   title: "Learn Python in Three Seconds",
@@ -48,69 +22,11 @@ const CourseInitialValue: CourseValueType = {
   ],
 };
 
-const TableOfContentInitialValue: WeekValueType[] = [
-  {
-    title: "Introduction to Python Programming",
-    lessons: [
-      {
-        title: "Introduction to python programming",
-        type: "Video",
-      },
-      {
-        title: "Python Documentations",
-        type: "Reading",
-      },
-      {
-        title: "Unit 1 Exercise",
-        type: "Quiz",
-      },
-    ],
-  },
-  {
-    title: "Introduction to Python Programming",
-    lessons: [
-      {
-        title: "Introduction to python programming",
-        type: "Video",
-      },
-      {
-        title: "Python Documentations",
-        type: "Reading",
-      },
-      {
-        title: "Unit 1 Exercise",
-        type: "Quiz",
-      },
-    ],
-  },
-  {
-    title: "Introduction to Python Programming",
-    lessons: [
-      {
-        title: "Introduction to python programming",
-        type: "Video",
-      },
-      {
-        title: "Python Documentations",
-        type: "Reading",
-      },
-      {
-        title: "Unit 1 Exercise",
-        type: "Quiz",
-      },
-    ],
-  },
-];
-
 const CourseOverview = () => {
   const { id } = useParams();
 
   const [courseData, setCourseData] =
     useState<CourseValueType>(CourseInitialValue);
-  const [tableOfContent, setTableOfContent] = useState<WeekValueType[]>(
-    TableOfContentInitialValue
-  );
-  const { listState, toggleCollapse } = useCollapseList(tableOfContent.length);
 
   return (
     <>
@@ -166,85 +82,7 @@ const CourseOverview = () => {
             </ListItem>
           ))}
         </List>
-
-        <Box
-          sx={{
-            m: "20px 0",
-          }}
-        >
-          <Typography variant="h5" m={"10px 0"}>
-            Table Of Content
-          </Typography>
-          <List>
-            {tableOfContent.map((week, index) => (
-              <ListItem
-                key={index}
-                sx={{
-                  padding: "0",
-                  outline: "1px solid",
-                  outlineColor: (theme) => `${theme.palette.primary.main}`,
-                }}
-              >
-                <Box
-                  sx={{
-                    width: "100%",
-                  }}
-                >
-                  <ListItemButton
-                    sx={{
-                      display: "flex",
-                      justifyContent: "space-between",
-                      alignItems: "center",
-                      backgroundColor: "primary.light",
-                      padding: "10px",
-                    }}
-                    onClick={() => toggleCollapse(index)}
-                  >
-                    <Typography variant="h6">{week.title}</Typography>
-                    <Box
-                      sx={{
-                        display: "flex",
-                        alignItems: "center",
-                      }}
-                    >
-                      <Typography
-                        variant="subtitle2"
-                        sx={{
-                          color: "gray",
-                        }}
-                      >
-                        {week.lessons.length} lesson(s)
-                      </Typography>
-                      {listState[index] ? <ExpandLess /> : <ExpandMore />}
-                    </Box>
-                  </ListItemButton>
-
-                  <Collapse in={listState[index]}>
-                    <List>
-                      {week.lessons.map((lesson) => (
-                        <ListItemButton
-                          key={lesson.title}
-                          sx={{
-                            gap: "10px",
-                          }}
-                        >
-                          {lesson.type === "Video" ? (
-                            <TextSnippetOutlined />
-                          ) : lesson.type === "Reading" ? (
-                            <AutoStoriesOutlined />
-                          ) : (
-                            <QuizOutlined />
-                          )}
-                          <Typography>{lesson.title}</Typography>
-                        </ListItemButton>
-                      ))}
-                    </List>
-                  </Collapse>
-                </Box>
-              </ListItem>
-            ))}
-          </List>
-        </Box>
+        <TableOfContent />
       </Box>
     </>
   );
