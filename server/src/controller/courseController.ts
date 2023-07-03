@@ -1,11 +1,13 @@
-// import { type Request, type Response, type NextFunction } from 'express'
 import { type Request, type Response } from 'express'
 import { type Result, type ValidationError } from 'express-validator'
+import { DeleteObjectCommand } from '@aws-sdk/client-s3'
 const { body, validationResult } = require('express-validator')
 const dbConnection = require('../db/connection')
 const queries = require('../db/queries')
 const authHelper = require('../middleware/authHelper')
 const roleHelper = require('../middleware/roleHelper')
+const readStreamHelper = require('../middleware/readStreamHelper')
+const s3 = require('../s3Client')
 
 export const courseCreatePost = [
   body('title').not().isEmpty().withMessage('title must be specified.'),
@@ -144,6 +146,42 @@ export const courseDetailsGet = [
 
       return _res.status(200).json(course)
     } catch {
+      return _res.sendStatus(500)
+    }
+  }
+]
+
+export const videoStreamGet = [
+  async function (_req: Request, _res: Response) {
+    try {
+      const videoId = _req.params.videoId
+      const stream = await readStreamHelper.createAWSStream(videoId)
+      // Pipe it into the _response
+      stream.pipe(_res)
+    } catch (err: any) {
+      console.log(err)
+      return _res.sendStatus(500)
+    }
+  }
+]
+
+export const videoUploadPost = [
+  function (_req: Request, _res: Response) {
+    return _res.sendStatus(200)
+  }
+]
+
+export const videoDelete = [
+  async (_req: Request, _res: Response) => {
+    try {
+      const videoId = _req.params.videoId
+      const resp = await s3.client.send(
+        new DeleteObjectCommand({ Bucket: s3.BUCKET, Key: videoId })
+      )
+      // will delete normal if not exist
+      return _res.status(204).send(resp)
+    } catch (err: any) {
+      console.log(err)
       return _res.sendStatus(500)
     }
   }
