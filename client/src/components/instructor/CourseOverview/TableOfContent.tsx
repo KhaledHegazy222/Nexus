@@ -1,5 +1,6 @@
-import React, { useState } from "react";
-import { Link, useNavigate, useParams } from "react-router-dom";
+import React, { useCallback, useState } from "react";
+import { Link, useParams } from "react-router-dom";
+import { v4 as uuid } from "uuid";
 
 import {
   Box,
@@ -36,6 +37,7 @@ import {
 
 import useCollapseList from "@/hooks/useCollapseList";
 import useMenu from "@/hooks/useMenu";
+import { SubmitHandler, useForm } from "react-hook-form";
 
 type LessonValueType = {
   id: string;
@@ -46,7 +48,6 @@ type WeekValueType = {
   title: string;
   lessons: LessonValueType[];
 };
-
 const TableOfContentInitialValue: WeekValueType[] = [
   {
     title: "Introduction to Python Programming",
@@ -85,12 +86,76 @@ const TableOfContentInitialValue: WeekValueType[] = [
 const TableOfContent = () => {
   const { id } = useParams();
   const [selectedWeek, setSelectedWeek] = useState<number>(0);
-
+  const [openLessonDialog, setOpenLessonDialog] = useState(false);
   const [tableOfContent, setTableOfContent] = useState<WeekValueType[]>(
     TableOfContentInitialValue
   );
   const { open, handleClick, handleClose, menuAnchor } = useMenu();
   const { listState, toggleCollapse } = useCollapseList(tableOfContent.length);
+
+  const { register, handleSubmit } = useForm<LessonValueType>();
+  const onSubmit: SubmitHandler<LessonValueType> = useCallback((e) => {
+    e.id = uuid();
+    console.log(e);
+    setOpenLessonDialog(false);
+  }, []);
+  const shiftUpDown = (
+    weekIndex: number,
+    lessonIndex: number,
+    direction: "Upward" | "Downward"
+  ) => {
+    if (direction === "Upward") {
+      if (lessonIndex !== 0) {
+        setTableOfContent((prevTable) => {
+          const prevTableCopy = structuredClone(prevTable);
+          [
+            prevTableCopy[weekIndex].lessons[lessonIndex],
+            prevTableCopy[weekIndex].lessons[lessonIndex - 1],
+          ] = [
+            prevTableCopy[weekIndex].lessons[lessonIndex - 1],
+            prevTableCopy[weekIndex].lessons[lessonIndex],
+          ];
+          return prevTableCopy;
+        });
+      } else if (weekIndex !== 0) {
+        setTableOfContent((prevTable) => {
+          const prevTableCopy = structuredClone(prevTable);
+          const movedLesson = prevTableCopy[weekIndex].lessons.shift()!;
+          prevTableCopy[weekIndex - 1].lessons.push(movedLesson);
+          return prevTableCopy;
+        });
+      }
+    } else {
+      if (lessonIndex !== tableOfContent[weekIndex].lessons.length - 1) {
+        setTableOfContent((prevTable) => {
+          const prevTableCopy = structuredClone(prevTable);
+          [
+            prevTableCopy[weekIndex].lessons[lessonIndex],
+            prevTableCopy[weekIndex].lessons[lessonIndex + 1],
+          ] = [
+            prevTableCopy[weekIndex].lessons[lessonIndex + 1],
+            prevTableCopy[weekIndex].lessons[lessonIndex],
+          ];
+          return prevTableCopy;
+        });
+      } else {
+        if (weekIndex === tableOfContent.length - 1) {
+          setTableOfContent((prevValue) => {
+            const copy = structuredClone(prevValue);
+            copy.push({ title: "New Week", lessons: [] });
+            return copy;
+          });
+        }
+        setTableOfContent((prevTable) => {
+          const prevTableCopy = structuredClone(prevTable);
+          const movedLesson = prevTableCopy[weekIndex].lessons.pop()!;
+          prevTableCopy[weekIndex + 1].lessons.unshift(movedLesson);
+          return prevTableCopy;
+        });
+      }
+    }
+  };
+
   return (
     <Box
       sx={{
@@ -101,9 +166,9 @@ const TableOfContent = () => {
         Table Of Content
       </Typography>
       <List>
-        {tableOfContent.map((week, index) => (
+        {tableOfContent.map((week, weekIndex) => (
           <ListItem
-            key={index}
+            key={weekIndex}
             sx={{
               padding: "0",
               outline: "1px solid",
@@ -115,7 +180,7 @@ const TableOfContent = () => {
                 width: "100%",
               }}
             >
-              <ListItem
+              <Box
                 sx={{
                   display: "flex",
                   justifyContent: "space-between",
@@ -139,15 +204,15 @@ const TableOfContent = () => {
                   >
                     {week.lessons.length} lesson(s)
                   </Typography>
-                  <IconButton onClick={() => toggleCollapse(index)}>
-                    {listState[index] ? <ExpandLess /> : <ExpandMore />}
+                  <IconButton onClick={() => toggleCollapse(weekIndex)}>
+                    {listState[weekIndex] ? <ExpandLess /> : <ExpandMore />}
                   </IconButton>
                 </Box>
-              </ListItem>
+              </Box>
 
-              <Collapse in={listState[index]}>
+              <Collapse in={listState[weekIndex]}>
                 <List>
-                  {week.lessons.map((lesson) => (
+                  {week.lessons.map((lesson, lessonIndex) => (
                     <ListItem
                       key={lesson.id}
                       sx={{
@@ -162,31 +227,39 @@ const TableOfContent = () => {
                       ) : (
                         <QuizOutlined />
                       )}
-                      <Box
-                        sx={{
+                      <Link
+                        to={`lesson/${lesson.id}`}
+                        style={{
                           flex: "1",
+                          textDecoration: "none",
+                          color: "black",
                         }}
                       >
-                        <Link
-                          to={`lesson/${lesson.id}`}
-                          style={{
-                            textDecoration: "none",
-                            color: "black",
+                        <Typography
+                          sx={{
+                            "&:hover": {
+                              color: "primary.main",
+                            },
                           }}
                         >
-                          <Typography
-                            sx={{
-                              "&:hover": {
-                                color: "primary.main",
-                              },
-                            }}
-                          >
-                            {lesson.title}
-                          </Typography>
-                        </Link>
-                      </Box>
-                      <KeyboardArrowUp />
-                      <KeyboardArrowDown />
+                          {lesson.title}
+                        </Typography>
+                      </Link>
+                      <IconButton
+                        onClick={() =>
+                          shiftUpDown(weekIndex, lessonIndex, "Downward")
+                        }
+                      >
+                        <KeyboardArrowDown />
+                      </IconButton>
+                      <IconButton
+                        disabled={weekIndex === 0 && lessonIndex === 0}
+                        onClick={() =>
+                          shiftUpDown(weekIndex, lessonIndex, "Upward")
+                        }
+                      >
+                        <KeyboardArrowUp />
+                      </IconButton>
                       <IconButton onClick={handleClick}>
                         <MoreHoriz />
                       </IconButton>
@@ -225,6 +298,10 @@ const TableOfContent = () => {
                       sx={{
                         margin: "auto",
                       }}
+                      onClick={() => {
+                        setSelectedWeek(weekIndex);
+                        setOpenLessonDialog(true);
+                      }}
                     >
                       <Add /> Add Lesson
                     </Button>
@@ -235,15 +312,20 @@ const TableOfContent = () => {
           </ListItem>
         ))}
       </List>
-      <Dialog open={false}>
-        <DialogTitle variant="h5">Add New Losson</DialogTitle>
+      <Dialog
+        open={openLessonDialog}
+        onClose={() => setOpenLessonDialog(false)}
+      >
+        <DialogTitle variant="h5">Add New Lesson</DialogTitle>
         <form
+          onSubmit={handleSubmit(onSubmit)}
           style={{
             width: "400px",
           }}
         >
           <DialogContent>
             <TextField
+              {...register("title")}
               required
               fullWidth
               label="Title"
@@ -265,7 +347,11 @@ const TableOfContent = () => {
               <InputLabel id="lesson-type-id" sx={{ color: "gray" }}>
                 Type
               </InputLabel>
-              <Select labelId="lesson-type-id" label="Type">
+              <Select
+                labelId="lesson-type-id"
+                label="Type"
+                {...register("type")}
+              >
                 <MenuItem value="Video">Video</MenuItem>
                 <MenuItem value="Reading">Reading</MenuItem>
                 <MenuItem value="Quiz">Quiz</MenuItem>
