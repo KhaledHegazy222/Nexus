@@ -1,11 +1,13 @@
 import React, { useCallback, useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import { v4 as uuid } from "uuid";
 
 import {
   Box,
   Button,
+  ButtonGroup,
   Collapse,
+  Container,
   Dialog,
   DialogActions,
   DialogContent,
@@ -31,8 +33,10 @@ import {
   KeyboardArrowDown,
   KeyboardArrowUp,
   MoreHoriz,
+  OndemandVideo,
   QuizOutlined,
   TextSnippetOutlined,
+  Visibility,
 } from "@mui/icons-material";
 
 import useCollapseList from "@/hooks/useCollapseList";
@@ -85,25 +89,34 @@ const TableOfContentInitialValue: WeekValueType[] = [
 
 const TableOfContent = () => {
   const { id } = useParams();
-  const [selectedWeek, setSelectedWeek] = useState<number>(0);
+  const navigate = useNavigate();
+  const [selectedWeek, setSelectedWeek] = useState<number>(-1);
+  const [selectLessonId, setSelectedLessonId] = useState<string>("");
   const [openLessonDialog, setOpenLessonDialog] = useState(false);
   const [tableOfContent, setTableOfContent] = useState<WeekValueType[]>(
     TableOfContentInitialValue
   );
   const { open, handleClick, handleClose, menuAnchor } = useMenu();
   const { listState, toggleCollapse } = useCollapseList(tableOfContent.length);
-
+  const [editMode, setEditMode] = useState(false);
   const { register, handleSubmit } = useForm<LessonValueType>();
-  const onSubmit: SubmitHandler<LessonValueType> = useCallback((e) => {
-    e.id = uuid();
-    console.log(e);
-    setOpenLessonDialog(false);
-  }, []);
+  const onSubmit: SubmitHandler<LessonValueType> = useCallback(
+    (e) => {
+      e.id = uuid();
+      setTableOfContent((prevState) => {
+        prevState[selectedWeek].lessons.push(e);
+        return prevState;
+      });
+      setOpenLessonDialog(false);
+    },
+    [selectedWeek]
+  );
   const shiftUpDown = (
     weekIndex: number,
     lessonIndex: number,
     direction: "Upward" | "Downward"
   ) => {
+    setEditMode(true);
     if (direction === "Upward") {
       if (lessonIndex !== 0) {
         setTableOfContent((prevTable) => {
@@ -189,7 +202,9 @@ const TableOfContent = () => {
                   padding: "10px",
                 }}
               >
-                <Typography variant="h6">{week.title}</Typography>
+                <Typography variant="h6">{`Week ${weekIndex + 1}: ${
+                  week.title
+                }`}</Typography>
                 <Box
                   sx={{
                     display: "flex",
@@ -221,30 +236,20 @@ const TableOfContent = () => {
                       }}
                     >
                       {lesson.type === "Video" ? (
-                        <TextSnippetOutlined />
+                        <OndemandVideo />
                       ) : lesson.type === "Reading" ? (
                         <AutoStoriesOutlined />
                       ) : (
                         <QuizOutlined />
                       )}
-                      <Link
-                        to={`lesson/${lesson.id}`}
-                        style={{
+
+                      <Typography
+                        sx={{
                           flex: "1",
-                          textDecoration: "none",
-                          color: "black",
                         }}
                       >
-                        <Typography
-                          sx={{
-                            "&:hover": {
-                              color: "primary.main",
-                            },
-                          }}
-                        >
-                          {lesson.title}
-                        </Typography>
-                      </Link>
+                        {lesson.title}
+                      </Typography>
                       <IconButton
                         onClick={() =>
                           shiftUpDown(weekIndex, lessonIndex, "Downward")
@@ -260,19 +265,30 @@ const TableOfContent = () => {
                       >
                         <KeyboardArrowUp />
                       </IconButton>
-                      <IconButton onClick={handleClick}>
+                      <IconButton
+                        onClick={(
+                          e: React.MouseEvent<HTMLButtonElement, MouseEvent>
+                        ) => {
+                          handleClick(e);
+                          setSelectedLessonId(lesson.id);
+                        }}
+                      >
                         <MoreHoriz />
                       </IconButton>
                       <Menu
-                        open={open}
+                        open={open && selectLessonId === lesson.id}
                         anchorEl={menuAnchor}
                         onClose={handleClose}
-                        sx={{
-                          ".MuiMenu-paper": {
-                            boxShadow: "2px 2px 10px -2px rgb(210,210,210)",
-                          },
-                        }}
                       >
+                        <MenuItem
+                          disabled={editMode}
+                          sx={{
+                            gap: "10px",
+                          }}
+                          onClick={() => navigate(`lesson/${lesson.id}`)}
+                        >
+                          <Visibility /> View Content
+                        </MenuItem>
                         <MenuItem
                           sx={{
                             gap: "10px",
@@ -312,6 +328,27 @@ const TableOfContent = () => {
           </ListItem>
         ))}
       </List>
+      {editMode && (
+        <Box
+          sx={{
+            m: "10px",
+            display: "flex",
+            justifyContent: "center",
+            gap: "20px",
+          }}
+        >
+          <Button color="primary" variant="contained">
+            Save
+          </Button>
+          <Button
+            color="error"
+            variant="contained"
+            onClick={() => setEditMode(false)}
+          >
+            Cancel
+          </Button>
+        </Box>
+      )}
       <Dialog
         open={openLessonDialog}
         onClose={() => setOpenLessonDialog(false)}
