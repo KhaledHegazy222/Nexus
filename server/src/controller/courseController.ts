@@ -1,4 +1,4 @@
-import { type Request, type Response } from 'express'
+import { type Request, type Response, type NextFunction } from 'express'
 import { type Result, type ValidationError } from 'express-validator'
 import { DeleteObjectCommand } from '@aws-sdk/client-s3'
 const format = require('pg-format')
@@ -6,6 +6,7 @@ const { body, validationResult } = require('express-validator')
 const { v4: uuidv4 } = require('uuid')
 const dbConnection = require('../db/connection')
 const queries = require('../db/queries')
+const uploadHelper = require('../middleware/uploadHelper')
 const authHelper = require('../middleware/authHelper')
 const roleHelper = require('../middleware/roleHelper')
 const readStreamHelper = require('../middleware/readStreamHelper')
@@ -109,7 +110,37 @@ export const courseEditContentPatch = [
         console.log('update from s3 ', toUpdate)
         console.log('insert from s3 ', toInsert)
 
-        // TODO: delete toDelete, update files from s3
+        // delete toDelete, update files from s3
+        await Promise.all(
+          toDelete.map(async (publicId: string) => {
+            const queryResp = await dbConnection.dbQuery(
+              queries.queryList.GET_S3ID,
+              [publicId]
+            )
+            // queryResp.rows.length === 1 -> true
+            await s3.client.send(
+              new DeleteObjectCommand({
+                Bucket: s3.BUCKET,
+                Key: queryResp.rows[0].hidden_id
+              })
+            )
+          })
+        )
+        await Promise.all(
+          toUpdate.map(async (field: any) => {
+            const queryResp = await dbConnection.dbQuery(
+              queries.queryList.GET_S3ID,
+              [field.id]
+            )
+            // queryResp.rows.length === 1 -> true
+            await s3.client.send(
+              new DeleteObjectCommand({
+                Bucket: s3.BUCKET,
+                Key: queryResp.rows[0].hidden_id
+              })
+            )
+          })
+        )
 
         // update db
         if (toInsert.length !== 0) {
@@ -240,20 +271,55 @@ export const videoStreamGet = [
 ]
 
 export const videoUploadPost = [
+  authHelper.authenticateToken,
+  roleHelper.checkAuthor,
+  async function (_req: Request, _res: Response, _next: NextFunction) {
+    try {
+      const publicId: string = _req.params.publicId
+      const queryResp = await dbConnection.dbQuery(queries.queryList.GET_S3ID, [
+        publicId
+      ])
+      if (
+        queryResp.rows.length === 0 ||
+        queryResp.rows[0].lesson_type !== 'video'
+      ) {
+        return _res.sendStatus(400)
+      }
+      _next()
+    } catch {
+      return _res.sendStatus(500)
+    }
+  },
+  uploadHelper.upload.single('file'),
   function (_req: Request, _res: Response) {
     return _res.sendStatus(200)
   }
 ]
 
 export const videoDelete = [
+  authHelper.authenticateToken,
+  roleHelper.checkAuthor,
   async (_req: Request, _res: Response) => {
     try {
-      const videoId = _req.params.videoId
-      const resp = await s3.client.send(
-        new DeleteObjectCommand({ Bucket: s3.BUCKET, Key: videoId })
+      const publicId = _req.params.publicId
+      const queryResp = await dbConnection.dbQuery(queries.queryList.GET_S3ID, [
+        publicId
+      ])
+      if (
+        queryResp.rows.length === 0 ||
+        queryResp.rows[0].lesson_type !== 'video'
+      ) {
+        return _res.sendStatus(400)
+      }
+
+      await s3.client.send(
+        new DeleteObjectCommand({
+          Bucket: s3.BUCKET,
+          Key: queryResp.rows[0].hidden_id
+        })
       )
       // will delete normal if not exist
-      return _res.status(204).send(resp)
+      return _res.sendStatus(204)
     } catch (err: any) {
       console.log(err)
       return _res.sendStatus(500)

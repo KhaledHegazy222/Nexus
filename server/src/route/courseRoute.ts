@@ -1,6 +1,6 @@
 const express = require('express')
 const courseController = require('../controller/courseController')
-const uploadHelper = require('../middleware/uploadHelper')
+
 const router = express.Router()
 
 router.post('/create', courseController.courseCreatePost)
@@ -10,10 +10,9 @@ router.post('/:courseId/publish', courseController.coursePublishPost)
 
 router.get('/:courseId/video/:videoId', courseController.videoStreamGet)
 router.post(
-  '/:courseId/video/upload',
-  uploadHelper.upload.single('file'),
+  '/:courseId/video/upload/:publicId',
   courseController.videoUploadPost
 )
-router.delete('/:courseId/video/delete/:videoId', courseController.videoDelete)
+router.delete('/:courseId/video/delete/:publicId', courseController.videoDelete)
 
 export = router

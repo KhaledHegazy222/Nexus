@@ -49,6 +49,7 @@ exports.queryList = {
     'insert into s3_id (public_id, hidden_id, lesson_type) values %L',
   DELETE_LESSON: 'delete from s3_id where public_id = $1',
   UPDATE_LESSON: 'update s3_id set lesson_type = $1 where public_id = $2',
+  GET_S3ID: 'select * from s3_id where public_id = $1',
 
   ADD_PURCHASE: 'insert into purchase(account_id, course_id) values($1, $2)',
   CHECK_PURCHASE:
