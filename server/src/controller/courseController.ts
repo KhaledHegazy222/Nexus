@@ -16,20 +16,12 @@ export const courseCreatePost = [
     .optional({ checkFalsy: true })
     .isNumeric()
     .withMessage('price must be a decimal'),
-  body('what_you_will_learn.body.*.order')
-    .trim()
-    .isInt()
-    .withMessage('order must be an integer'),
-  body('what_you_will_learn.body.*.content')
+  body('what_you_will_learn.body.*')
     .trim()
     .not()
     .isEmpty()
     .withMessage('content must be specified'),
-  body('requirements.body.*.order')
-    .trim()
-    .isInt()
-    .withMessage('order must be an integer'),
-  body('requirements.body.*.content')
+  body('requirements.body.*')
     .trim()
     .not()
     .isEmpty()
@@ -73,8 +65,8 @@ export const courseEditContentPatch = [
     .isIn(['video', 'reading', 'quiz'])
     .withMessage('invalid value.'),
   body('fields.*.public').isBoolean().withMessage('public must be boolean.'),
-  body('fields.*.order').trim().isInt().withMessage('order must be integer.'),
   authHelper.authenticateToken,
+  roleHelper.checkAuthor,
   async (_req: Request, _res: Response) => {
     const errors: Result<ValidationError> = validationResult(_req)
     if (!errors.isEmpty()) {
@@ -83,14 +75,8 @@ export const courseEditContentPatch = [
 
     try {
       const courseId: string = _req.params.courseId
-      if (!/^[0-9]+$/.test(courseId)) return _res.sendStatus(400)
 
-      // check if he's the author
-      const queryResp = await dbConnection.dbQuery(
-        queries.queryList.CHECK_COURSE_AUTHOR,
-        [courseId, _res.locals.accountId]
-      )
-      if (queryResp.rows[0].exists === false) return _res.sendStatus(403)
+      if (_res.locals.isAuthor === false) return _res.sendStatus(403)
 
       // get the files must be deleted
       const queryResp2 = await dbConnection.dbQuery(
@@ -145,6 +131,22 @@ export const courseDetailsGet = [
       course.author = author
 
       return _res.status(200).json(course)
+    } catch {
+      return _res.sendStatus(500)
+    }
+  }
+]
+
+export const coursePublishPost = [
+  authHelper.authenticateToken,
+  roleHelper.checkAuthor,
+  async (_req: Request, _res: Response) => {
+    try {
+      await dbConnection.dbQuery(queries.queryList.PUBLISH_COURSE, [
+        _req.params.courseId
+      ])
+
+      return _res.sendStatus(200)
     } catch {
       return _res.sendStatus(500)
     }

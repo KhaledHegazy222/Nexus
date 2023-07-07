@@ -38,6 +38,7 @@ exports.queryList = {
 
   ADD_COURSE:
     'insert into course(author_id, title, level, field, department, price, description, what_you_will_learn, requirements) values($1, $2, $3, $4, $5, $6, $7, $8, $9)',
+  PUBLISH_COURSE: 'update course set publish = true where id = $1',
   CHECK_COURSE_AUTHOR:
     'select exists(select id from course where id = $1 and author_id = $2)',
   GET_COURSE_CONTENT: 'select content from course where id = $1',

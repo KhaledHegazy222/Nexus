@@ -53,6 +53,7 @@ CREATE TABLE course (
   what_you_will_learn JSON,
   requirements JSON,
   content JSON,
+  publish BOOL DEFAULT 'false',
   FOREIGN KEY (author_id) REFERENCES account (id)
 );
 
