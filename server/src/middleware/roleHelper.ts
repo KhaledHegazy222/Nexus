@@ -42,7 +42,8 @@ export const checkAuthor = async (
       [courseId, accountId]
     )
 
-    _res.locals.isAuthor = queryResp.rows[0].exists
+    if (queryResp.rows[0].exists === false) return _res.sendStatus(403)
+
     _next()
   } catch {
     return _res.sendStatus(500)

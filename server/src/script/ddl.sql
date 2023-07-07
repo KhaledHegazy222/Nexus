@@ -1,4 +1,6 @@
 -- drop all tables
+drop table purchase;
+drop table s3_id;
 drop table course;
 drop table instructor_contacts;
 drop table instructor_data;
@@ -55,6 +57,13 @@ CREATE TABLE course (
   content JSON,
   publish BOOL DEFAULT 'false',
   FOREIGN KEY (author_id) REFERENCES account (id)
+);
+
+-- Create the 's3_id' table
+CREATE TABLE s3_id (
+  public_id VARCHAR(255) UNIQUE NOT NULL,
+  hidden_id VARCHAR(255) UNIQUE NOT NULL,
+  lesson_type VARCHAR(255) NOT NULL
 );
 
 -- Create the 'purchase' table

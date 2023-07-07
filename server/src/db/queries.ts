@@ -45,6 +45,11 @@ exports.queryList = {
   UPDATE_COURSE_CONTENT: 'update course set content = $1 where id = $2',
   GET_COURSE: 'select * from course where id = $1',
 
+  ADD_LESSONS:
+    'insert into s3_id (public_id, hidden_id, lesson_type) values %L',
+  DELETE_LESSON: 'delete from s3_id where public_id = $1',
+  UPDATE_LESSON: 'update s3_id set lesson_type = $1 where public_id = $2',
+
   ADD_PURCHASE: 'insert into purchase(account_id, course_id) values($1, $2)',
   CHECK_PURCHASE:
     'select exists(select * from purchase where account_id = $1 and course_id = $2)'

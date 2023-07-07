@@ -1,7 +1,9 @@
 import { type Request, type Response } from 'express'
 import { type Result, type ValidationError } from 'express-validator'
 import { DeleteObjectCommand } from '@aws-sdk/client-s3'
+const format = require('pg-format')
 const { body, validationResult } = require('express-validator')
+const { v4: uuidv4 } = require('uuid')
 const dbConnection = require('../db/connection')
 const queries = require('../db/queries')
 const authHelper = require('../middleware/authHelper')
@@ -76,15 +78,13 @@ export const courseEditContentPatch = [
     try {
       const courseId: string = _req.params.courseId
 
-      if (_res.locals.isAuthor === false) return _res.sendStatus(403)
-
-      // get the files must be deleted
-      const queryResp2 = await dbConnection.dbQuery(
+      // get the files must be deleted and changed
+      const queryResp = await dbConnection.dbQuery(
         queries.queryList.GET_COURSE_CONTENT,
         [courseId]
       )
-      if (queryResp2.rows[0].content !== null) {
-        const oldFields: object[] = queryResp2.rows[0].content.fields
+      if (queryResp.rows[0].content !== null) {
+        const oldFields: object[] = queryResp.rows[0].content.fields
         const oldIds: string[] = oldFields.map((value: any) => value.id)
 
         const newFields = _req.body.fields
@@ -93,16 +93,88 @@ export const courseEditContentPatch = [
         const toDelete: string[] = oldIds.filter(
           (id: string) => !newIds.includes(id)
         )
+        const toUpdate = newFields.filter((field: any) => {
+          if (!oldIds.includes(field.id)) return false
+          const oldField: any = oldFields.filter(
+            (oldField: any) => oldField.id === field.id
+          )[0]
+          if (oldField.type !== field.type) return true
+          return false
+        })
+        const toInsert = newFields.filter(
+          (field: any) => !oldIds.includes(field.id)
+        )
+
         console.log('delete from s3 ', toDelete)
+        console.log('update from s3 ', toUpdate)
+        console.log('insert from s3 ', toInsert)
 
-        // TODO: delete toDelete files from s3
+        // TODO: delete toDelete, update files from s3
+
+        // update db
+        if (toInsert.length !== 0) {
+          await dbConnection.dbQueries([
+            {
+              query: format(
+                queries.queryList.ADD_LESSONS,
+                toInsert.map((field: any) => [field.id, uuidv4(), field.type])
+              )
+            },
+            ...toDelete.map((id: string) => {
+              return {
+                query: queries.queryList.DELETE_LESSON,
+                params: [id]
+              }
+            }),
+            ...toUpdate.map((field: any) => {
+              return {
+                query: queries.queryList.UPDATE_LESSON,
+                params: [field.type, field.id]
+              }
+            }),
+            {
+              query: queries.queryList.UPDATE_COURSE_CONTENT,
+              params: [_req.body, courseId]
+            }
+          ])
+        } else {
+          await dbConnection.dbQueries([
+            ...toDelete.map((id: string) => {
+              return {
+                query: queries.queryList.DELETE_LESSON,
+                params: [id]
+              }
+            }),
+            ...toUpdate.map((field: any) => {
+              return {
+                query: queries.queryList.UPDATE_LESSON,
+                params: [field.type, field.id]
+              }
+            }),
+            {
+              query: queries.queryList.UPDATE_COURSE_CONTENT,
+              params: [_req.body, courseId]
+            }
+          ])
+        }
+      } else {
+        // first time to set content
+        const newFields = _req.body.fields
+        if (newFields.length !== 0) {
+          await dbConnection.dbQueries([
+            {
+              query: format(
+                queries.queryList.ADD_LESSONS,
+                newFields.map((field: any) => [field.id, uuidv4(), field.type])
+              )
+            },
+            {
+              query: queries.queryList.UPDATE_COURSE_CONTENT,
+              params: [_req.body, courseId]
+            }
+          ])
+        }
       }
-
-      // update course content
-      await dbConnection.dbQuery(queries.queryList.UPDATE_COURSE_CONTENT, [
-        _req.body,
-        courseId
-      ])
 
       return _res.sendStatus(200)
     } catch {
