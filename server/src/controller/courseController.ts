@@ -256,13 +256,44 @@ export const coursePublishPost = [
   }
 ]
 
+export const streamTokenGet = [
+  authHelper.authenticateToken,
+  roleHelper.checkCourseFullAccess,
+  async function (_req: Request, _res: Response) {
+    try {
+      const token = uuidv4()
+      await dbConnection.dbQuery(queries.queryList.ADD_LESSON_TOKEN, [token])
+
+      return _res.status(200).json({ token })
+    } catch {
+      return _res.sendStatus(500)
+    }
+  }
+]
+
 export const videoStreamGet = [
   async function (_req: Request, _res: Response) {
     try {
-      const videoId = _req.params.videoId
-      const stream = await readStreamHelper.createAWSStream(videoId)
-      // Pipe it into the _response
-      stream.pipe(_res)
+      const publicId = _req.params.publicId
+      const token = _req.params.token
+
+      const queryResp = await dbConnection.dbQuery(
+        queries.queryList.CHECK_LESSON_TOKEN,
+        [token]
+      )
+      if (queryResp.rows[0].exists === true) {
+        const queryResp = await Promise.all([
+          dbConnection.dbQuery(queries.queryList.GET_S3ID, [publicId]),
+          dbConnection.dbQuery(queries.queryList.DELETE_LESSON_TOKEN, [token])
+        ])
+        const stream = await readStreamHelper.createAWSStream(
+          queryResp[0].rows[0].hidden_id
+        )
+        // Pipe it into the _response
+        stream.pipe(_res)
+      } else {
+        return _res.sendStatus(403)
+      }
     } catch (err: any) {
       console.log(err)
       return _res.sendStatus(500)

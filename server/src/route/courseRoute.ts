@@ -8,7 +8,8 @@ router.patch('/:courseId/edit/content', courseController.courseEditContentPatch)
 router.get('/:courseId', courseController.courseDetailsGet)
 router.post('/:courseId/publish', courseController.coursePublishPost)
 
-router.get('/:courseId/video/:videoId', courseController.videoStreamGet)
+router.get('/:courseId/video/:publicId', courseController.streamTokenGet)
+router.get('/video/:publicId/:token', courseController.videoStreamGet)
 router.post(
   '/:courseId/video/upload/:publicId',
   courseController.videoUploadPost

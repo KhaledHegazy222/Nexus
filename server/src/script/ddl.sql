@@ -1,5 +1,6 @@
 -- drop all tables
 drop table purchase;
+drop table lesson_token;
 drop table s3_id;
 drop table course;
 drop table instructor_contacts;
@@ -64,6 +65,11 @@ CREATE TABLE s3_id (
   public_id VARCHAR(255) UNIQUE NOT NULL,
   hidden_id VARCHAR(255) UNIQUE NOT NULL,
   lesson_type VARCHAR(255) NOT NULL
+);
+
+-- Create the 'lesson_token' table
+CREATE TABLE lesson_token (
+  token VARCHAR(255) UNIQUE NOT NULL
 );
 
 -- Create the 'purchase' table

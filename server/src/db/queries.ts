@@ -53,5 +53,10 @@ exports.queryList = {
 
   ADD_PURCHASE: 'insert into purchase(account_id, course_id) values($1, $2)',
   CHECK_PURCHASE:
-    'select exists(select * from purchase where account_id = $1 and course_id = $2)'
+    'select exists(select * from purchase where account_id = $1 and course_id = $2)',
+
+  ADD_LESSON_TOKEN: 'insert into lesson_token(token) values($1)',
+  DELETE_LESSON_TOKEN: 'delete from lesson_token where token = $1',
+  CHECK_LESSON_TOKEN:
+    'select exists(select * from lesson_token where token = $1)'
 }
