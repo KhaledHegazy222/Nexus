@@ -1,13 +1,11 @@
 import React, { useCallback, useState } from "react";
-import { Link, useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { v4 as uuid } from "uuid";
 
 import {
   Box,
   Button,
-  ButtonGroup,
   Collapse,
-  Container,
   Dialog,
   DialogActions,
   DialogContent,
@@ -35,13 +33,14 @@ import {
   MoreHoriz,
   OndemandVideo,
   QuizOutlined,
-  TextSnippetOutlined,
   Visibility,
 } from "@mui/icons-material";
 
 import useCollapseList from "@/hooks/useCollapseList";
 import useMenu from "@/hooks/useMenu";
 import { SubmitHandler, useForm } from "react-hook-form";
+import useAuth from "@/contexts/useAuth";
+import { serverAxios } from "@/utils/axios";
 
 type LessonValueType = {
   id: string;
@@ -52,43 +51,74 @@ type WeekValueType = {
   title: string;
   lessons: LessonValueType[];
 };
+
 const TableOfContentInitialValue: WeekValueType[] = [
   {
     title: "Introduction to Python Programming",
     lessons: [
       {
-        id: "1",
+        id: "af7c1fe6-d669-414e-b066-e9733f0de7a8",
         title: "Introduction to python programming",
         type: "Video",
       },
-      { id: "2", title: "Python Documentations", type: "Reading" },
-      { id: "3", title: "Unit 1 Exercise", type: "Quiz" },
+      {
+        id: "bca65efd-d928-40c3-afa1-1ff4f2a714f8",
+        title: "Python Documentations",
+        type: "Reading",
+      },
+      {
+        id: "7b62adde-bac6-4103-8169-5b319dc49941",
+        title: "Unit 1 Exercise",
+        type: "Quiz",
+      },
     ],
   },
   {
     title: "Introduction to Python Programming",
     lessons: [
       {
-        id: "4",
+        id: "8b6ffabb-e9bb-4479-b3d1-96ca08ff3075",
         title: "Introduction to python programming",
         type: "Video",
       },
-      { id: "5", title: "Python Documentations", type: "Reading" },
-      { id: "6", title: "Unit 1 Exercise", type: "Quiz" },
+      {
+        id: "7c51f90c-2b47-4368-98e0-b8a242136ca0",
+        title: "Python Documentations",
+        type: "Reading",
+      },
+      {
+        id: "5cbf529f-07a0-4f1c-b696-5410565ab716",
+        title: "Unit 1 Exercise",
+        type: "Quiz",
+      },
     ],
   },
   {
     title: "Introduction to Python Programming",
     lessons: [
-      { id: "7", title: "Introduction to python programming", type: "Video" },
-      { id: "8", title: "Python Documentations", type: "Reading" },
-      { id: "9", title: "Unit 1 Exercise", type: "Quiz" },
+      {
+        id: "81a6be9b-2587-4165-8734-4ea06d4a2616",
+        title: "Introduction to python programming",
+        type: "Video",
+      },
+      {
+        id: "eef21a9c-373e-49a2-a06a-80414abca145",
+        title: "Python Documentations",
+        type: "Reading",
+      },
+      {
+        id: "8b3a68ef-0651-41a3-81ed-00f3573188ff",
+        title: "Unit 1 Exercise",
+        type: "Quiz",
+      },
     ],
   },
 ];
 
 const TableOfContent = () => {
   const { id } = useParams();
+  const { token } = useAuth();
+
   const navigate = useNavigate();
   const [selectedWeek, setSelectedWeek] = useState<number>(-1);
   const [selectLessonId, setSelectedLessonId] = useState<string>("");
@@ -100,6 +130,37 @@ const TableOfContent = () => {
   const { listState, toggleCollapse } = useCollapseList(tableOfContent.length);
   const [editMode, setEditMode] = useState(false);
   const { register, handleSubmit } = useForm<LessonValueType>();
+  const handleSave = async () => {
+    console.log(tableOfContent);
+    type lessonEntity = {
+      id: string;
+      type: "Video" | "Reading" | "Quiz";
+      title: string;
+      public: boolean;
+    };
+    // const requestBody = {
+    //   fields: tableOfContent.reduce(
+    //     (totalWeeks: lessonEntity[], currentWeek): lessonEntity[] => [
+    //       ...totalWeeks,
+    //       currentWeek.lessons.reduce(
+    //         (totalLessons: lessonEntity, currentLesson): lessonEntity[] => [
+    //           ...totalLessons,
+    //           {
+    //             id: currentLesson.id,
+    //             type: currentLesson.type,
+    //             title: currentLesson.title,
+    //             public: true,
+    //           },
+    //         ],
+    //         []
+    //       ),
+    //     ],
+    //     []
+    //   ),
+    // };
+    const response = await serverAxios.patch(`/course/${id}/edit/content`, {});
+    setEditMode(false);
+  };
   const onSubmit: SubmitHandler<LessonValueType> = useCallback(
     (e) => {
       e.id = uuid();
@@ -133,6 +194,7 @@ const TableOfContent = () => {
       } else if (weekIndex !== 0) {
         setTableOfContent((prevTable) => {
           const prevTableCopy = structuredClone(prevTable);
+          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
           const movedLesson = prevTableCopy[weekIndex].lessons.shift()!;
           prevTableCopy[weekIndex - 1].lessons.push(movedLesson);
           return prevTableCopy;
@@ -161,6 +223,7 @@ const TableOfContent = () => {
         }
         setTableOfContent((prevTable) => {
           const prevTableCopy = structuredClone(prevTable);
+          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
           const movedLesson = prevTableCopy[weekIndex].lessons.pop()!;
           prevTableCopy[weekIndex + 1].lessons.unshift(movedLesson);
           return prevTableCopy;
@@ -285,7 +348,13 @@ const TableOfContent = () => {
                           sx={{
                             gap: "10px",
                           }}
-                          onClick={() => navigate(`lesson/${lesson.id}`)}
+                          onClick={() =>
+                            navigate(`lesson/${lesson.id}`, {
+                              state: {
+                                type: lesson.type,
+                              },
+                            })
+                          }
                         >
                           <Visibility /> View Content
                         </MenuItem>
@@ -337,7 +406,11 @@ const TableOfContent = () => {
             gap: "20px",
           }}
         >
-          <Button color="primary" variant="contained">
+          <Button
+            color="primary"
+            variant="contained"
+            onClick={() => handleSave()}
+          >
             Save
           </Button>
           <Button
