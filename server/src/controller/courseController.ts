@@ -1,6 +1,6 @@
 import { type Request, type Response, type NextFunction } from 'express'
 import { type Result, type ValidationError } from 'express-validator'
-import { DeleteObjectCommand } from '@aws-sdk/client-s3'
+import { DeleteObjectCommand, HeadObjectCommand } from '@aws-sdk/client-s3'
 const format = require('pg-format')
 const { body, validationResult } = require('express-validator')
 const { v4: uuidv4 } = require('uuid')
@@ -268,11 +268,32 @@ export const streamTokenGet = [
   roleHelper.checkCourseFullAccess,
   async function (_req: Request, _res: Response) {
     try {
+      const publicId = _req.params.publicId
+      const queryResp = await dbConnection.dbQuery(queries.queryList.GET_S3ID, [
+        publicId
+      ])
+      if (
+        queryResp.rows.length === 0 ||
+        queryResp.rows[0].lesson_type !== 'video'
+      ) {
+        return _res.sendStatus(403)
+      }
+
+      await s3.client.send(
+        new HeadObjectCommand({
+          Bucket: s3.BUCKET,
+          Key: queryResp.rows[0].hidden_id
+        })
+      )
+
       const token = uuidv4()
       await dbConnection.dbQuery(queries.queryList.ADD_LESSON_TOKEN, [token])
 
       return _res.status(200).json({ token })
-    } catch {
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        if (err.message === 'UnknownError') return _res.sendStatus(404)
+      }
       return _res.sendStatus(500)
     }
   }
@@ -302,10 +323,7 @@ export const videoStreamGet = [
       } else {
         return _res.sendStatus(403)
       }
-    } catch (err: unknown) {
-      if (err instanceof Error) {
-        if (err.message === 'UnknownError') return _res.sendStatus(404)
-      }
+    } catch {
       return _res.sendStatus(500)
     }
   }
