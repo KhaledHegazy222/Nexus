@@ -286,6 +286,7 @@ export const videoStreamGet = [
           dbConnection.dbQuery(queries.queryList.GET_S3ID, [publicId]),
           dbConnection.dbQuery(queries.queryList.DELETE_LESSON_TOKEN, [token])
         ])
+        if (queryResp[0].rows.length === 0) return _res.sendStatus(400)
         const stream = await readStreamHelper.createAWSStream(
           queryResp[0].rows[0].hidden_id
         )
@@ -294,8 +295,10 @@ export const videoStreamGet = [
       } else {
         return _res.sendStatus(403)
       }
-    } catch (err: any) {
-      console.log(err)
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        if (err.message === 'UnknownError') return _res.sendStatus(404)
+      }
       return _res.sendStatus(500)
     }
   }
