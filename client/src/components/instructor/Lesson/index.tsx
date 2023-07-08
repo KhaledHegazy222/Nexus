@@ -2,17 +2,29 @@ import React from "react";
 import Reading from "./Reading";
 import Video from "./Video";
 import Quiz from "./Quiz";
-import { useLocation } from "react-router-dom";
+import {
+  Route,
+  Routes,
+  useLocation,
+  useNavigate,
+  useParams,
+} from "react-router-dom";
+import { Button } from "@mui/material";
 
 const Lesson = () => {
-  const location = useLocation();
-  const type = location.state.type as "Video" | "Reading" | "Quiz";
-  return type === "Video" ? (
-    <Video />
-  ) : type === "Reading" ? (
-    <Reading />
-  ) : (
-    <Quiz />
+  const navigate = useNavigate();
+  const { courseId } = useParams();
+  return (
+    <>
+      <Button onClick={() => navigate(`/instructor/course/${courseId}`)}>
+        Back to course overview
+      </Button>
+      <Routes>
+        <Route path="/video/:lessonId" element={<Video />} />
+        <Route path="/reading/:lessonId" element={<Reading />} />
+        <Route path="/quiz/:lessonId" element={<Quiz />} />
+      </Routes>
+    </>
   );
 };
 

@@ -8,7 +8,7 @@ const CoursePage = () => {
     <Routes>
       <Route path="/new" element={<CreateCourse />} />
       <Route path="/:id" element={<CourseOverview />} />
-      <Route path="/:courseId/lesson/:lessonId" element={<Lesson />} />
+      <Route path="/:courseId/*" element={<Lesson />} />
     </Routes>
   );
 };
