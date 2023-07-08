@@ -45,7 +45,7 @@ import { serverAxios } from "@/utils/axios";
 type LessonValueType = {
   id: string;
   title: string;
-  type: "Video" | "Reading" | "Quiz";
+  type: "video" | "reading" | "quiz";
 };
 type WeekValueType = {
   title: string;
@@ -59,17 +59,17 @@ const TableOfContentInitialValue: WeekValueType[] = [
       {
         id: "af7c1fe6-d669-414e-b066-e9733f0de7a8",
         title: "Introduction to python programming",
-        type: "Video",
+        type: "video",
       },
       {
         id: "bca65efd-d928-40c3-afa1-1ff4f2a714f8",
         title: "Python Documentations",
-        type: "Reading",
+        type: "reading",
       },
       {
         id: "7b62adde-bac6-4103-8169-5b319dc49941",
         title: "Unit 1 Exercise",
-        type: "Quiz",
+        type: "quiz",
       },
     ],
   },
@@ -79,17 +79,17 @@ const TableOfContentInitialValue: WeekValueType[] = [
       {
         id: "8b6ffabb-e9bb-4479-b3d1-96ca08ff3075",
         title: "Introduction to python programming",
-        type: "Video",
+        type: "video",
       },
       {
         id: "7c51f90c-2b47-4368-98e0-b8a242136ca0",
         title: "Python Documentations",
-        type: "Reading",
+        type: "reading",
       },
       {
         id: "5cbf529f-07a0-4f1c-b696-5410565ab716",
         title: "Unit 1 Exercise",
-        type: "Quiz",
+        type: "quiz",
       },
     ],
   },
@@ -99,17 +99,17 @@ const TableOfContentInitialValue: WeekValueType[] = [
       {
         id: "81a6be9b-2587-4165-8734-4ea06d4a2616",
         title: "Introduction to python programming",
-        type: "Video",
+        type: "video",
       },
       {
         id: "eef21a9c-373e-49a2-a06a-80414abca145",
         title: "Python Documentations",
-        type: "Reading",
+        type: "reading",
       },
       {
         id: "8b3a68ef-0651-41a3-81ed-00f3573188ff",
         title: "Unit 1 Exercise",
-        type: "Quiz",
+        type: "quiz",
       },
     ],
   },
@@ -131,34 +131,45 @@ const TableOfContent = () => {
   const [editMode, setEditMode] = useState(false);
   const { register, handleSubmit } = useForm<LessonValueType>();
   const handleSave = async () => {
-    console.log(tableOfContent);
-    type lessonEntity = {
-      id: string;
-      type: "Video" | "Reading" | "Quiz";
-      title: string;
-      public: boolean;
-    };
-    // const requestBody = {
-    //   fields: tableOfContent.reduce(
-    //     (totalWeeks: lessonEntity[], currentWeek): lessonEntity[] => [
-    //       ...totalWeeks,
-    //       currentWeek.lessons.reduce(
-    //         (totalLessons: lessonEntity, currentLesson): lessonEntity[] => [
-    //           ...totalLessons,
-    //           {
-    //             id: currentLesson.id,
-    //             type: currentLesson.type,
-    //             title: currentLesson.title,
-    //             public: true,
-    //           },
-    //         ],
-    //         []
-    //       ),
-    //     ],
-    //     []
-    //   ),
-    // };
-    const response = await serverAxios.patch(`/course/${id}/edit/content`, {});
+    try {
+      type lessonEntity = {
+        id: string;
+        type: "video" | "reading" | "quiz";
+        title: string;
+        public: boolean;
+      };
+      type weekEntity = {
+        week_title: string;
+        week_content: lessonEntity[];
+      };
+      type requestType = {
+        fields: weekEntity[];
+      };
+      const requestBody: requestType = {
+        fields: tableOfContent.map(
+          (week): weekEntity => ({
+            week_title: week.title,
+            week_content: week.lessons.map(
+              (lesson): lessonEntity => ({
+                id: lesson.id,
+                type: lesson.type,
+                title: lesson.title,
+                public: true,
+              })
+            ),
+          })
+        ),
+      };
+
+      await serverAxios.patch(`/course/${id}/edit/content`, requestBody, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+    } catch (error) {
+      console.log(error);
+    }
+
     setEditMode(false);
   };
   const onSubmit: SubmitHandler<LessonValueType> = useCallback(
@@ -298,9 +309,9 @@ const TableOfContent = () => {
                         justifyContent: "space-between",
                       }}
                     >
-                      {lesson.type === "Video" ? (
+                      {lesson.type === "video" ? (
                         <OndemandVideo />
-                      ) : lesson.type === "Reading" ? (
+                      ) : lesson.type === "reading" ? (
                         <AutoStoriesOutlined />
                       ) : (
                         <QuizOutlined />
@@ -349,7 +360,7 @@ const TableOfContent = () => {
                             gap: "10px",
                           }}
                           onClick={() =>
-                            navigate(`lesson/${lesson.id}`, {
+                            navigate(`${lesson.type}/${lesson.id}`, {
                               state: {
                                 type: lesson.type,
                               },
@@ -462,9 +473,9 @@ const TableOfContent = () => {
                 label="Type"
                 {...register("type")}
               >
-                <MenuItem value="Video">Video</MenuItem>
-                <MenuItem value="Reading">Reading</MenuItem>
-                <MenuItem value="Quiz">Quiz</MenuItem>
+                <MenuItem value="video">video</MenuItem>
+                <MenuItem value="reading">reading</MenuItem>
+                <MenuItem value="quiz">quiz</MenuItem>
               </Select>
             </FormControl>
           </DialogContent>
