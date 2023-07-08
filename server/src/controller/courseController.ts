@@ -59,15 +59,24 @@ export const courseCreatePost = [
 ]
 
 export const courseEditContentPatch = [
-  body('fields.*.id').not().isEmpty().withMessage('id must be specified.'),
-  body('fields.*.title')
+  body('fields.*.week_title')
+    .not()
+    .isEmpty()
+    .withMessage('week title must be specified.'),
+  body('fields.*.week_content.*.id')
+    .not()
+    .isEmpty()
+    .withMessage('id must be specified.'),
+  body('fields.*.week_content.*.title')
     .not()
     .isEmpty()
     .withMessage('title must be specified.'),
-  body('fields.*.type')
+  body('fields.*.week_content.*.type')
     .isIn(['video', 'reading', 'quiz'])
     .withMessage('invalid value.'),
-  body('fields.*.public').isBoolean().withMessage('public must be boolean.'),
+  body('fields.*.week_content.*.public')
+    .isBoolean()
+    .withMessage('public must be boolean.'),
   authHelper.authenticateToken,
   roleHelper.checkAuthor,
   async (_req: Request, _res: Response) => {
@@ -78,6 +87,12 @@ export const courseEditContentPatch = [
 
     try {
       const courseId: string = _req.params.courseId
+      const newLessons: any = []
+      _req.body.fields.forEach((field: any) => {
+        field.week_content.forEach((lesson: any) => {
+          newLessons.push({ id: lesson.id, type: lesson.type })
+        })
+      })
 
       // get the files must be deleted and changed
       const queryResp = await dbConnection.dbQuery(
@@ -85,118 +100,110 @@ export const courseEditContentPatch = [
         [courseId]
       )
       if (queryResp.rows[0].content !== null) {
-        const oldFields: object[] = queryResp.rows[0].content.fields
-        const oldIds: string[] = oldFields.map((value: any) => value.id)
+        const oldLessons: any = []
+        queryResp.rows[0].content.fields.forEach((field: any) => {
+          field.week_content.forEach((lesson: any) => {
+            oldLessons.push({ id: lesson.id, type: lesson.type })
+          })
+        })
 
-        const newFields = _req.body.fields
-        const newIds: string[] = newFields.map((value: any) => value.id)
+        const oldIds: string[] = oldLessons.map((lesson: any) => lesson.id)
+        const newIds: string[] = newLessons.map((value: any) => value.id)
 
         const toDelete: string[] = oldIds.filter(
           (id: string) => !newIds.includes(id)
         )
-        const toUpdate = newFields.filter((field: any) => {
-          if (!oldIds.includes(field.id)) return false
-          const oldField: any = oldFields.filter(
-            (oldField: any) => oldField.id === field.id
+        const toUpdate = newLessons.filter((newLesson: any) => {
+          if (!oldIds.includes(newLesson.id)) return false
+          const oldLesson: any = oldLessons.filter(
+            (oldLesson: any) => oldLesson.id === newLesson.id
           )[0]
-          if (oldField.type !== field.type) return true
+          if (oldLesson.type !== newLesson.type) return true
           return false
         })
-        const toInsert = newFields.filter(
-          (field: any) => !oldIds.includes(field.id)
+        const toInsert = newLessons.filter(
+          (lesson: any) => !oldIds.includes(lesson.id)
         )
 
         console.log('delete from s3 ', toDelete)
         console.log('update from s3 ', toUpdate)
         console.log('insert from s3 ', toInsert)
 
-        // delete toDelete, update files from s3
+        // // delete toDelete, update files from s3
         await Promise.all(
           toDelete.map(async (publicId: string) => {
             const queryResp = await dbConnection.dbQuery(
               queries.queryList.GET_S3ID,
               [publicId]
             )
-            // queryResp.rows.length === 1 -> true
-            await s3.client.send(
-              new DeleteObjectCommand({
-                Bucket: s3.BUCKET,
-                Key: queryResp.rows[0].hidden_id
-              })
-            )
+            if (queryResp.rows.length === 1) {
+              await s3.client.send(
+                new DeleteObjectCommand({
+                  Bucket: s3.BUCKET,
+                  Key: queryResp.rows[0].hidden_id
+                })
+              )
+            }
           })
         )
         await Promise.all(
-          toUpdate.map(async (field: any) => {
+          toUpdate.map(async (lesson: any) => {
             const queryResp = await dbConnection.dbQuery(
               queries.queryList.GET_S3ID,
-              [field.id]
+              [lesson.id]
             )
-            // queryResp.rows.length === 1 -> true
-            await s3.client.send(
-              new DeleteObjectCommand({
-                Bucket: s3.BUCKET,
-                Key: queryResp.rows[0].hidden_id
-              })
-            )
+            if (queryResp.rows.length === 1) {
+              await s3.client.send(
+                new DeleteObjectCommand({
+                  Bucket: s3.BUCKET,
+                  Key: queryResp.rows[0].hidden_id
+                })
+              )
+            }
           })
         )
 
-        // update db
+        // // update db
+        const transaction: any = [
+          ...toDelete.map((id: string) => {
+            return {
+              query: queries.queryList.DELETE_LESSON,
+              params: [id]
+            }
+          }),
+          ...toUpdate.map((lesson: any) => {
+            return {
+              query: queries.queryList.UPDATE_LESSON,
+              params: [lesson.type, lesson.id]
+            }
+          }),
+          {
+            query: queries.queryList.UPDATE_COURSE_CONTENT,
+            params: [_req.body, courseId]
+          }
+        ]
         if (toInsert.length !== 0) {
-          await dbConnection.dbQueries([
-            {
-              query: format(
-                queries.queryList.ADD_LESSONS,
-                toInsert.map((field: any) => [field.id, uuidv4(), field.type])
-              )
-            },
-            ...toDelete.map((id: string) => {
-              return {
-                query: queries.queryList.DELETE_LESSON,
-                params: [id]
-              }
-            }),
-            ...toUpdate.map((field: any) => {
-              return {
-                query: queries.queryList.UPDATE_LESSON,
-                params: [field.type, field.id]
-              }
-            }),
-            {
-              query: queries.queryList.UPDATE_COURSE_CONTENT,
-              params: [_req.body, courseId]
-            }
-          ])
-        } else {
-          await dbConnection.dbQueries([
-            ...toDelete.map((id: string) => {
-              return {
-                query: queries.queryList.DELETE_LESSON,
-                params: [id]
-              }
-            }),
-            ...toUpdate.map((field: any) => {
-              return {
-                query: queries.queryList.UPDATE_LESSON,
-                params: [field.type, field.id]
-              }
-            }),
-            {
-              query: queries.queryList.UPDATE_COURSE_CONTENT,
-              params: [_req.body, courseId]
-            }
-          ])
+          transaction.push({
+            query: format(
+              queries.queryList.ADD_LESSONS,
+              toInsert.map((lesson: any) => [lesson.id, uuidv4(), lesson.type])
+            )
+          })
         }
+
+        await dbConnection.dbQueries(transaction)
       } else {
         // first time to set content
-        const newFields = _req.body.fields
-        if (newFields.length !== 0) {
+        if (newLessons.length !== 0) {
           await dbConnection.dbQueries([
             {
               query: format(
                 queries.queryList.ADD_LESSONS,
-                newFields.map((field: any) => [field.id, uuidv4(), field.type])
+                newLessons.map((lesson: any) => [
+                  lesson.id,
+                  uuidv4(),
+                  lesson.type
+                ])
               )
             },
             {
