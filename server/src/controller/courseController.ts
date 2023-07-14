@@ -233,19 +233,35 @@ export const courseEditContentPatch = [
         // // update db
         const transaction: any = [
           ...toDelete
-            .filter((lesson: any) => lesson.type === 'video')
+            .filter((lesson: any) => lesson.type !== 'reading')
             .map((lesson: any) => {
-              return {
-                query: queries.queryList.DELETE_VIDEOS_HIDDEN_ID,
-                params: [lesson.id]
+              if (lesson.type === 'video') {
+                return {
+                  query: queries.queryList.DELETE_VIDEOS_HIDDEN_ID,
+                  params: [lesson.id]
+                }
+              } else {
+                // quiz
+                return {
+                  query: queries.queryList.DELETE_QUIZ,
+                  params: [lesson.id]
+                }
               }
             }),
           ...toUpdate
-            .filter((lesson: any) => lesson.oldType === 'video')
+            .filter((lesson: any) => lesson.oldType !== 'reading')
             .map((lesson: any) => {
-              return {
-                query: queries.queryList.DELETE_VIDEOS_HIDDEN_ID,
-                params: [lesson.id]
+              if (lesson.type === 'video') {
+                return {
+                  query: queries.queryList.DELETE_VIDEOS_HIDDEN_ID,
+                  params: [lesson.id]
+                }
+              } else {
+                // quiz
+                return {
+                  query: queries.queryList.DELETE_QUIZ,
+                  params: [lesson.id]
+                }
               }
             }),
           {
@@ -471,8 +487,15 @@ export const lessonDelete = [
   async (_req: Request, _res: Response) => {
     try {
       const publicId = _req.params.publicId
-      let idToDelete = ''
 
+      if (_res.locals.lessonType === 'quiz') {
+        await dbConnection.dbQuery(queries.queryList.DELETE_QUIZ, [
+          _req.params.publicId
+        ])
+        return _res.sendStatus(204)
+      }
+
+      let idToDelete = ''
       if (_res.locals.lessonType === 'video') {
         const queryResp = await dbConnection.dbQuery(
           queries.queryList.GET_VIDEO_ID,
@@ -494,8 +517,79 @@ export const lessonDelete = [
       )
       // will delete normal if not exist
       return _res.sendStatus(204)
-    } catch (err: any) {
+    } catch {
+      return _res.sendStatus(500)
+    }
+  }
+]
+
+export const quizUploadPost = [
+  body('body.*.title')
+    .trim()
+    .not()
+    .isEmpty()
+    .withMessage('title must be specified.'),
+  body('body.*.options.content')
+    .isArray()
+    .notEmpty()
+    .withMessage('options must be specified.'),
+  body('body.*.answer')
+    .trim()
+    .not()
+    .isEmpty()
+    .withMessage('answer must be specified.'),
+  authHelper.authenticateToken,
+  roleHelper.checkAuthor,
+  roleHelper.getLessonType,
+  async (_req: Request, _res: Response) => {
+    const errors: Result<ValidationError> = validationResult(_req)
+    if (!errors.isEmpty()) {
+      return _res.status(400).json({ errors: errors.array() })
+    }
+
+    if (_res.locals.lessonType !== 'quiz') return _res.sendStatus(400)
+
+    const publicId = _req.params.publicId
+    const courseId = _req.params.courseId
+    try {
+      await dbConnection.dbQuery(queries.queryList.DELETE_QUIZ, [publicId])
+
+      await dbConnection.dbQuery(
+        format(
+          queries.queryList.ADD_QUIZ,
+          _req.body.body.map((q: any, i: number) => [
+            publicId,
+            courseId,
+            i,
+            q.title,
+            q.answer,
+            q.options
+          ])
+        )
+      )
+
+      return _res.sendStatus(201)
+    } catch (err) {
       console.log(err)
+      return _res.sendStatus(500)
+    }
+  }
+]
+
+export const quizGet = [
+  authHelper.authenticateToken,
+  roleHelper.checkLessonAccess,
+  roleHelper.getLessonType,
+  async (_req: Request, _res: Response) => {
+    if (_res.locals.lessonType !== 'quiz') return _res.sendStatus(400)
+
+    try {
+      const queryResp = await dbConnection.dbQuery(queries.queryList.GET_QUIZ, [
+        _req.params.publicId
+      ])
+
+      return _res.status(200).json({ body: queryResp.rows })
+    } catch {
       return _res.sendStatus(500)
     }
   }

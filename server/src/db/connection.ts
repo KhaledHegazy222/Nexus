@@ -2,15 +2,10 @@ const pool = require('./pool')
 
 exports.dbQuery = async (queryText: string, queryParams: string[]) => {
   const connection = await pool.connect()
-  try {
-    console.log('Connection ID:', connection.processID)
-    const resp = await pool.query(queryText, queryParams)
-    return resp
-  } catch {
-    return new Error('db Error')
-  } finally {
-    connection.release()
-  }
+  console.log('Connection ID:', connection.processID)
+  const resp = await pool.query(queryText, queryParams)
+  connection.release()
+  return resp
 }
 
 interface QueryObject {

@@ -53,6 +53,12 @@ exports.queryList = {
     'delete from s3_hidden_video_id where public_id = $1',
   GET_VIDEO_ID: 'select * from s3_hidden_video_id where public_id = $1',
 
+  ADD_QUIZ:
+    'insert into course_quiz_question(quiz_id, course_id, idx_order, title, answer, options) values %L',
+  GET_QUIZ:
+    'select title, options from course_quiz_question where quiz_id = $1 order by idx_order',
+  DELETE_QUIZ: 'delete from course_quiz_question where quiz_id = $1',
+
   ADD_PURCHASE: 'insert into purchase(account_id, course_id) values($1, $2)',
   CHECK_PURCHASE:
     'select exists(select * from purchase where account_id = $1 and course_id = $2)',

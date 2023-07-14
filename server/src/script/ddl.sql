@@ -60,7 +60,7 @@ CREATE TABLE course (
   FOREIGN KEY (author_id) REFERENCES account (id)
 );
 
--- Create the 's3_id' table
+-- Create the 's3_hidden_video_id' table
 CREATE TABLE s3_hidden_video_id (
   public_id VARCHAR(255) UNIQUE NOT NULL,
   hidden_id VARCHAR(255) UNIQUE NOT NULL
@@ -76,5 +76,17 @@ CREATE TABLE purchase (
   account_id INT NOT NULL,
   course_id INT NOT NULL,
   FOREIGN KEY (account_id) REFERENCES account (id),
+  FOREIGN KEY (course_id) REFERENCES course (id)
+);
+
+-- Create the 'course_quiz_question' table
+CREATE TABLE course_quiz_question (
+  id SERIAL PRIMARY KEY,
+  quiz_id VARCHAR(255) NOT NULL,
+  course_id INT NOT NULL,
+  idx_order INT NOT NULL,
+  title TEXT NOT NULL,
+  answer TEXT NOT NULL,
+  options JSON NOT NULL,
   FOREIGN KEY (course_id) REFERENCES course (id)
 );
