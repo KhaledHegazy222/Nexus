@@ -18,8 +18,10 @@ export const getObject = async (
     const str = await response.Body.transformToString()
     _res.locals.reading = str
     _next()
-  } catch (err) {
-    console.error(err)
+  } catch (err: unknown) {
+    if (err instanceof Error) {
+      if (err.name === 'NoSuchKey') return _res.sendStatus(404)
+    }
     return _res.sendStatus(500)
   }
 }
