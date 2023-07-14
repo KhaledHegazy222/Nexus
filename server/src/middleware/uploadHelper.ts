@@ -14,9 +14,10 @@ export const upload = multer({
     },
     key: async function (_req: Request, _file: any, cb: any) {
       const publicId: string = _req.params.publicId
-      const queryResp = await dbConnection.dbQuery(queries.queryList.GET_S3ID, [
-        publicId
-      ])
+      const queryResp = await dbConnection.dbQuery(
+        queries.queryList.GET_VIDEO_ID,
+        [publicId]
+      )
       console.log('to upload')
       cb(null, queryResp.rows[0].hidden_id)
       console.log('uploaded')

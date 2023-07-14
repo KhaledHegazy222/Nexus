@@ -38,6 +38,8 @@ exports.queryList = {
 
   ADD_COURSE:
     'insert into course(author_id, title, level, field, department, price, description, what_you_will_learn, requirements) values($1, $2, $3, $4, $5, $6, $7, $8, $9)',
+  UPDATE_COURSE:
+    'update course set title = $1, level = $2, field = $3, department = $4, price = $5, description = $6, what_you_will_learn = $7, requirements = $8 where id = $9',
   PUBLISH_COURSE: 'update course set publish = true where id = $1',
   CHECK_COURSE_AUTHOR:
     'select exists(select id from course where id = $1 and author_id = $2)',
@@ -45,11 +47,11 @@ exports.queryList = {
   UPDATE_COURSE_CONTENT: 'update course set content = $1 where id = $2',
   GET_COURSE: 'select * from course where id = $1',
 
-  ADD_LESSONS:
-    'insert into s3_id (public_id, hidden_id, lesson_type) values %L',
-  DELETE_LESSON: 'delete from s3_id where public_id = $1',
-  UPDATE_LESSON: 'update s3_id set lesson_type = $1 where public_id = $2',
-  GET_S3ID: 'select * from s3_id where public_id = $1',
+  ADD_VIDEOS_HIDDEN_ID:
+    'insert into s3_hidden_video_id (public_id, hidden_id) values %L',
+  DELETE_VIDEOS_HIDDEN_ID:
+    'delete from s3_hidden_video_id where public_id = $1',
+  GET_VIDEO_ID: 'select * from s3_hidden_video_id where public_id = $1',
 
   ADD_PURCHASE: 'insert into purchase(account_id, course_id) values($1, $2)',
   CHECK_PURCHASE:

@@ -1,6 +1,10 @@
 import { type Request, type Response, type NextFunction } from 'express'
 import { type Result, type ValidationError } from 'express-validator'
-import { DeleteObjectCommand, HeadObjectCommand } from '@aws-sdk/client-s3'
+import {
+  PutObjectCommand,
+  DeleteObjectCommand,
+  HeadObjectCommand
+} from '@aws-sdk/client-s3'
 const format = require('pg-format')
 const { body, validationResult } = require('express-validator')
 const { v4: uuidv4 } = require('uuid')
@@ -10,6 +14,7 @@ const uploadHelper = require('../middleware/uploadHelper')
 const authHelper = require('../middleware/authHelper')
 const roleHelper = require('../middleware/roleHelper')
 const readStreamHelper = require('../middleware/readStreamHelper')
+const getFromAWSHelper = require('../middleware/getFromAWSHelper')
 const s3 = require('../s3Client')
 
 export const courseCreatePost = [
@@ -52,6 +57,50 @@ export const courseCreatePost = [
         _req.body.requirements
       ])
       return _res.sendStatus(201)
+    } catch {
+      return _res.sendStatus(500)
+    }
+  }
+]
+
+export const courseEditPut = [
+  body('title').not().isEmpty().withMessage('title must be specified.'),
+  body('price')
+    .trim()
+    .optional({ checkFalsy: true })
+    .isNumeric()
+    .withMessage('price must be a decimal'),
+  body('what_you_will_learn.body.*')
+    .trim()
+    .not()
+    .isEmpty()
+    .withMessage('content must be specified'),
+  body('requirements.body.*')
+    .trim()
+    .not()
+    .isEmpty()
+    .withMessage('content must be specified'),
+  authHelper.authenticateToken,
+  roleHelper.checkAuthor,
+  async (_req: Request, _res: Response) => {
+    const errors: Result<ValidationError> = validationResult(_req)
+    if (!errors.isEmpty()) {
+      return _res.status(400).json({ errors: errors.array() })
+    }
+
+    try {
+      await dbConnection.dbQuery(queries.queryList.UPDATE_COURSE, [
+        _req.body.title,
+        _req.body.level,
+        _req.body.field,
+        _req.body.department,
+        _req.body.price,
+        _req.body.description,
+        _req.body.what_you_will_learn,
+        _req.body.requirements,
+        _req.params.courseId
+      ])
+      return _res.sendStatus(200)
     } catch {
       return _res.sendStatus(500)
     }
@@ -110,16 +159,22 @@ export const courseEditContentPatch = [
         const oldIds: string[] = oldLessons.map((lesson: any) => lesson.id)
         const newIds: string[] = newLessons.map((value: any) => value.id)
 
-        const toDelete: string[] = oldIds.filter(
-          (id: string) => !newIds.includes(id)
-        )
-        const toUpdate = newLessons.filter((newLesson: any) => {
-          if (!oldIds.includes(newLesson.id)) return false
-          const oldLesson: any = oldLessons.filter(
-            (oldLesson: any) => oldLesson.id === newLesson.id
-          )[0]
-          if (oldLesson.type !== newLesson.type) return true
-          return false
+        const toDelete = oldLessons.filter((oldLesson: any) => {
+          return !newIds.includes(oldLesson.id)
+        })
+
+        const toUpdate: any[] = []
+        newLessons.forEach((newLesson: any) => {
+          if (oldIds.includes(newLesson.id)) {
+            const oldLesson: any = oldLessons.filter(
+              (oldLesson: any) => oldLesson.id === newLesson.id
+            )[0]
+            if (oldLesson.type !== newLesson.type) {
+              const lesson = newLesson
+              lesson.oldType = oldLesson.type
+              toUpdate.push(lesson)
+            }
+          }
         })
         const toInsert = newLessons.filter(
           (lesson: any) => !oldIds.includes(lesson.id)
@@ -131,16 +186,22 @@ export const courseEditContentPatch = [
 
         // // delete toDelete, update files from s3
         await Promise.all(
-          toDelete.map(async (publicId: string) => {
-            const queryResp = await dbConnection.dbQuery(
-              queries.queryList.GET_S3ID,
-              [publicId]
-            )
-            if (queryResp.rows.length === 1) {
+          toDelete.map(async (lesson: any) => {
+            if (lesson.type === 'video' || lesson.type === 'reading') {
+              let idToDelete = lesson.id
+              if (lesson.type === 'video') {
+                const queryResp = await dbConnection.dbQuery(
+                  queries.queryList.GET_VIDEO_ID,
+                  [lesson.id]
+                )
+                if (queryResp.rows.length === 1) {
+                  idToDelete = queryResp.rows[0].hidden_id
+                }
+              }
               await s3.client.send(
                 new DeleteObjectCommand({
                   Bucket: s3.BUCKET,
-                  Key: queryResp.rows[0].hidden_id
+                  Key: idToDelete
                 })
               )
             }
@@ -148,15 +209,21 @@ export const courseEditContentPatch = [
         )
         await Promise.all(
           toUpdate.map(async (lesson: any) => {
-            const queryResp = await dbConnection.dbQuery(
-              queries.queryList.GET_S3ID,
-              [lesson.id]
-            )
-            if (queryResp.rows.length === 1) {
+            if (lesson.oldType === 'video' || lesson.oldType === 'reading') {
+              let idToDelete = lesson.id
+              if (lesson.oldType === 'video') {
+                const queryResp = await dbConnection.dbQuery(
+                  queries.queryList.GET_VIDEO_ID,
+                  [lesson.id]
+                )
+                if (queryResp.rows.length === 1) {
+                  idToDelete = queryResp.rows[0].hidden_id
+                }
+              }
               await s3.client.send(
                 new DeleteObjectCommand({
                   Bucket: s3.BUCKET,
-                  Key: queryResp.rows[0].hidden_id
+                  Key: idToDelete
                 })
               )
             }
@@ -165,18 +232,22 @@ export const courseEditContentPatch = [
 
         // // update db
         const transaction: any = [
-          ...toDelete.map((id: string) => {
-            return {
-              query: queries.queryList.DELETE_LESSON,
-              params: [id]
-            }
-          }),
-          ...toUpdate.map((lesson: any) => {
-            return {
-              query: queries.queryList.UPDATE_LESSON,
-              params: [lesson.type, lesson.id]
-            }
-          }),
+          ...toDelete
+            .filter((lesson: any) => lesson.type === 'video')
+            .map((lesson: any) => {
+              return {
+                query: queries.queryList.DELETE_VIDEOS_HIDDEN_ID,
+                params: [lesson.id]
+              }
+            }),
+          ...toUpdate
+            .filter((lesson: any) => lesson.oldType === 'video')
+            .map((lesson: any) => {
+              return {
+                query: queries.queryList.DELETE_VIDEOS_HIDDEN_ID,
+                params: [lesson.id]
+              }
+            }),
           {
             query: queries.queryList.UPDATE_COURSE_CONTENT,
             params: [_req.body, courseId]
@@ -185,8 +256,10 @@ export const courseEditContentPatch = [
         if (toInsert.length !== 0) {
           transaction.push({
             query: format(
-              queries.queryList.ADD_LESSONS,
-              toInsert.map((lesson: any) => [lesson.id, uuidv4(), lesson.type])
+              queries.queryList.ADD_VIDEOS_HIDDEN_ID,
+              toInsert
+                .filter((lesson: any) => lesson.type === 'video')
+                .map((lesson: any) => [lesson.id, uuidv4()])
             )
           })
         }
@@ -198,12 +271,10 @@ export const courseEditContentPatch = [
           await dbConnection.dbQueries([
             {
               query: format(
-                queries.queryList.ADD_LESSONS,
-                newLessons.map((lesson: any) => [
-                  lesson.id,
-                  uuidv4(),
-                  lesson.type
-                ])
+                queries.queryList.ADD_VIDEOS_HIDDEN_ID,
+                newLessons
+                  .filter((lesson: any) => lesson.type === 'video')
+                  .map((lesson: any) => [lesson.id, uuidv4()])
               )
             },
             {
@@ -265,19 +336,18 @@ export const coursePublishPost = [
 
 export const streamTokenGet = [
   authHelper.authenticateToken,
-  roleHelper.checkCourseFullAccess,
+  roleHelper.checkLessonAccess,
+  roleHelper.getLessonType,
   async function (_req: Request, _res: Response) {
+    if (_res.locals.lessonType !== 'video') return _res.sendStatus(400)
+
     try {
       const publicId = _req.params.publicId
-      const queryResp = await dbConnection.dbQuery(queries.queryList.GET_S3ID, [
-        publicId
-      ])
-      if (
-        queryResp.rows.length === 0 ||
-        queryResp.rows[0].lesson_type !== 'video'
-      ) {
-        return _res.sendStatus(403)
-      }
+      const queryResp = await dbConnection.dbQuery(
+        queries.queryList.GET_VIDEO_ID,
+        [publicId]
+      )
+      if (queryResp.rows.length === 0) return _res.sendStatus(403)
 
       await s3.client.send(
         new HeadObjectCommand({
@@ -311,7 +381,7 @@ export const videoStreamGet = [
       )
       if (queryResp.rows[0].exists === true) {
         const queryResp = await Promise.all([
-          dbConnection.dbQuery(queries.queryList.GET_S3ID, [publicId]),
+          dbConnection.dbQuery(queries.queryList.GET_VIDEO_ID, [publicId]),
           dbConnection.dbQuery(queries.queryList.DELETE_LESSON_TOKEN, [token])
         ])
         if (queryResp[0].rows.length === 0) return _res.sendStatus(400)
@@ -332,18 +402,18 @@ export const videoStreamGet = [
 export const videoUploadPost = [
   authHelper.authenticateToken,
   roleHelper.checkAuthor,
+  roleHelper.getLessonType,
   async function (_req: Request, _res: Response, _next: NextFunction) {
+    if (_res.locals.lessonType !== 'video') return _res.sendStatus(400)
+
     try {
       const publicId: string = _req.params.publicId
-      const queryResp = await dbConnection.dbQuery(queries.queryList.GET_S3ID, [
-        publicId
-      ])
-      if (
-        queryResp.rows.length === 0 ||
-        queryResp.rows[0].lesson_type !== 'video'
-      ) {
-        return _res.sendStatus(400)
-      }
+      const queryResp = await dbConnection.dbQuery(
+        queries.queryList.GET_VIDEO_ID,
+        [publicId]
+      )
+      if (queryResp.rows.length === 0) return _res.sendStatus(400)
+
       _next()
     } catch {
       return _res.sendStatus(500)
@@ -355,26 +425,71 @@ export const videoUploadPost = [
   }
 ]
 
-export const videoDelete = [
+export const readingUploadPost = [
   authHelper.authenticateToken,
   roleHelper.checkAuthor,
+  roleHelper.getLessonType,
+  async (_req: Request, _res: Response) => {
+    if (_res.locals.lessonType !== 'reading') return _res.sendStatus(400)
+
+    const publicId = _req.params.publicId
+
+    try {
+      const command = new PutObjectCommand({
+        Bucket: s3.BUCKET,
+        Key: publicId,
+        Body: _req.body.content
+      })
+      const response = await s3.client.send(command)
+      console.log(response)
+
+      return _res.sendStatus(201)
+    } catch {
+      return _res.sendStatus(500)
+    }
+  }
+]
+
+export const readingGet = [
+  authHelper.authenticateToken,
+  roleHelper.checkLessonAccess,
+  roleHelper.getLessonType,
+  (_req: Request, _res: Response, _next: NextFunction) => {
+    if (_res.locals.lessonType !== 'reading') return _res.sendStatus(400)
+    _next()
+  },
+  getFromAWSHelper.getObject,
+  (_req: Request, _res: Response) => {
+    return _res.status(200).json({ content: _res.locals.reading })
+  }
+]
+
+export const lessonDelete = [
+  authHelper.authenticateToken,
+  roleHelper.checkAuthor,
+  roleHelper.getLessonType,
   async (_req: Request, _res: Response) => {
     try {
       const publicId = _req.params.publicId
-      const queryResp = await dbConnection.dbQuery(queries.queryList.GET_S3ID, [
-        publicId
-      ])
-      if (
-        queryResp.rows.length === 0 ||
-        queryResp.rows[0].lesson_type !== 'video'
-      ) {
-        return _res.sendStatus(400)
+      let idToDelete = ''
+
+      if (_res.locals.lessonType === 'video') {
+        const queryResp = await dbConnection.dbQuery(
+          queries.queryList.GET_VIDEO_ID,
+          [publicId]
+        )
+        if (queryResp.rows.length === 0) {
+          return _res.sendStatus(400)
+        }
+        idToDelete = queryResp.rows[0].hidden_id
+      } else {
+        idToDelete = publicId
       }
 
       await s3.client.send(
         new DeleteObjectCommand({
           Bucket: s3.BUCKET,
-          Key: queryResp.rows[0].hidden_id
+          Key: idToDelete
         })
       )
       // will delete normal if not exist

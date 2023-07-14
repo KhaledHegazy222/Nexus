@@ -61,10 +61,9 @@ CREATE TABLE course (
 );
 
 -- Create the 's3_id' table
-CREATE TABLE s3_id (
+CREATE TABLE s3_hidden_video_id (
   public_id VARCHAR(255) UNIQUE NOT NULL,
-  hidden_id VARCHAR(255) UNIQUE NOT NULL,
-  lesson_type VARCHAR(255) NOT NULL
+  hidden_id VARCHAR(255) UNIQUE NOT NULL
 );
 
 -- Create the 'lesson_token' table

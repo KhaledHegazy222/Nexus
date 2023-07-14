@@ -4,8 +4,9 @@ const courseController = require('../controller/courseController')
 const router = express.Router()
 
 router.post('/create', courseController.courseCreatePost)
-router.patch('/:courseId/edit/content', courseController.courseEditContentPatch)
+router.put('/:courseId', courseController.courseEditPut)
 router.get('/:courseId', courseController.courseDetailsGet)
+router.patch('/:courseId/edit/content', courseController.courseEditContentPatch)
 router.post('/:courseId/publish', courseController.coursePublishPost)
 
 router.get('/:courseId/video/:publicId', courseController.streamTokenGet)
@@ -14,6 +15,16 @@ router.post(
   '/:courseId/video/upload/:publicId',
   courseController.videoUploadPost
 )
-router.delete('/:courseId/video/delete/:publicId', courseController.videoDelete)
+
+router.get('/:courseId/reading/:publicId', courseController.readingGet)
+router.post(
+  '/:courseId/reading/upload/:publicId',
+  courseController.readingUploadPost
+)
+
+router.delete(
+  '/:courseId/lesson/delete/:publicId',
+  courseController.lessonDelete
+)
 
 export = router

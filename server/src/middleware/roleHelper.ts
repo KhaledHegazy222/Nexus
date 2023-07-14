@@ -50,7 +50,7 @@ export const checkAuthor = async (
   }
 }
 
-export const checkCourseFullAccess = async (
+export const checkLessonAccess = async (
   _req: Request,
   _res: Response,
   _next: NextFunction
@@ -90,6 +90,40 @@ export const checkCourseFullAccess = async (
     }
 
     if (!hasAccess) return _res.sendStatus(403)
+    _next()
+  } catch {
+    return _res.sendStatus(500)
+  }
+}
+
+export const getLessonType = async (
+  _req: Request,
+  _res: Response,
+  _next: NextFunction
+): Promise<any> => {
+  try {
+    const courseId = _req.params.courseId
+
+    if (!/^[0-9]+$/.test(courseId)) return _res.sendStatus(400)
+
+    const queryResp = await dbConnection.dbQuery(
+      queries.queryList.GET_COURSE_CONTENT,
+      [courseId]
+    )
+
+    if (queryResp.rows.length === 0) return _res.sendStatus(404)
+
+    let type = ''
+    queryResp.rows[0].content.fields.forEach((field: any) => {
+      field.week_content.forEach((lesson: any) => {
+        if (lesson.id === _req.params.publicId) {
+          type = lesson.type
+        }
+      })
+    })
+
+    if (type === '') return _res.sendStatus(404)
+    _res.locals.lessonType = type
     _next()
   } catch {
     return _res.sendStatus(500)
