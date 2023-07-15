@@ -1,7 +1,8 @@
 -- drop all tables
+drop table course_quiz_question;
 drop table purchase;
 drop table lesson_token;
-drop table s3_id;
+drop table s3_hidden_video_id;
 drop table course;
 drop table instructor_contacts;
 drop table instructor_data;

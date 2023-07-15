@@ -180,9 +180,9 @@ export const courseEditContentPatch = [
           (lesson: any) => !oldIds.includes(lesson.id)
         )
 
-        console.log('delete from s3 ', toDelete)
-        console.log('update from s3 ', toUpdate)
-        console.log('insert from s3 ', toInsert)
+        // console.log('delete from s3 ', toDelete)
+        // console.log('update from s3 ', toUpdate)
+        // console.log('insert from s3 ', toInsert)
 
         // // delete toDelete, update files from s3
         await Promise.all(
@@ -251,7 +251,7 @@ export const courseEditContentPatch = [
           ...toUpdate
             .filter((lesson: any) => lesson.oldType !== 'reading')
             .map((lesson: any) => {
-              if (lesson.type === 'video') {
+              if (lesson.oldType === 'video') {
                 return {
                   query: queries.queryList.DELETE_VIDEOS_HIDDEN_ID,
                   params: [lesson.id]
@@ -264,41 +264,45 @@ export const courseEditContentPatch = [
                 }
               }
             }),
+          ...toUpdate
+            .filter((lesson: any) => lesson.type === 'video')
+            .map((lesson: any) => {
+              return {
+                query: queries.queryList.ADD_VIDEO_HIDDEN_ID,
+                params: [lesson.id, uuidv4()]
+              }
+            }),
+          ...toInsert
+            .filter((lesson: any) => lesson.type === 'video')
+            .map((lesson: any) => {
+              return {
+                query: queries.queryList.ADD_VIDEO_HIDDEN_ID,
+                params: [lesson.id, uuidv4()]
+              }
+            }),
           {
             query: queries.queryList.UPDATE_COURSE_CONTENT,
             params: [_req.body, courseId]
           }
         ]
-        if (toInsert.length !== 0) {
-          transaction.push({
-            query: format(
-              queries.queryList.ADD_VIDEOS_HIDDEN_ID,
-              toInsert
-                .filter((lesson: any) => lesson.type === 'video')
-                .map((lesson: any) => [lesson.id, uuidv4()])
-            )
-          })
-        }
 
         await dbConnection.dbQueries(transaction)
       } else {
         // first time to set content
-        if (newLessons.length !== 0) {
-          await dbConnection.dbQueries([
-            {
-              query: format(
-                queries.queryList.ADD_VIDEOS_HIDDEN_ID,
-                newLessons
-                  .filter((lesson: any) => lesson.type === 'video')
-                  .map((lesson: any) => [lesson.id, uuidv4()])
-              )
-            },
-            {
-              query: queries.queryList.UPDATE_COURSE_CONTENT,
-              params: [_req.body, courseId]
-            }
-          ])
-        }
+        await dbConnection.dbQueries([
+          ...newLessons
+            .filter((lesson: any) => lesson.type === 'video')
+            .map((lesson: any) => {
+              return {
+                query: queries.queryList.ADD_VIDEO_HIDDEN_ID,
+                params: [lesson.id, uuidv4()]
+              }
+            }),
+          {
+            query: queries.queryList.UPDATE_COURSE_CONTENT,
+            params: [_req.body, courseId]
+          }
+        ])
       }
 
       return _res.sendStatus(200)
@@ -524,14 +528,14 @@ export const lessonDelete = [
 ]
 
 export const quizUploadPost = [
+  body('body').isArray({ min: 1 }).withMessage('quiz must be specified.'),
   body('body.*.title')
     .trim()
     .not()
     .isEmpty()
     .withMessage('title must be specified.'),
   body('body.*.options.content')
-    .isArray()
-    .notEmpty()
+    .isArray({ min: 1 })
     .withMessage('options must be specified.'),
   body('body.*.answer')
     .trim()
