@@ -1,22 +1,27 @@
-import React from "react";
 import Reading from "./Reading";
 import Video from "./Video";
 import Quiz from "./Quiz";
-import {
-  Route,
-  Routes,
-  useLocation,
-  useNavigate,
-  useParams,
-} from "react-router-dom";
+import { Route, Routes, useNavigate, useParams } from "react-router-dom";
 import { Button } from "@mui/material";
+import { West } from "@mui/icons-material";
 
 const Lesson = () => {
   const navigate = useNavigate();
   const { courseId } = useParams();
   return (
     <>
-      <Button onClick={() => navigate(`/instructor/course/${courseId}`)}>
+      <Button
+        variant="contained"
+        onClick={() => navigate(`/instructor/course/${courseId}`)}
+        sx={{
+          marginTop: "30px",
+          marginLeft: "30px",
+          marginRight: "auto",
+          display: "flex",
+          gap: "10px",
+        }}
+      >
+        <West />
         Back to course overview
       </Button>
       <Routes>

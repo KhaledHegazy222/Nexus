@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { v4 as uuid } from "uuid";
 
@@ -15,6 +15,7 @@ import {
   InputLabel,
   List,
   ListItem,
+  ListItemButton,
   Menu,
   MenuItem,
   Select,
@@ -121,15 +122,39 @@ const TableOfContent = () => {
 
   const navigate = useNavigate();
   const [selectedWeek, setSelectedWeek] = useState<number>(-1);
-  const [selectLessonId, setSelectedLessonId] = useState<string>("");
+  const [selectedLessonId, setSelectedLessonId] = useState<string>("");
   const [openLessonDialog, setOpenLessonDialog] = useState(false);
   const [tableOfContent, setTableOfContent] = useState<WeekValueType[]>(
     TableOfContentInitialValue
   );
+  const [tableOfContentBackup, setTableOfContentBackup] = useState<
+    WeekValueType[]
+  >([]);
   const { open, handleClick, handleClose, menuAnchor } = useMenu();
+  const weekMenu = useMenu();
   const { listState, toggleCollapse } = useCollapseList(tableOfContent.length);
   const [editMode, setEditMode] = useState(false);
   const { register, handleSubmit } = useForm<LessonValueType>();
+
+  const startEditMode = () => {
+    if (!editMode) {
+      setTableOfContentBackup(tableOfContent);
+      setEditMode(true);
+    }
+  };
+  const cancelEditModeChanges = () => {
+    setTableOfContent(tableOfContentBackup);
+    setEditMode(false);
+  };
+
+  const handleDeleteWeek = (weekIndex: number): void => {
+    setTableOfContent((prevState) => {
+      const stateCopy = [...prevState];
+      stateCopy.splice(weekIndex, 1);
+      return stateCopy;
+    });
+  };
+
   const handleSave = async () => {
     try {
       type lessonEntity = {
@@ -160,12 +185,13 @@ const TableOfContent = () => {
           })
         ),
       };
-
       await serverAxios.patch(`/course/${id}/edit/content`, requestBody, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
       });
+      setTableOfContentBackup(tableOfContent);
+      setEditMode(false);
     } catch (error) {
       console.log(error);
     }
@@ -174,6 +200,7 @@ const TableOfContent = () => {
   };
   const onSubmit: SubmitHandler<LessonValueType> = useCallback(
     (e) => {
+      startEditMode();
       e.id = uuid();
       setTableOfContent((prevState) => {
         prevState[selectedWeek].lessons.push(e);
@@ -181,14 +208,14 @@ const TableOfContent = () => {
       });
       setOpenLessonDialog(false);
     },
-    [selectedWeek]
+    [selectedWeek, startEditMode]
   );
   const shiftUpDown = (
     weekIndex: number,
     lessonIndex: number,
     direction: "Upward" | "Downward"
   ) => {
-    setEditMode(true);
+    startEditMode();
     if (direction === "Upward") {
       if (lessonIndex !== 0) {
         setTableOfContent((prevTable) => {
@@ -242,7 +269,41 @@ const TableOfContent = () => {
       }
     }
   };
+  useEffect(() => {
+    loadData();
 
+    async function loadData() {
+      try {
+        const response = await serverAxios.get(`/course/${id}`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        type responseDataType = {
+          week_title: string;
+          week_content: {
+            id: string;
+            type: string;
+            title: string;
+            public: boolean;
+          }[];
+        };
+        const tableData: WeekValueType[] = response.data.content.fields.map(
+          (weekObject: responseDataType): WeekValueType => ({
+            title: weekObject.week_title,
+            lessons: weekObject.week_content.map((lessonObject) => ({
+              id: lessonObject.id,
+              title: lessonObject.title,
+              type: lessonObject.type as "video" | "reading" | "quiz",
+            })),
+          })
+        );
+        setTableOfContent(tableData);
+      } catch {
+        /* empty */
+      }
+    }
+  }, [token, id]);
   return (
     <Box
       sx={{
@@ -296,6 +357,35 @@ const TableOfContent = () => {
                   <IconButton onClick={() => toggleCollapse(weekIndex)}>
                     {listState[weekIndex] ? <ExpandLess /> : <ExpandMore />}
                   </IconButton>
+                  <IconButton onClick={weekMenu.handleClick}>
+                    <MoreHoriz />
+                  </IconButton>
+                  <Menu
+                    open={weekMenu.open}
+                    anchorEl={weekMenu.menuAnchor}
+                    onClose={weekMenu.handleClose}
+                  >
+                    <ListItemButton
+                      sx={{
+                        gap: "10px",
+                      }}
+                    >
+                      <Edit /> Edit
+                    </ListItemButton>
+                    <ListItemButton
+                      sx={{
+                        gap: "10px",
+                        color: "red",
+                      }}
+                      onClick={() => {
+                        startEditMode();
+                        handleDeleteWeek(weekIndex);
+                        weekMenu.handleClose();
+                      }}
+                    >
+                      <Delete /> Remove
+                    </ListItemButton>
+                  </Menu>
                 </Box>
               </Box>
 
@@ -350,7 +440,7 @@ const TableOfContent = () => {
                         <MoreHoriz />
                       </IconButton>
                       <Menu
-                        open={open && selectLessonId === lesson.id}
+                        open={open && selectedLessonId === lesson.id}
                         anchorEl={menuAnchor}
                         onClose={handleClose}
                       >
@@ -408,6 +498,26 @@ const TableOfContent = () => {
           </ListItem>
         ))}
       </List>
+      <Button
+        variant="contained"
+        sx={{
+          width: "100%",
+          display: "flex",
+          gap: "10px",
+        }}
+        onClick={() => {
+          startEditMode();
+          setTableOfContent((prevTable) => [
+            ...prevTable,
+            {
+              title: "New Week",
+              lessons: [],
+            },
+          ]);
+        }}
+      >
+        <Add /> Add Week
+      </Button>
       {editMode && (
         <Box
           sx={{
@@ -417,17 +527,13 @@ const TableOfContent = () => {
             gap: "20px",
           }}
         >
-          <Button
-            color="primary"
-            variant="contained"
-            onClick={() => handleSave()}
-          >
+          <Button color="primary" variant="contained" onClick={handleSave}>
             Save
           </Button>
           <Button
             color="error"
             variant="contained"
-            onClick={() => setEditMode(false)}
+            onClick={cancelEditModeChanges}
           >
             Cancel
           </Button>
