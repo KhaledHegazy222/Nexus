@@ -123,6 +123,7 @@ const TableOfContent = () => {
   const navigate = useNavigate();
   const [selectedWeek, setSelectedWeek] = useState<number>(-1);
   const [selectedLessonId, setSelectedLessonId] = useState<string>("");
+  const [selectedWeekToEdit, setSelectedWeekToEdit] = useState(-1);
   const [openLessonDialog, setOpenLessonDialog] = useState(false);
   const [tableOfContent, setTableOfContent] = useState<WeekValueType[]>(
     TableOfContentInitialValue
@@ -134,19 +135,19 @@ const TableOfContent = () => {
   const weekMenu = useMenu();
   const { listState, toggleCollapse } = useCollapseList(tableOfContent.length);
   const [editMode, setEditMode] = useState(false);
-  const { register, handleSubmit } = useForm<LessonValueType>();
+  const { register, handleSubmit, reset, setValue } =
+    useForm<LessonValueType>();
 
-  const startEditMode = () => {
+  const startEditMode = useCallback(() => {
     if (!editMode) {
       setTableOfContentBackup(tableOfContent);
       setEditMode(true);
     }
-  };
+  }, [editMode, tableOfContent, setTableOfContentBackup, setEditMode]);
   const cancelEditModeChanges = () => {
     setTableOfContent(tableOfContentBackup);
     setEditMode(false);
   };
-
   const handleDeleteWeek = (weekIndex: number): void => {
     setTableOfContent((prevState) => {
       const stateCopy = [...prevState];
@@ -154,7 +155,24 @@ const TableOfContent = () => {
       return stateCopy;
     });
   };
-
+  const handleDeleteLesson = (weekIndex: number, lessonId: string): void => {
+    setTableOfContent((prevState) => {
+      const stateCopy = structuredClone(prevState);
+      stateCopy[weekIndex].lessons = stateCopy[weekIndex].lessons.filter(
+        (lesson) => lesson.id !== lessonId
+      );
+      return stateCopy;
+    });
+  };
+  const handleChangeWeekTitle = (value: string) => {
+    startEditMode();
+    setTableOfContent((prevState) => {
+      const stateCopy = structuredClone(prevState);
+      stateCopy[selectedWeekToEdit].title = value;
+      return stateCopy;
+    });
+    setSelectedWeekToEdit(-1);
+  };
   const handleSave = async () => {
     try {
       type lessonEntity = {
@@ -201,14 +219,28 @@ const TableOfContent = () => {
   const onSubmit: SubmitHandler<LessonValueType> = useCallback(
     (e) => {
       startEditMode();
-      e.id = uuid();
-      setTableOfContent((prevState) => {
-        prevState[selectedWeek].lessons.push(e);
-        return prevState;
-      });
+      if (e.id) {
+        setTableOfContent((prevState) => {
+          const stateCopy = structuredClone(prevState);
+          stateCopy[selectedWeek].lessons[
+            stateCopy[selectedWeek].lessons.findIndex(
+              (elem) => elem.id === e.id
+            )
+          ] = e;
+          return stateCopy;
+        });
+      } else {
+        e.id = uuid();
+        setTableOfContent((prevState) => {
+          const stateCopy = structuredClone(prevState);
+          stateCopy[selectedWeek].lessons.push(e);
+          return stateCopy;
+        });
+      }
       setOpenLessonDialog(false);
+      reset();
     },
-    [selectedWeek, startEditMode]
+    [selectedWeek, startEditMode, reset]
   );
   const shiftUpDown = (
     weekIndex: number,
@@ -337,9 +369,29 @@ const TableOfContent = () => {
                   padding: "10px",
                 }}
               >
-                <Typography variant="h6">{`Week ${weekIndex + 1}: ${
-                  week.title
-                }`}</Typography>
+                <Box
+                  sx={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "flex-start",
+                    gap: "5px",
+                  }}
+                >
+                  <Typography variant="h6">{`Week ${
+                    weekIndex + 1
+                  }:`}</Typography>
+                  {selectedWeekToEdit === weekIndex ? (
+                    <TextField
+                      title="Week Title"
+                      defaultValue={tableOfContent[weekIndex].title}
+                      onBlur={(event) => {
+                        handleChangeWeekTitle(event.target.value);
+                      }}
+                    />
+                  ) : (
+                    <Typography variant="h6">{week.title}</Typography>
+                  )}
+                </Box>
                 <Box
                   sx={{
                     display: "flex",
@@ -357,17 +409,26 @@ const TableOfContent = () => {
                   <IconButton onClick={() => toggleCollapse(weekIndex)}>
                     {listState[weekIndex] ? <ExpandLess /> : <ExpandMore />}
                   </IconButton>
-                  <IconButton onClick={weekMenu.handleClick}>
+                  <IconButton
+                    onClick={(e) => {
+                      weekMenu.handleClick(e);
+                      setSelectedWeek(weekIndex);
+                    }}
+                  >
                     <MoreHoriz />
                   </IconButton>
                   <Menu
-                    open={weekMenu.open}
+                    open={weekIndex === selectedWeek && weekMenu.open}
                     anchorEl={weekMenu.menuAnchor}
                     onClose={weekMenu.handleClose}
                   >
                     <ListItemButton
                       sx={{
                         gap: "10px",
+                      }}
+                      onClick={(e) => {
+                        setSelectedWeekToEdit(weekIndex);
+                        weekMenu.handleClose(e);
                       }}
                     >
                       <Edit /> Edit
@@ -463,6 +524,14 @@ const TableOfContent = () => {
                           sx={{
                             gap: "10px",
                           }}
+                          onClick={() => {
+                            setValue("id", lesson.id);
+                            setValue("title", lesson.title);
+                            setValue("type", lesson.type);
+                            setSelectedWeek(weekIndex);
+                            setOpenLessonDialog(true);
+                            handleClose();
+                          }}
                         >
                           <Edit /> Edit
                         </MenuItem>
@@ -470,6 +539,10 @@ const TableOfContent = () => {
                           sx={{
                             color: "red",
                             gap: "10px",
+                          }}
+                          onClick={() => {
+                            startEditMode();
+                            handleDeleteLesson(weekIndex, lesson.id);
                           }}
                         >
                           <Delete /> Remove
@@ -543,11 +616,16 @@ const TableOfContent = () => {
         open={openLessonDialog}
         onClose={() => setOpenLessonDialog(false)}
       >
-        <DialogTitle variant="h5">Add New Lesson</DialogTitle>
+        <DialogTitle variant="h5">Lesson Data</DialogTitle>
         <form
           onSubmit={handleSubmit(onSubmit)}
           style={{
             width: "400px",
+          }}
+          onKeyDown={(event) => {
+            if (event.key === "Enter") {
+              event.preventDefault();
+            }
           }}
         >
           <DialogContent>
@@ -596,7 +674,7 @@ const TableOfContent = () => {
                 marginBottom: "20px",
               }}
             >
-              Add
+              Save
             </Button>
           </DialogActions>
         </form>
