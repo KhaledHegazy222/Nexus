@@ -13,6 +13,7 @@ import {
 import React, { useState } from "react";
 import { useParams } from "react-router-dom";
 import { StyledSection } from "./CourseDetails.styled";
+import { StyledLayoutPage } from "@/components/instructor/Layout.styled";
 type CourseValueType = {
   title: string;
   description: string;
@@ -51,104 +52,106 @@ const CourseDetails = () => {
 
   return (
     <>
-      <StyledSection>
-        <Typography
-          variant="h4"
-          sx={{
-            fontWeight: "600",
-          }}
-        >
-          {courseData.title}
-        </Typography>
-        <Typography variant="subtitle1">{courseData.description}</Typography>
-        <Typography
-          component="span"
-          sx={{
-            color: "primary.main",
-            fontWeight: "600",
-          }}
-        >
-          Created By:
-        </Typography>{" "}
-        <Typography
-          component="span"
-          sx={{
-            color: "gray",
-          }}
-        >
-          {courseData.instructorName}
-        </Typography>
-        <Box
-          sx={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "flex-start",
-            gap: "10px",
-          }}
-        >
-          <Typography>{courseData.rating}</Typography>
-          <Rating value={courseData.rating} precision={0.1} readOnly />
-        </Box>
-        <Typography
-          variant="h5"
-          sx={{
-            fontWeight: "600",
-          }}
-        >{`${courseData.price} EGP`}</Typography>
-        <Button
-          variant="contained"
-          sx={{
-            display: "block",
-            m: "auto",
-          }}
-        >
-          Buy Now
-        </Button>
-      </StyledSection>
-      <StyledSection>
-        <Typography>What you&apos;ll learn</Typography>
-        <List>
-          {courseData.whatYouWillLearn.map((elem) => (
-            <ListItem key={elem} disablePadding>
-              <ListItemIcon
-                sx={{
-                  minWidth: "unset",
-                  p: "5px",
-                  marginRight: "10px",
-                }}
-              >
-                <Check />
-              </ListItemIcon>
-              <ListItemText>{elem}</ListItemText>
-            </ListItem>
-          ))}
-        </List>
-      </StyledSection>
-      <StyledSection>
-        <Typography>Table of content</Typography>
-      </StyledSection>
-      <StyledSection>
-        <Typography>Requirements</Typography>
-        <List>
-          {courseData.requirements.map((elem) => (
-            <ListItem key={elem} disablePadding>
-              <ListItemIcon
-                sx={{
-                  minWidth: "unset",
-                  p: "5px",
-                  marginRight: "10px",
-                }}
-              >
-                <Adjust />
-              </ListItemIcon>
-              <ListItemText>{elem}</ListItemText>
-            </ListItem>
-          ))}
-        </List>
-      </StyledSection>
-      <StyledSection>
-        <Typography>Reviews</Typography>
-      </StyledSection>
+      <StyledLayoutPage>
+        <StyledSection>
+          <Typography
+            variant="h4"
+            sx={{
+              fontWeight: "600",
+            }}
+          >
+            {courseData.title}
+          </Typography>
+          <Typography variant="subtitle1">{courseData.description}</Typography>
+          <Typography
+            component="span"
+            sx={{
+              color: "primary.main",
+              fontWeight: "600",
+            }}
+          >
+            Created By:
+          </Typography>{" "}
+          <Typography
+            component="span"
+            sx={{
+              color: "gray",
+            }}
+          >
+            {courseData.instructorName}
+          </Typography>
+          <Box
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "flex-start",
+              gap: "10px",
+            }}
+          >
+            <Typography>{courseData.rating}</Typography>
+            <Rating value={courseData.rating} precision={0.1} readOnly />
+          </Box>
+          <Typography
+            variant="h5"
+            sx={{
+              fontWeight: "600",
+            }}
+          >{`${courseData.price} EGP`}</Typography>
+          <Button
+            variant="contained"
+            sx={{
+              display: "block",
+              m: "auto",
+            }}
+          >
+            Buy Now
+          </Button>
+        </StyledSection>
+        <StyledSection>
+          <Typography>What you&apos;ll learn</Typography>
+          <List>
+            {courseData.whatYouWillLearn.map((elem) => (
+              <ListItem key={elem} disablePadding>
+                <ListItemIcon
+                  sx={{
+                    minWidth: "unset",
+                    p: "5px",
+                    marginRight: "10px",
+                  }}
+                >
+                  <Check />
+                </ListItemIcon>
+                <ListItemText>{elem}</ListItemText>
+              </ListItem>
+            ))}
+          </List>
+        </StyledSection>
+        <StyledSection>
+          <Typography>Table of content</Typography>
+        </StyledSection>
+        <StyledSection>
+          <Typography>Requirements</Typography>
+          <List>
+            {courseData.requirements.map((elem) => (
+              <ListItem key={elem} disablePadding>
+                <ListItemIcon
+                  sx={{
+                    minWidth: "unset",
+                    p: "5px",
+                    marginRight: "10px",
+                  }}
+                >
+                  <Adjust />
+                </ListItemIcon>
+                <ListItemText>{elem}</ListItemText>
+              </ListItem>
+            ))}
+          </List>
+        </StyledSection>
+        <StyledSection>
+          <Typography>Reviews</Typography>
+        </StyledSection>
+      </StyledLayoutPage>
     </>
   );
 };

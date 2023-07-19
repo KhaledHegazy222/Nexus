@@ -15,15 +15,7 @@ import {
 import courseImage from "@/assets/images/course.jpg";
 import { StyledLayoutPage } from "@/components/instructor/Layout.styled";
 import { Link } from "react-router-dom";
-import {
-  Filter,
-  Filter1,
-  Filter2,
-  FilterAlt,
-  FilterAltOff,
-  FilterAltOffOutlined,
-  FilterAltOutlined,
-} from "@mui/icons-material";
+import Filter from "@/components/Filter";
 
 const courses = [
   {
@@ -87,7 +79,7 @@ function Explore() {
             <TextField
               variant="outlined"
               size="small"
-              label="What're you looking for ?"
+              label="Search"
               sx={{
                 "& label": {
                   color: "gray",
@@ -95,11 +87,9 @@ function Explore() {
                 },
               }}
             />
+
+            <Filter />
           </Box>
-          <Button>
-            <Typography>Show Filter</Typography>
-            <FilterAltOutlined />
-          </Button>
           <Grid
             container
             sx={{
