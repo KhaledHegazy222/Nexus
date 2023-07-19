@@ -1,3 +1,4 @@
+import { useNavigate } from "react-router-dom";
 import {
   StyledExploreButton,
   StyledHeroBody,
@@ -6,6 +7,7 @@ import {
 } from "./Hero.styled";
 
 const Hero = () => {
+  const navigate = useNavigate();
   return (
     <StyledHeroBody>
       <StyledHeroTitle variant="h1">
@@ -16,7 +18,11 @@ const Hero = () => {
         selection of high-quality courses, tailored to help you reach your full
         potential at Nexus
       </StyledHeroSubtitle>
-      <StyledExploreButton variant="contained" color="secondary">
+      <StyledExploreButton
+        variant="contained"
+        color="secondary"
+        onClick={() => navigate("/explore")}
+      >
         Explore Courses
       </StyledExploreButton>
     </StyledHeroBody>

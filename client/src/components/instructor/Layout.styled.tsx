@@ -4,7 +4,7 @@ import DashboardBackground from "@/assets/images/DashboardBackground.svg";
 export const StyledLayoutPage = styled(Box)<BoxProps>(() => ({
   display: "flex",
   flexDirection: "column",
-  height: "100vh",
+  minHeight: "100vh",
   backgroundImage: `url(${DashboardBackground})`,
   backgroundSize: "cover",
   backgroundPosition: "center center",
