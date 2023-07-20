@@ -1,15 +1,8 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { GeneralInfoType } from "../CreateCourse/GeneralInfo";
 import { RequirementsType } from "../CreateCourse/Requirements";
-import {
-  Box,
-  Fab,
-  IconButton,
-  List,
-  ListItem,
-  Typography,
-} from "@mui/material";
+import { Box, Fab, List, ListItem, Typography } from "@mui/material";
 import { ArrowRight, Edit } from "@mui/icons-material";
 import CourseImage from "@/assets/images/course.jpg";
 
@@ -32,8 +25,7 @@ const CourseInitialValue: CourseValueType = {
 const CourseOverview = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const [courseData, setCourseData] =
-    useState<CourseValueType>(CourseInitialValue);
+  const [courseData] = useState<CourseValueType>(CourseInitialValue);
 
   return (
     <>

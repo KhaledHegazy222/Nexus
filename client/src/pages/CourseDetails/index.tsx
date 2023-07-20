@@ -10,8 +10,8 @@ import {
   Button,
 } from "@mui/material";
 
-import React, { useState } from "react";
-import { useParams } from "react-router-dom";
+import { useState } from "react";
+// import { useParams } from "react-router-dom";
 import { StyledSection } from "./CourseDetails.styled";
 import { StyledLayoutPage } from "@/components/instructor/Layout.styled";
 type CourseValueType = {
@@ -46,9 +46,8 @@ const CourseInitialValue: CourseValueType = {
 };
 
 const CourseDetails = () => {
-  const { courseId } = useParams();
-  const [courseData, setCourseData] =
-    useState<CourseValueType>(CourseInitialValue);
+  // const { courseId } = useParams();
+  const [courseData] = useState<CourseValueType>(CourseInitialValue);
 
   return (
     <>

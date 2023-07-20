@@ -12,7 +12,7 @@ const Video = () => {
   const [videoStreamUrl, setVideoStreamUrl] = useState<string | null>(null);
 
   const [loadFetching, setLoadFetching] = useState(true);
-  const [loadUploading, setLoadUploading] = useState(false);
+  // const [loadUploading, setLoadUploading] = useState(false);
   const fetchData = useCallback(async () => {
     setLoadFetching(true);
     try {
