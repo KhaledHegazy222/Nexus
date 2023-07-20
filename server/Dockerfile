@@ -8,4 +8,5 @@ RUN yarn
 
 COPY ./ ./ 
 
-CMD [ "yarn", "start" ]
+# temporarely instead of yarn starts
+CMD [ "yarn", "run", "dev" ] 
