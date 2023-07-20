@@ -323,13 +323,29 @@ export const courseDetailsGet = [
       if (queryResp1.rows.length === 0) return _res.sendStatus(400)
       const course = queryResp1.rows[0]
 
-      const queryResp2 = await dbConnection.dbQuery(
-        queries.queryList.GET_INSTRUCTOR_ACCOUNT_DETAILS_BY_ID,
-        [course.author_id]
-      )
-      const author = queryResp2.rows[0]
+      // get author data
+      const queryResp2 = await Promise.all([
+        dbConnection.dbQuery(
+          queries.queryList.GET_STUDENT_ACCOUNT_DETAILS_BY_ID,
+          [course.author_id]
+        ),
+        dbConnection.dbQuery(
+          queries.queryList.GET_INSTRUCTOR_ACCOUNT_DETAILS_BY_ID,
+          [course.author_id]
+        )
+      ])
+      if (queryResp2[0].rows.length === 0) return _res.sendStatus(404)
 
-      course.author = author
+      const accData = queryResp2[0].rows[0]
+      accData.bio = ''
+      accData.contacts = {}
+
+      if (queryResp2[1].rows.length !== 0) {
+        accData.bio = queryResp2[1].rows[0].bio
+        accData.contacts = queryResp2[1].rows[0].contacts
+      }
+
+      course.author = accData
 
       return _res.status(200).json(course)
     } catch {

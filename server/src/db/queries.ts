@@ -9,7 +9,7 @@ exports.queryList = {
   GET_STUDENT_ACCOUNT_DETAILS_BY_ID:
     'select id, mail, role, first_name, last_name from account where id = $1',
   GET_INSTRUCTOR_ACCOUNT_DETAILS_BY_ID:
-    'select a.id, a.mail, a.role, a.first_name, a.last_name, i.bio, i.contacts from (select id, mail, role, first_name, last_name from account where id = $1) as a inner join instructor_data as i on i.account_id = a.id',
+    'select bio, contacts from instructor_data where account_id = $1',
   GET_ACCOUNT_DETAILS_BY_MAIL:
     'select id, mail, role, first_name, last_name from account where mail = $1',
   GET_ACCOUNT_ROLE: 'select role from account where id = $1',

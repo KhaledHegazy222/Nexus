@@ -163,15 +163,28 @@ export const accountDetailsGet = [
       const accountId: string = _res.locals.accountId
       const role: string = _res.locals.role
 
-      const queryResp = await dbConnection.dbQuery(
-        role === 'student'
-          ? queries.queryList.GET_STUDENT_ACCOUNT_DETAILS_BY_ID
-          : queries.queryList.GET_INSTRUCTOR_ACCOUNT_DETAILS_BY_ID,
+      const queryResp1 = await dbConnection.dbQuery(
+        queries.queryList.GET_STUDENT_ACCOUNT_DETAILS_BY_ID,
         [accountId]
       )
-      if (queryResp.rows.length === 0) return _res.sendStatus(404)
+      if (queryResp1.rows.length === 0) return _res.sendStatus(404)
 
-      return _res.status(200).json(queryResp.rows[0])
+      const accData = queryResp1.rows[0]
+      accData.bio = ''
+      accData.contacts = {}
+
+      if (role !== 'student') {
+        const queryResp2 = await dbConnection.dbQuery(
+          queries.queryList.GET_INSTRUCTOR_ACCOUNT_DETAILS_BY_ID,
+          [accountId]
+        )
+        if (queryResp2.rows.length !== 0) {
+          accData.bio = queryResp2.rows[0].bio
+          accData.contacts = queryResp2.rows[0].contacts
+        }
+      }
+
+      return _res.status(200).json(accData)
     } catch {
       return _res.sendStatus(500)
     }
