@@ -426,9 +426,9 @@ const TableOfContent = () => {
                       sx={{
                         gap: "10px",
                       }}
-                      onClick={(e) => {
+                      onClick={() => {
                         setSelectedWeekToEdit(weekIndex);
-                        weekMenu.handleClose(e);
+                        weekMenu.handleClose();
                       }}
                     >
                       <Edit /> Edit

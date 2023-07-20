@@ -1,11 +1,7 @@
 import React, { useState } from "react";
-import {
-  UseFormRegister,
-  UseFormSetValue,
-  UseFormWatch,
-} from "react-hook-form";
+import { UseFormSetValue } from "react-hook-form";
 import { questionType } from "./Quiz";
-import { Button, ListItemButton, TextField } from "@mui/material";
+import { ListItemButton, TextField } from "@mui/material";
 
 type QuizButtonProps = {
   content: string;

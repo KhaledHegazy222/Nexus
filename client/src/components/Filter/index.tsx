@@ -2,31 +2,17 @@ import useMenu from "@/hooks/useMenu";
 import {
   AttachMoney,
   FilterAltOutlined,
-  FilterOutlined,
   Groups,
   ImportContacts,
   School,
 } from "@mui/icons-material";
-import {
-  Box,
-  Button,
-  Grid,
-  Menu,
-  SvgIconTypeMap,
-  Typography,
-} from "@mui/material";
-import React, { ReactNode, useState } from "react";
+import { Box, Button, Menu, Typography } from "@mui/material";
+import { ReactNode } from "react";
 import {
   StyledFilterItem,
   StyledGridCell,
   StyledGridContainer,
 } from "./Filter.styled";
-import { OverridableComponent } from "@mui/material/OverridableComponent";
-
-type FilterEntryType = {
-  name: string;
-  value: string;
-};
 
 type FilterPossibleValuesType = {
   name: string;

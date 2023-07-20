@@ -11,7 +11,7 @@ import { useForm, Controller, SubmitHandler } from "react-hook-form";
 
 import { Divider } from "@mui/material";
 import GoogleLogin from "./Google";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import useAuth from "@/contexts/useAuth";
 import { serverAxios } from "@/utils/axios";
 import { useNavigate } from "react-router-dom";

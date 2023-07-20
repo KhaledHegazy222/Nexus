@@ -1,8 +1,8 @@
 import { default as CreateCourseComponent } from "@/components/instructor/CreateCourse/CreateCourse";
 import { useEffect, useState } from "react";
 import { useLocation } from "react-router-dom";
-
-const CreateCourse = ({ edit = false }: { edit?: boolean }) => {
+/* eslint-disable */
+const CreateCourse = ({}: { edit?: boolean }) => {
   const location = useLocation();
   const [courseData, setCourseData] = useState();
   useEffect(() => {

@@ -1,7 +1,5 @@
-import React from "react";
 import {
   Box,
-  Button,
   Card,
   CardContent,
   CardMedia,
@@ -9,7 +7,6 @@ import {
   Paper,
   Rating,
   TextField,
-  Tooltip,
   Typography,
 } from "@mui/material";
 import courseImage from "@/assets/images/course.jpg";
