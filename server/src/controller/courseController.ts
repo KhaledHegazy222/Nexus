@@ -56,7 +56,12 @@ export const courseCreatePost = [
         _req.body.what_you_will_learn,
         _req.body.requirements
       ])
-      return _res.sendStatus(201)
+
+      const queryResp = await dbConnection.dbQuery(
+        queries.queryList.GET_LAST_ADDED_COURSE_ID
+      )
+
+      return _res.status(201).json({ id: queryResp.rows[0].currval })
     } catch {
       return _res.sendStatus(500)
     }
