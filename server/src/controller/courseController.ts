@@ -359,6 +359,25 @@ export const courseDetailsGet = [
   }
 ]
 
+export const courseMineGet = [
+  authHelper.authenticateToken,
+  roleHelper.getRole,
+  async (_req: Request, _res: Response) => {
+    try {
+      const queryResp = await dbConnection.dbQuery(
+        _res.locals.role === 'student'
+          ? queries.queryList.GET_STUDENT_COURSES
+          : queries.queryList.GET_INSTRUCTOR_COURSES,
+        [_res.locals.accountId]
+      )
+
+      return _res.status(200).json(queryResp.rows)
+    } catch {
+      return _res.sendStatus(500)
+    }
+  }
+]
+
 export const coursePublishPost = [
   authHelper.authenticateToken,
   roleHelper.checkAuthor,
@@ -614,6 +633,52 @@ export const quizGet = [
       ])
 
       return _res.status(200).json({ body: queryResp.rows })
+    } catch {
+      return _res.sendStatus(500)
+    }
+  }
+]
+
+export const coursePurchasePost = [
+  body('mail').isEmail().escape().withMessage('invalid email'),
+  authHelper.authenticateToken,
+  roleHelper.getRole,
+  async (_req: Request, _res: Response) => {
+    const errors: Result<ValidationError> = validationResult(_req)
+    if (!errors.isEmpty()) {
+      return _res.status(400).json({ errors: errors.array() })
+    }
+
+    try {
+      if (_res.locals.role !== 'admin') return _res.sendStatus(403)
+
+      const queryResp = await Promise.all([
+        dbConnection.dbQuery(queries.queryList.GET_ACCOUNT_DETAILS_BY_MAIL, [
+          _req.body.mail
+        ]),
+        dbConnection.dbQuery(queries.queryList.GET_COURSE, [
+          _req.params.courseId
+        ])
+      ])
+
+      if (queryResp[0].rows.length === 0 || queryResp[1].rows.length === 0) {
+        return _res.sendStatus(404)
+      }
+      if (queryResp[0].rows[0].role !== 'student') return _res.sendStatus(400)
+
+      const queryResp2 = await dbConnection.dbQuery(
+        queries.queryList.CHECK_PURCHASE,
+        [queryResp[0].rows[0].id, _req.params.courseId]
+      )
+
+      if (queryResp2.rows[0].exists === false) {
+        await dbConnection.dbQuery(queries.queryList.ADD_PURCHASE, [
+          queryResp[0].rows[0].id,
+          _req.params.courseId
+        ])
+      }
+
+      return _res.sendStatus(200)
     } catch {
       return _res.sendStatus(500)
     }

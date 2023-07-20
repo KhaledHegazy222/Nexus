@@ -47,6 +47,9 @@ exports.queryList = {
   UPDATE_COURSE_CONTENT: 'update course set content = $1 where id = $2',
   GET_COURSE: 'select * from course where id = $1',
   GET_LAST_ADDED_COURSE_ID: "SELECT currval('course_id_seq')",
+  GET_INSTRUCTOR_COURSES:
+    'select c.id, c.title, c.price, a.first_name, a.last_name from (select id, author_id, title, price from course where author_id = $1) as c inner join account as a on c.author_id = a.id',
+  GET_STUDENT_COURSES: '',
 
   ADD_VIDEO_HIDDEN_ID:
     'insert into s3_hidden_video_id (public_id, hidden_id) values ($1, $2)',
