@@ -7,6 +7,7 @@ const CoursePage = () => {
   return (
     <Routes>
       <Route path="/new" element={<CreateCourse />} />
+      <Route path="/edit/:id" element={<CreateCourse edit />} />
       <Route path="/:id" element={<CourseOverview />} />
       <Route path="/:courseId/*" element={<Lesson />} />
     </Routes>

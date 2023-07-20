@@ -6,7 +6,8 @@ import GeneralInfo, { GeneralInfoType } from "./GeneralInfo";
 import { SubmitHandler, useForm } from "react-hook-form";
 import { serverAxios } from "@/utils/axios";
 import useAuth from "@/contexts/useAuth";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
+import { useEffect } from "react";
 
 export type FormValuesType = GeneralInfoType &
   RequirementsType & {
@@ -15,8 +16,21 @@ export type FormValuesType = GeneralInfoType &
     };
   };
 
-const CreateCourse = () => {
-  const { register, handleSubmit, setValue } = useForm<FormValuesType>();
+const CreateCourse = ({ courseData }: { courseData?: FormValuesType }) => {
+  const { id } = useParams();
+  const { register, handleSubmit, setValue, watch } = useForm<FormValuesType>({
+    defaultValues: courseData
+      ? { ...courseData }
+      : {
+          title: undefined,
+          description: undefined,
+          requirements: undefined,
+          field: undefined,
+          level: undefined,
+          price: undefined,
+          what_you_will_learn: undefined,
+        },
+  });
   const { token } = useAuth();
   const navigate = useNavigate();
 
@@ -24,13 +38,40 @@ const CreateCourse = () => {
     data.what_you_will_learn = {
       body: [],
     };
-    await serverAxios.post(`/course/create`, data, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
-    navigate("/instructor/course/1");
+    if (id) {
+      await serverAxios.put(`/course/${id}`, data, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      navigate(`/instructor/course/${id}`);
+    } else {
+      await serverAxios.post(`/course/create`, data, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      navigate("/instructor/course/1");
+    }
   };
+  useEffect(() => {
+    if (courseData) {
+      Object.entries(courseData).forEach((pair) => {
+        const [fieldName, value] = pair;
+        setValue(
+          fieldName as
+            | "title"
+            | "description"
+            | "level"
+            | "field"
+            | "price"
+            | "requirements"
+            | "what_you_will_learn",
+          value
+        );
+      });
+    }
+  }, [courseData, setValue]);
   return (
     <>
       <Box
@@ -41,7 +82,7 @@ const CreateCourse = () => {
         <StyledTitle>New Course</StyledTitle>
         <form onSubmit={handleSubmit(onSubmit)}>
           <GeneralInfo register={register} />
-          <Requirements setValue={setValue} />
+          <Requirements setValue={setValue} watch={watch} />
 
           <Button
             type="submit"
@@ -55,7 +96,7 @@ const CreateCourse = () => {
               display: "block",
             }}
           >
-            Create Course
+            Save Course
           </Button>
         </form>
       </Box>

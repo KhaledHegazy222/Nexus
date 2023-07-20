@@ -3,16 +3,17 @@ import { Add, Close } from "@mui/icons-material";
 import { Box, Button, IconButton, Typography } from "@mui/material";
 import React, { useEffect, useRef, useState } from "react";
 import { StyledTextField } from "./CreateCourse.styled";
-import { UseFormSetValue } from "react-hook-form";
+import { UseFormSetValue, UseFormWatch } from "react-hook-form";
 import { FormValuesType } from "./CreateCourse";
 
 export type RequirementsType = {
   requirements: string[];
 };
 type RequirementsProps = {
+  watch: UseFormWatch<FormValuesType>;
   setValue: UseFormSetValue<FormValuesType>;
 };
-const Requirements: React.FC<RequirementsProps> = ({ setValue }) => {
+const Requirements: React.FC<RequirementsProps> = ({ setValue, watch }) => {
   const [requirements, setRequirements] = useState<string[]>([]);
   const [collectInput, setCollectInput] = useState<boolean>(true);
   const inputRef = useRef<HTMLInputElement | null>(null);
@@ -26,6 +27,9 @@ const Requirements: React.FC<RequirementsProps> = ({ setValue }) => {
   useEffect(() => {
     setValue("requirements", requirements);
   }, [requirements, setValue]);
+  useEffect(() => {
+    setRequirements(watch("requirements"));
+  }, [watch]);
   return (
     <>
       <Box

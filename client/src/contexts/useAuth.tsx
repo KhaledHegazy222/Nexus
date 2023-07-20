@@ -78,6 +78,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       loadData();
     } else if (!token && !localStorage.getItem("token")) {
       setLoading(false);
+      setUser(null);
     }
   }, [token]);
   const value = useMemo(

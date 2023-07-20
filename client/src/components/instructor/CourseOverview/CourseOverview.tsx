@@ -1,9 +1,16 @@
 import React, { useState } from "react";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { GeneralInfoType } from "../CreateCourse/GeneralInfo";
 import { RequirementsType } from "../CreateCourse/Requirements";
-import { Box, List, ListItem, Typography } from "@mui/material";
-import { ArrowRight } from "@mui/icons-material";
+import {
+  Box,
+  Fab,
+  IconButton,
+  List,
+  ListItem,
+  Typography,
+} from "@mui/material";
+import { ArrowRight, Edit } from "@mui/icons-material";
 import CourseImage from "@/assets/images/course.jpg";
 
 import TableOfContent from "./TableOfContent";
@@ -24,7 +31,7 @@ const CourseInitialValue: CourseValueType = {
 
 const CourseOverview = () => {
   const { id } = useParams();
-
+  const navigate = useNavigate();
   const [courseData, setCourseData] =
     useState<CourseValueType>(CourseInitialValue);
 
@@ -38,6 +45,7 @@ const CourseOverview = () => {
         <Typography variant="h4" textAlign="center">
           {courseData.title}
         </Typography>
+
         <img
           src={CourseImage}
           style={{
@@ -84,6 +92,23 @@ const CourseOverview = () => {
         </List>
         <TableOfContent />
       </Box>
+      <Fab
+        sx={{
+          position: "fixed",
+          right: "5%",
+          bottom: "5%",
+        }}
+        color="primary"
+        onClick={() => {
+          navigate(`/instructor/course/edit/${id}`, {
+            state: {
+              courseData,
+            },
+          });
+        }}
+      >
+        <Edit />
+      </Fab>
     </>
   );
 };
