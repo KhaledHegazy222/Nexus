@@ -82,7 +82,7 @@ export const StyledSignUpButton = styled(Button)<ButtonProps>(({ theme }) => ({
   fontSize: "1.2rem",
   textTransform: "none",
   fontWeight: "600",
-  width: "130px",
+  minWidth: "130px",
   borderRadius: "10px",
   margin: "0 10px",
 }));

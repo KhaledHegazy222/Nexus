@@ -13,9 +13,11 @@ import {
 import Logo from "@/assets/images/Logo.png";
 
 import useMenu from "@/hooks/useMenu";
+import useAuth from "@/contexts/useAuth";
 
 const DashboardNavbar = () => {
   const accountMenu = useMenu();
+  const { user, logout } = useAuth();
   return (
     <StyledAppBar position="static">
       <StyledToolbar>
@@ -28,7 +30,13 @@ const DashboardNavbar = () => {
         <Button onClick={accountMenu.handleClick}>
           <StyledUserContainer>
             <Avatar />
-            <Typography>Khaled Hegazy</Typography>
+            <Typography
+              sx={{
+                textTransform: "capitalize",
+                fontWeight: "600",
+                fontSize: "1.1rem",
+              }}
+            >{`${user?.first_name} ${user?.last_name}`}</Typography>
             {accountMenu.open ? <ExpandLess /> : <ExpandMore />}
           </StyledUserContainer>
         </Button>
@@ -39,7 +47,7 @@ const DashboardNavbar = () => {
         >
           <MenuItem>Profile</MenuItem>
           <MenuItem>My Courses</MenuItem>
-          <MenuItem>Logout</MenuItem>
+          <MenuItem onClick={() => logout()}>Logout</MenuItem>
         </Menu>
       </StyledToolbar>
     </StyledAppBar>

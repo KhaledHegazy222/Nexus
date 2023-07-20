@@ -104,7 +104,7 @@ const CourseDetails = () => {
               m: "auto",
             }}
           >
-            Buy Now
+            Enroll Now
           </Button>
         </StyledSection>
         <StyledSection>

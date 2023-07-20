@@ -203,7 +203,7 @@ const TableOfContent = () => {
           })
         ),
       };
-      await serverAxios.patch(`/course/${id}/edit/content`, requestBody, {
+      await serverAxios.patch(`/course/${id}/content`, requestBody, {
         headers: {
           Authorization: `Bearer ${token}`,
         },

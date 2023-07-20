@@ -4,13 +4,32 @@ import { StyledTitle } from "./CreateCourse.styled";
 import Requirements, { RequirementsType } from "./Requirements";
 import GeneralInfo, { GeneralInfoType } from "./GeneralInfo";
 import { SubmitHandler, useForm } from "react-hook-form";
+import { serverAxios } from "@/utils/axios";
+import useAuth from "@/contexts/useAuth";
+import { useNavigate } from "react-router-dom";
 
-export type FormValuesType = GeneralInfoType & RequirementsType;
+export type FormValuesType = GeneralInfoType &
+  RequirementsType & {
+    what_you_will_learn: {
+      body: string[];
+    };
+  };
 
 const CreateCourse = () => {
   const { register, handleSubmit, setValue } = useForm<FormValuesType>();
-  const onSubmit: SubmitHandler<FormValuesType> = (data) => {
-    console.log(data);
+  const { token } = useAuth();
+  const navigate = useNavigate();
+
+  const onSubmit: SubmitHandler<FormValuesType> = async (data) => {
+    data.what_you_will_learn = {
+      body: [],
+    };
+    await serverAxios.post(`/course/create`, data, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    navigate("/instructor/course/1");
   };
   return (
     <>

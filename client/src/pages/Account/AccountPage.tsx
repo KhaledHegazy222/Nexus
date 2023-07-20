@@ -11,6 +11,10 @@ import { useForm, Controller, SubmitHandler } from "react-hook-form";
 
 import { Divider } from "@mui/material";
 import GoogleLogin from "./Google";
+import { useEffect, useState } from "react";
+import useAuth from "@/contexts/useAuth";
+import { serverAxios } from "@/utils/axios";
+import { useNavigate } from "react-router-dom";
 
 type loginFormDataType = {
   email: string;
@@ -28,7 +32,9 @@ type AccountPageProps = {
 };
 
 const AccountPage = ({ login = false }: AccountPageProps) => {
-  const { control, handleSubmit } = useForm({
+  const navigate = useNavigate();
+  const { setToken } = useAuth();
+  const { control, handleSubmit, reset } = useForm({
     defaultValues: {
       firstName: "",
       lastName: "",
@@ -37,10 +43,40 @@ const AccountPage = ({ login = false }: AccountPageProps) => {
       confirmPassword: "",
     },
   });
-  const signUpOnSubmit: SubmitHandler<signUpFormDataType> = (data) =>
-    console.log(data);
-  const loginOnSubmit: SubmitHandler<loginFormDataType> = (data) =>
-    console.log(data);
+  const signUpOnSubmit: SubmitHandler<signUpFormDataType> = async (data) => {
+    type requestType = {
+      first_name: string;
+      last_name: string;
+      mail: string;
+      password: string;
+    };
+
+    const requestBody: requestType = {
+      first_name: data.firstName,
+      last_name: data.lastName,
+      mail: data.email,
+      password: data.password,
+    };
+    await serverAxios.post("/signup", requestBody);
+    navigate("/");
+  };
+
+  const loginOnSubmit: SubmitHandler<loginFormDataType> = async (data) => {
+    type requestType = {
+      mail: string;
+      password: string;
+    };
+
+    const requestBody: requestType = {
+      mail: data.email,
+      password: data.password,
+    };
+    const response = await serverAxios.post("/login", requestBody);
+    setToken(response.data.token);
+    navigate("/");
+  };
+
+  useEffect(() => reset(), [login, reset]);
   return (
     <>
       <Navbar />
