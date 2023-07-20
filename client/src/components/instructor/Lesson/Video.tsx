@@ -47,7 +47,7 @@ const Video = () => {
         const requestBody = new FormData();
         requestBody.append("file", e.target.files[0]);
         await serverAxios.post(
-          `/course/${courseId}/video/upload/${lessonId}`,
+          `/course/${courseId}/video/${lessonId}`,
           requestBody,
           {
             headers: {
