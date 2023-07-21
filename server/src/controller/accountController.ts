@@ -33,7 +33,7 @@ export const accountSignupPost = [
     }
 
     try {
-      const mail: string = _req.body.mail
+      const mail: string = _req.body.mail.toLowerCase()
       const password: string = _req.body.password
       const firstName: string = _req.body.first_name
       const lastName: string = _req.body.last_name
@@ -77,7 +77,7 @@ export const accountLoginPost = [
       return _res.status(400).json({ errors: errors.array() })
     }
     try {
-      const mail: string = _req.body.mail
+      const mail: string = _req.body.mail.toLowerCase()
       const password: string = _req.body.password
 
       const queryResp = await dbConnection.dbQuery(
@@ -259,7 +259,6 @@ export const accountVerifyPost = [
 
 export const accountSendResetPasswordPost = [
   body('mail').isEmail().escape().withMessage('invalid email'),
-  // eslint-disable-next-line consistent-return
   async (_req: Request, _res: Response, _next: NextFunction) => {
     const errors: Result<ValidationError> = validationResult(_req)
     if (!errors.isEmpty()) {
@@ -267,7 +266,7 @@ export const accountSendResetPasswordPost = [
     }
 
     try {
-      const { mail } = _req.body
+      const mail: string = _req.body.mail.toLowerCase()
 
       const queryResp1 = await dbConnection.dbQuery(
         queries.queryList.GET_ACCOUNT_DETAILS_BY_MAIL,
