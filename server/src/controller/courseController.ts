@@ -418,6 +418,9 @@ export const streamTokenGet = [
 
       const token = uuidv4()
       await dbConnection.dbQuery(queries.queryList.ADD_LESSON_TOKEN, [token])
+      setTimeout(() => {
+        dbConnection.dbQuery(queries.queryList.DELETE_LESSON_TOKEN, [token])
+      }, 60_000)
 
       return _res.status(200).json({ token })
     } catch (err: unknown) {
