@@ -55,6 +55,7 @@ const CourseOverview = () => {
       <Box
         sx={{
           margin: "30px",
+          width: "clamp(300px,100%,1000px)",
         }}
       >
         <Typography variant="h4" textAlign="center">
