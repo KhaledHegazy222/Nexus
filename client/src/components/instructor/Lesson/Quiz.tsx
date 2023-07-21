@@ -14,7 +14,7 @@ import {
   TextField,
   Typography,
 } from "@mui/material";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { SubmitHandler, useForm } from "react-hook-form";
 import QuizQuestionButton from "./QuizQuestionButton";
 import { Add } from "@mui/icons-material";
@@ -62,7 +62,6 @@ const Quiz = () => {
     type requestBodyType = {
       body: questionEntryType[];
     };
-    console.log(quizQuestions);
     const requestBody: requestBodyType = {
       body: quizQuestions.map(
         (question): questionEntryType => ({
@@ -88,6 +87,28 @@ const Quiz = () => {
       /* empty */
     }
   };
+  useEffect(() => {
+    loadData();
+    async function loadData() {
+      const response = await serverAxios.get(
+        `/course/${courseId}/quiz/${lessonId}`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+      console.log(response.data.body);
+      setQuizQuestions(
+        response.data.body.map(
+          /* eslint-disable-next-line */
+          (question: any): questionType => ({
+            title: question.title,
+            options: question.options.content,
+            answer: question.options.content[0],
+          })
+        )
+      );
+    }
+  }, [courseId, lessonId, token]);
   return (
     <>
       <List

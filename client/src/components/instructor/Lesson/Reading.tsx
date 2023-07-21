@@ -38,7 +38,7 @@ const Reading = () => {
 
     try {
       serverAxios.post(
-        `/course/${courseId}/reading/upload/${lessonId}`,
+        `/course/${courseId}/reading/${lessonId}`,
         {
           content: filterValue,
         },

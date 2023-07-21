@@ -35,23 +35,28 @@ const CreateCourse = ({ courseData }: { courseData?: FormValuesType }) => {
   const navigate = useNavigate();
 
   const onSubmit: SubmitHandler<FormValuesType> = async (data) => {
-    data.what_you_will_learn = {
+    /* eslint-disable-next-line */
+    const requestBody: any = data;
+    requestBody.what_you_will_learn = {
       body: [],
     };
+    requestBody.requirements = {
+      body: data.requirements,
+    };
     if (id) {
-      await serverAxios.put(`/course/${id}`, data, {
+      await serverAxios.put(`/course/${id}`, requestBody, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
       });
       navigate(`/instructor/course/${id}`);
     } else {
-      await serverAxios.post(`/course/create`, data, {
+      const response = await serverAxios.post(`/course/create`, requestBody, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
       });
-      navigate("/instructor/course/1");
+      navigate(`/instructor/course/${response.data.id}`);
     }
   };
   useEffect(() => {

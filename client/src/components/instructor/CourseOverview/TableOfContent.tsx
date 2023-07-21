@@ -58,17 +58,17 @@ const TableOfContentInitialValue: WeekValueType[] = [
     title: "Introduction to Python Programming",
     lessons: [
       {
-        id: "af7c1fe6-d669-414e-b066-e9733f0de7a8",
+        id: uuid(),
         title: "Introduction to python programming",
         type: "video",
       },
       {
-        id: "bca65efd-d928-40c3-afa1-1ff4f2a714f8",
+        id: uuid(),
         title: "Python Documentations",
         type: "reading",
       },
       {
-        id: "7b62adde-bac6-4103-8169-5b319dc49941",
+        id: uuid(),
         title: "Unit 1 Exercise",
         type: "quiz",
       },
@@ -78,17 +78,17 @@ const TableOfContentInitialValue: WeekValueType[] = [
     title: "Introduction to Python Programming",
     lessons: [
       {
-        id: "8b6ffabb-e9bb-4479-b3d1-96ca08ff3075",
+        id: uuid(),
         title: "Introduction to python programming",
         type: "video",
       },
       {
-        id: "7c51f90c-2b47-4368-98e0-b8a242136ca0",
+        id: uuid(),
         title: "Python Documentations",
         type: "reading",
       },
       {
-        id: "5cbf529f-07a0-4f1c-b696-5410565ab716",
+        id: uuid(),
         title: "Unit 1 Exercise",
         type: "quiz",
       },
@@ -98,17 +98,17 @@ const TableOfContentInitialValue: WeekValueType[] = [
     title: "Introduction to Python Programming",
     lessons: [
       {
-        id: "81a6be9b-2587-4165-8734-4ea06d4a2616",
+        id: uuid(),
         title: "Introduction to python programming",
         type: "video",
       },
       {
-        id: "eef21a9c-373e-49a2-a06a-80414abca145",
+        id: uuid(),
         title: "Python Documentations",
         type: "reading",
       },
       {
-        id: "8b3a68ef-0651-41a3-81ed-00f3573188ff",
+        id: uuid(),
         title: "Unit 1 Exercise",
         type: "quiz",
       },
