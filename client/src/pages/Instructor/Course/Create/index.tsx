@@ -6,7 +6,7 @@ const CreateCourse = ({}: { edit?: boolean }) => {
   const location = useLocation();
   const [courseData, setCourseData] = useState();
   useEffect(() => {
-    if (location.state.courseData) {
+    if (location.state?.courseData) {
       setCourseData(location.state.courseData);
     }
   }, [location]);

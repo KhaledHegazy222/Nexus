@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { GeneralInfoType } from "../CreateCourse/GeneralInfo";
 import { RequirementsType } from "../CreateCourse/Requirements";
@@ -7,6 +7,8 @@ import { ArrowRight, Edit } from "@mui/icons-material";
 import CourseImage from "@/assets/images/course.jpg";
 
 import TableOfContent from "./TableOfContent";
+import useAuth from "@/contexts/useAuth";
+import { serverAxios } from "@/utils/axios";
 type CourseValueType = GeneralInfoType & RequirementsType;
 
 const CourseInitialValue: CourseValueType = {
@@ -24,8 +26,29 @@ const CourseInitialValue: CourseValueType = {
 
 const CourseOverview = () => {
   const { id } = useParams();
+  const { token } = useAuth();
   const navigate = useNavigate();
-  const [courseData] = useState<CourseValueType>(CourseInitialValue);
+  const [courseData, setCourseData] =
+    useState<CourseValueType>(CourseInitialValue);
+
+  useEffect(() => {
+    loadData();
+    async function loadData() {
+      const response = await serverAxios.get(`/course/${id}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const { title, level, field, description, requirements, price } =
+        response.data;
+      setCourseData({
+        title,
+        level,
+        field,
+        description,
+        price: parseFloat(price),
+        requirements: requirements.body,
+      });
+    }
+  }, [id, token]);
 
   return (
     <>
