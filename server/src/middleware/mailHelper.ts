@@ -18,7 +18,7 @@ exports.sendVerificationMail = async (
   }
 
   try {
-    const mail: string = _req.body.mail
+    const mail: string = _req.body.mail.toLowerCase()
 
     const queryResp1 = await dbConnection.dbQuery(
       queries.queryList.GET_ACCOUNT_DETAILS_BY_MAIL,
@@ -93,7 +93,7 @@ exports.sendResetPasswordMail = async (
   _res: Response,
   _next: NextFunction
 ) => {
-  const mail: string = _req.body.mail
+  const mail: string = _req.body.mail.toLowerCase()
   const resetId: string = _res.locals.resetId
 
   const queryResp1 = await dbConnection.dbQuery(
