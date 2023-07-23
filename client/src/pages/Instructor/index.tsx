@@ -2,12 +2,12 @@ import { Route, Routes } from "react-router-dom";
 import Dashboard from "./MyCourses";
 import CoursePage from "./Course";
 
-import DashboardNavbar from "@/components/instructor/Navbar";
+import DashboardNavbar from "@/components/DashboardNavbar/Navbar";
 import {
   StyledContentContainer,
   StyledLayoutPage,
   StyledPaper,
-} from "@/components/instructor/Layout.styled";
+} from "@/components/Layout.styled";
 
 const Instructor = () => {
   return (

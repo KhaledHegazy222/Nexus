@@ -246,7 +246,7 @@ const Quiz = () => {
                     setValue("options", newOptions);
                   }}
                 >
-                  <Add /> New Question
+                  <Add /> New Option
                 </ListItemButton>
               </List>
             </FormControl>
