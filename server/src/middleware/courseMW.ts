@@ -337,8 +337,34 @@ export const getLessonType = async (
     const queryResp = await dbQuery(queryList.GET_LESSON, [publicId])
 
     if (queryResp.rows.length === 0) return _res.sendStatus(404)
+    if (String(queryResp.rows[0].course_id) !== courseId) {
+      return _res.sendStatus(404)
+    }
 
     _res.locals.lessonType = queryResp.rows[0].type
+    _next()
+  } catch {
+    return _res.sendStatus(500)
+  }
+}
+
+export const checkPurchase = async (
+  _req: Request,
+  _res: Response,
+  _next: NextFunction
+): Promise<any> => {
+  try {
+    const accountId: string = _res.locals.accountId
+    const courseId = _req.params.courseId
+
+    const queryResp2 = await dbQuery(queryList.CHECK_PURCHASE, [
+      accountId,
+      courseId
+    ])
+
+    if (queryResp2.rows[0].exists === false) {
+      return _res.sendStatus(403)
+    }
     _next()
   } catch {
     return _res.sendStatus(500)
