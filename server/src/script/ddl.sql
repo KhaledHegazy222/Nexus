@@ -1,7 +1,9 @@
 -- drop all tables
+drop table lesson_completed;
 drop table purchase;
 drop table lesson_token;
 drop table s3_hidden_video_id;
+drop table quiz_results;
 drop table lesson_quiz_question;
 drop table lesson;
 drop table course_weeks;
@@ -95,9 +97,20 @@ CREATE TABLE lesson_quiz_question (
   FOREIGN KEY (quiz_id) REFERENCES lesson (lesson_id) ON DELETE CASCADE
 );
 
+-- Create the 'quiz_results' table
+CREATE TABLE quiz_results (
+  student_id INT NOT NULL,
+  quiz_id VARCHAR(255) NOT NULL,
+  result INT NOT NULL,
+  total INT NOT NULL,
+  PRIMARY KEY (student_id, quiz_id),
+  FOREIGN KEY (student_id) REFERENCES account (id),
+  FOREIGN KEY (quiz_id) REFERENCES lesson (lesson_id) ON DELETE CASCADE
+);
+
 -- Create the 's3_hidden_video_id' table
 CREATE TABLE s3_hidden_video_id (
-  public_id VARCHAR(255) UNIQUE NOT NULL,
+  public_id VARCHAR(255) NOT NULL,
   hidden_id VARCHAR(255) UNIQUE NOT NULL,
   FOREIGN KEY (public_id) REFERENCES lesson (lesson_id) ON DELETE CASCADE
 );
@@ -113,4 +126,12 @@ CREATE TABLE purchase (
   course_id INT NOT NULL,
   FOREIGN KEY (account_id) REFERENCES account (id),
   FOREIGN KEY (course_id) REFERENCES course (id)
+);
+
+-- Create the 'lesson_completed' table
+CREATE TABLE lesson_completed (
+  account_id INT NOT NULL,
+  lesson_id VARCHAR(255) NOT NULL,
+  FOREIGN KEY (account_id) REFERENCES account (id),
+  FOREIGN KEY (lesson_id) REFERENCES lesson (lesson_id)
 );

@@ -63,8 +63,26 @@ export const queryList = {
   GET_LAST_ADDED_COURSE_ID: "SELECT currval('course_id_seq')",
   GET_INSTRUCTOR_COURSES:
     'select c.id, c.title, c.price, a.first_name, a.last_name from (select id, author_id, title, price from course where author_id = $1) as c inner join account as a on c.author_id = a.id',
-  GET_STUDENT_COURSES: '',
-
+  GET_STUDENT_COURSES: `
+select
+  c.id,
+  c.title,
+  ac.first_name,
+  ac.last_name,
+  COALESCE(SUM(CASE WHEN lc.account_id = p.account_id THEN 100 ELSE 0 END) / COUNT(l.lesson_id), 0) AS completion_percentage
+from
+(select * from purchase where account_id = $1) as p
+inner join course c on p.course_id = c.id
+left join account ac on c.author_id = ac.id
+left join lesson l on c.id = l.course_id
+left join lesson_completed lc on l.lesson_id = lc.lesson_id
+group by
+c.id,
+ac.first_name,
+ac.last_name;
+`,
+  EXPLORE_COURSES:
+    'select c.id, c.title, c.price, a.first_name, a.last_name from (select id, author_id, title, price from course) as c inner join account as a on c.author_id = a.id',
   ADD_VIDEO_HIDDEN_ID:
     'insert into s3_hidden_video_id (public_id, hidden_id) values ($1, $2)',
   DELETE_VIDEOS_HIDDEN_ID:
@@ -77,6 +95,13 @@ export const queryList = {
     'select title, options, answer from lesson_quiz_question where quiz_id = $1 order by question_order',
   DELETE_QUIZ: 'delete from lesson_quiz_question where quiz_id = $1',
 
+  ADD_QUIZ_RESULT:
+    'insert into quiz_results(student_id, quiz_id, result, total) values($1, $2, $3, $4)',
+  UPDATE_QUIZ_RESULT:
+    'update quiz_results set result = $3, total = $4 where student_id = $1 and quiz_id = $2',
+  GET_QUIZ_RESULT:
+    'select * from quiz_results where student_id = $1 and quiz_id = $2',
+
   ADD_PURCHASE: 'insert into purchase(account_id, course_id) values($1, $2)',
   CHECK_PURCHASE:
     'select exists(select * from purchase where account_id = $1 and course_id = $2)',
@@ -84,5 +109,12 @@ export const queryList = {
   ADD_LESSON_TOKEN: 'insert into lesson_token(token) values($1)',
   DELETE_LESSON_TOKEN: 'delete from lesson_token where token = $1',
   CHECK_LESSON_TOKEN:
-    'select exists(select * from lesson_token where token = $1)'
+    'select exists(select * from lesson_token where token = $1)',
+
+  MARK_COMPLETED:
+    'insert into lesson_completed(account_id, lesson_id) values($1, $2)',
+  CHECK_COMPLETED:
+    'select exists(select * from lesson_completed where account_id = $1 and lesson_id = $2)',
+  GET_COMPLETED:
+    'select * from ((select * from lesson_completed where account_id = $1) as lc inner join (select lesson_id, course_id from lesson where course_id = $2) as l on lc.lesson_id = l.lesson_id)'
 }

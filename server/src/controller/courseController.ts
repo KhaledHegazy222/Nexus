@@ -9,7 +9,8 @@ import {
   updateContent,
   checkAuthor,
   checkLessonAccess,
-  getLessonType
+  getLessonType,
+  checkPurchase
 } from '../middleware/courseMW'
 import {
   uploader,
@@ -492,6 +493,98 @@ export const quizGet = [
   }
 ]
 
+export const quizSubmitPost = [
+  body('answers').isArray({ min: 1 }).withMessage('answers must be specified'),
+  authenticateToken,
+  checkPurchase,
+  getLessonType,
+  async (_req: Request, _res: Response) => {
+    const errors: Result<ValidationError> = validationResult(_req)
+    if (!errors.isEmpty()) {
+      return _res.status(400).json({ errors: errors.array() })
+    }
+
+    if (_res.locals.lessonType !== 'quiz') return _res.sendStatus(400)
+
+    try {
+      const answers = _req.body.answers
+      const accountId: string = _res.locals.accountId
+      const publicId = _req.params.publicId
+
+      const queryResp1 = await dbQuery(queryList.GET_QUIZ, [
+        _req.params.publicId
+      ])
+
+      const quiz = queryResp1.rows
+
+      if (quiz.length !== answers.length) return _res.sendStatus(400)
+
+      let result = 0
+      quiz.forEach((q: any, i: number) => {
+        q.is_correct = answers[i] === q.answer
+        q.submit = answers[i]
+        result += Number(q.is_correct)
+        delete q.answer
+      })
+
+      const queryResp2 = await dbQuery(queryList.GET_QUIZ_RESULT, [
+        accountId,
+        publicId
+      ])
+
+      await dbQuery('begin', [])
+      await dbQuery(
+        queryResp2.rows.length === 0
+          ? queryList.ADD_QUIZ_RESULT
+          : queryList.UPDATE_QUIZ_RESULT,
+        [accountId, publicId, result, quiz.length]
+      )
+
+      const queryResp3 = await dbQuery(queryList.CHECK_COMPLETED, [
+        accountId,
+        publicId
+      ])
+
+      if (queryResp3.rows[0].exists === false) {
+        await dbQuery(queryList.MARK_COMPLETED, [accountId, publicId])
+      }
+      await dbQuery('commit', [])
+
+      return _res.status(200).json({ body: quiz })
+    } catch {
+      await dbQuery('rollback', [])
+      return _res.sendStatus(500)
+    }
+  }
+]
+
+export const quizStatusGet = [
+  authenticateToken,
+  checkPurchase,
+  getLessonType,
+  async (_req: Request, _res: Response) => {
+    try {
+      const accountId: string = _res.locals.accountId
+      const publicId = _req.params.publicId
+
+      const queryResp = await dbQuery(queryList.GET_QUIZ_RESULT, [
+        accountId,
+        publicId
+      ])
+
+      const status = { result: 0, total: 0 }
+      if (queryResp.rows.length !== 0) {
+        status.result = queryResp.rows[0].result
+        status.total = queryResp.rows[0].total
+      }
+
+      return _res.status(200).json(status)
+    } catch {
+      return _res.sendStatus(500)
+    }
+  }
+]
+
 export const coursePurchasePost = [
   body('mail').isEmail().escape().withMessage('invalid email'),
   authenticateToken,
@@ -528,6 +621,95 @@ export const coursePurchasePost = [
       }
 
       return _res.sendStatus(200)
+    } catch {
+      return _res.sendStatus(500)
+    }
+  }
+]
+
+export const markAsCompletedPost = [
+  authenticateToken,
+  checkPurchase,
+  async (_req: Request, _res: Response) => {
+    try {
+      const accountId: string = _res.locals.accountId
+      const courseId = _req.params.courseId
+      const publicId = _req.params.publicId
+
+      const queryResp = await dbQuery(queryList.GET_LESSON, [publicId])
+
+      if (queryResp.rows.length === 0) return _res.sendStatus(404)
+      if (String(queryResp.rows[0].course_id) !== courseId) {
+        return _res.sendStatus(400)
+      }
+
+      const queryResp2 = await dbQuery(queryList.CHECK_COMPLETED, [
+        accountId,
+        publicId
+      ])
+
+      if (queryResp2.rows[0].exists === true) return _res.sendStatus(200)
+
+      await dbQuery(queryList.MARK_COMPLETED, [accountId, publicId])
+
+      return _res.sendStatus(200)
+    } catch {
+      return _res.sendStatus(500)
+    }
+  }
+]
+
+export const progressGet = [
+  authenticateToken,
+  checkPurchase,
+  getCourseContent,
+  async (_req: Request, _res: Response) => {
+    interface Lesson {
+      id: string
+      type: string
+      title: string
+      is_public: boolean
+      completed: boolean
+    }
+    interface Week {
+      id: string
+      title: string
+      content: Lesson[]
+    }
+
+    try {
+      const accountId: string = _res.locals.accountId
+      const courseId = _req.params.courseId
+      const courseContent: Week[] = _res.locals.courseContent
+
+      const queryResp = await dbQuery(queryList.GET_COMPLETED, [
+        accountId,
+        courseId
+      ])
+
+      for (const week of courseContent) {
+        for (const lesson of week.content) {
+          const completed = queryResp.rows.findIndex(
+            (row: any) => row.lesson_id === lesson.id
+          )
+
+          lesson.completed = completed !== -1
+        }
+      }
+
+      return _res.status(200).json({ content: courseContent })
+    } catch {
+      return _res.sendStatus(500)
+    }
+  }
+]
+
+export const exploreGet = [
+  async (_req: Request, _res: Response) => {
+    try {
+      const queryResp = await dbQuery(queryList.EXPLORE_COURSES, [])
+
+      return _res.status(200).json(queryResp.rows)
     } catch {
       return _res.sendStatus(500)
     }
