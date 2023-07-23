@@ -1,8 +1,8 @@
 import { useState } from "react";
 
-const useCollapseList = (listLength: number) => {
+const useCollapseList = (listLength: number, defaultValue = false) => {
   const [listState, setListState] = useState(
-    Array<boolean>(listLength).fill(false)
+    Array<boolean>(listLength).fill(defaultValue)
   );
 
   const toggleCollapse = (index: number) => {

@@ -13,7 +13,7 @@ import {
 import { useState } from "react";
 // import { useParams } from "react-router-dom";
 import { StyledSection } from "./CourseDetails.styled";
-import { StyledLayoutPage } from "@/components/instructor/Layout.styled";
+import { StyledLayoutPage } from "@/components/Layout.styled";
 type CourseValueType = {
   title: string;
   description: string;

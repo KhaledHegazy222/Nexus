@@ -12,7 +12,8 @@ const Video = () => {
   const [videoStreamUrl, setVideoStreamUrl] = useState<string | null>(null);
 
   const [loadFetching, setLoadFetching] = useState(true);
-  // const [loadUploading, setLoadUploading] = useState(false);
+  const [loadUploading, setLoadUploading] = useState(false);
+  const [uploadedPercentage, setUploadedPercentage] = useState(0);
   const fetchData = useCallback(async () => {
     setLoadFetching(true);
     try {
@@ -42,7 +43,7 @@ const Video = () => {
     e
   ) => {
     if (e.target.files) {
-      setLoadFetching(true);
+      setLoadUploading(true);
       try {
         const requestBody = new FormData();
         requestBody.append("file", e.target.files[0]);
@@ -54,19 +55,28 @@ const Video = () => {
               "Content-Type": "multipart/form-data",
               Authorization: `Bearer ${token}`,
             },
+            onUploadProgress: (event) => {
+              console.log(Math.round((100 * event.loaded) / event.total!));
+              setUploadedPercentage(
+                Math.round((100 * event.loaded) / event.total!)
+              );
+            },
           }
         );
+        console.log("Done");
+        await fetchData();
       } catch (error) {
         console.log(error);
       }
-      setLoadFetching(false);
-      fetchData();
+      setLoadUploading(false);
     }
   };
 
   return (
     <>
-      {loadFetching ? (
+      {loadUploading ? (
+        <>{uploadedPercentage}</>
+      ) : loadFetching ? (
         <>
           <Box
             sx={{
