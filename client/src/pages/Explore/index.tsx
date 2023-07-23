@@ -10,9 +10,10 @@ import {
   Typography,
 } from "@mui/material";
 import courseImage from "@/assets/images/course.jpg";
-import { StyledLayoutPage } from "@/components/instructor/Layout.styled";
+import { StyledLayoutPage } from "@/components/Layout.styled";
 import { Link } from "react-router-dom";
 import Filter from "@/components/Filter";
+import CourseCard from "@/components/CourseCard";
 
 const courses = [
   {
@@ -103,80 +104,14 @@ function Explore() {
                   m: "20px",
                 }}
               >
-                <Link
-                  to={`/course/${course.id}`}
-                  style={{
-                    textDecoration: "none",
-                  }}
-                >
-                  <Card
-                    sx={{
-                      transition: "250ms ease-in-out",
-                      "&:hover": {
-                        transform: "scale(1.03)",
-                      },
-                    }}
-                  >
-                    <CardMedia
-                      image={courseImage}
-                      title={course.title}
-                      sx={{
-                        height: "200px",
-                        width: "100%",
-                      }}
-                    ></CardMedia>
-                    <CardContent>
-                      <Typography
-                        component={"h3"}
-                        sx={{
-                          fontWeight: "600",
-                        }}
-                      >
-                        {course.title}
-                      </Typography>
-                      <Typography
-                        component={"p"}
-                        sx={{
-                          color: "gray",
-                          fontSize: "0.9rem",
-                        }}
-                      >
-                        {course.instructorName}
-                      </Typography>
-                      <Box
-                        sx={{
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "space-between",
-                        }}
-                      >
-                        <Typography
-                          variant="h6"
-                          sx={{
-                            fontWeight: "800",
-                            flex: "1",
-                          }}
-                        >
-                          {`${course.price} EGP`}{" "}
-                        </Typography>
-                        <Typography
-                          sx={{
-                            fontWeight: "800",
-                            fontSize: "1.1rem",
-                            color: "#faaf00",
-                          }}
-                        >
-                          {course.rating}
-                        </Typography>
-                        <Rating
-                          value={course.rating}
-                          precision={0.1}
-                          readOnly
-                        />
-                      </Box>
-                    </CardContent>
-                  </Card>
-                </Link>
+                <CourseCard
+                  title={course.title}
+                  image={courseImage}
+                  link={`/course/${course.id}`}
+                  rating={3.5}
+                  instructorName="Omar El-Sayed"
+                  price={199.99}
+                />
               </Grid>
             ))}
           </Grid>

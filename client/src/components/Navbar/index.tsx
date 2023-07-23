@@ -59,7 +59,9 @@ const Navbar = () => {
           <Box>
             <StyledSignUpButton
               variant="contained"
-              onClick={() => navigate("/instructor")}
+              onClick={() =>
+                navigate(user.role === "admin" ? "/instructor" : "/student")
+              }
             >
               Go to Dashboard
             </StyledSignUpButton>
