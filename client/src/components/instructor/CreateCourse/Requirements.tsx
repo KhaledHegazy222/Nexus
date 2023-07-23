@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { Add, Close } from "@mui/icons-material";
 import { Box, Button, IconButton, Typography } from "@mui/material";
 import React, { useEffect, useRef, useState } from "react";

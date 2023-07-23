@@ -264,7 +264,6 @@ const TableOfContent = () => {
       } else if (weekIndex !== 0) {
         setTableOfContent((prevTable) => {
           const prevTableCopy = structuredClone(prevTable);
-          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
           const movedLesson = prevTableCopy[weekIndex].lessons.shift()!;
           prevTableCopy[weekIndex - 1].lessons.push(movedLesson);
           return prevTableCopy;
@@ -293,7 +292,6 @@ const TableOfContent = () => {
         }
         setTableOfContent((prevTable) => {
           const prevTableCopy = structuredClone(prevTable);
-          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
           const movedLesson = prevTableCopy[weekIndex].lessons.pop()!;
           prevTableCopy[weekIndex + 1].lessons.unshift(movedLesson);
           return prevTableCopy;

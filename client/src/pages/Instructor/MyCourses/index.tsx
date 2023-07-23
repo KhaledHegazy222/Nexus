@@ -1,13 +1,4 @@
-import {
-  Box,
-  Button,
-  CardContent,
-  CardMedia,
-  Fab,
-  Grid,
-  Tooltip,
-  Typography,
-} from "@mui/material";
+import { Box, Button, Fab, Grid, Tooltip, Typography } from "@mui/material";
 import Skeleton from "@/components/Skeleton";
 import { StyledCard, StyledGridItem, StyledTitle } from "./MyCourses.styled";
 import useCourses from "@/hooks/useCourses";

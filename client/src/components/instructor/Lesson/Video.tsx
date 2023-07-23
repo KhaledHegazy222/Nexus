@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-non-null-assertion */
 import useAuth from "@/contexts/useAuth";
 import { serverAxios } from "@/utils/axios";
 import { Box, Button, CircularProgress, Typography } from "@mui/material";
