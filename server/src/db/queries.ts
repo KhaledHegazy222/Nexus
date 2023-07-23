@@ -1,4 +1,4 @@
-exports.queryList = {
+export const queryList = {
   ADD_ACCOUNT:
     'insert into account(mail, password, first_name, last_name) values($1, $2, $3, $4)',
   ADD_GOOGLE_ACCOUNT:
@@ -43,8 +43,22 @@ exports.queryList = {
   PUBLISH_COURSE: 'update course set publish = true where id = $1',
   CHECK_COURSE_AUTHOR:
     'select exists(select id from course where id = $1 and author_id = $2)',
-  GET_COURSE_CONTENT: 'select content from course where id = $1',
-  UPDATE_COURSE_CONTENT: 'update course set content = $1 where id = $2',
+
+  GET_COURSE_CONTENT:
+    'select * from (select * from course_weeks where course_id = $1) as cw inner join lesson as l on cw.week_id = l.week_id order by cw.week_order, l.lesson_order',
+  ADD_WEEK:
+    'insert into course_weeks(week_id, course_id, week_title, week_order) values($1, $2, $3, $4)',
+  DELETE_WEEK: 'delete from course_weeks where week_id = $1',
+  UPDATE_WEEK:
+    'update course_weeks set week_order = $2, week_title = $3 where week_id = $1',
+
+  ADD_LESSON:
+    'insert into lesson(lesson_id, week_id, course_id, lesson_title, lesson_order, type, is_public) values($1, $2, $3, $4, $5, $6, $7)',
+  DELETE_LESSON: 'delete from lesson where lesson_id = $1',
+  UPDATE_LESSON:
+    'update lesson set week_id = $2, lesson_title = $3, lesson_order = $4, is_public = $5 where lesson_id = $1',
+  GET_LESSON: 'select * from lesson where lesson_id = $1',
+
   GET_COURSE: 'select * from course where id = $1',
   GET_LAST_ADDED_COURSE_ID: "SELECT currval('course_id_seq')",
   GET_INSTRUCTOR_COURSES:
@@ -58,10 +72,10 @@ exports.queryList = {
   GET_VIDEO_ID: 'select * from s3_hidden_video_id where public_id = $1',
 
   ADD_QUIZ:
-    'insert into course_quiz_question(quiz_id, course_id, idx_order, title, answer, options) values %L',
+    'insert into lesson_quiz_question(quiz_id, question_order, title, answer, options) values %L',
   GET_QUIZ:
-    'select title, options from course_quiz_question where quiz_id = $1 order by idx_order',
-  DELETE_QUIZ: 'delete from course_quiz_question where quiz_id = $1',
+    'select title, options, answer from lesson_quiz_question where quiz_id = $1 order by question_order',
+  DELETE_QUIZ: 'delete from lesson_quiz_question where quiz_id = $1',
 
   ADD_PURCHASE: 'insert into purchase(account_id, course_id) values($1, $2)',
   CHECK_PURCHASE:

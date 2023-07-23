@@ -2,12 +2,11 @@ import { type Request, type Response, type NextFunction } from 'express'
 require('dotenv').config()
 const jwt = require('jsonwebtoken')
 
-// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export const authenticateToken = (
   _req: Request,
   _res: Response,
   _next: NextFunction
-) => {
+): any => {
   const authHeader = _req.headers.authorization
   if (authHeader == null) return _res.sendStatus(401)
   const token = authHeader.split(' ')[1]
@@ -25,5 +24,5 @@ export const authenticateToken = (
   }
 }
 
-export const generateAccessToken = (accountId: string): void =>
+export const generateAccessToken = (accountId: string): string =>
   jwt.sign(accountId, process.env.ACCESS_TOKEN_SECRET)
