@@ -1,4 +1,8 @@
-import { ListObjectsV2Command } from '@aws-sdk/client-s3'
+import {
+  ListObjectsV2Command,
+  DeleteObjectCommand,
+  S3Client
+} from '@aws-sdk/client-s3'
 import { type Request, type Response } from 'express'
 import express = require('express')
 const cors = require('cors')
@@ -20,10 +24,17 @@ app.use('/api/v1', accountRoute)
 app.use('/api/v1/course', courseRoute)
 
 // temp
-const s3 = require('./s3Client')
 app.use('/api/v1/s3/list', [
   async (_req: Request, _res: Response) => {
     try {
+      const client = new S3Client({
+        region: process.env.REGION,
+        credentials: {
+          accessKeyId: process.env.ACCESS_KEY ?? '',
+          secretAccessKey: process.env.SECRET_ACCESS_KEY ?? ''
+        }
+      })
+
       const command = new ListObjectsV2Command({
         Bucket: process.env.BUCKET,
         // The default and maximum number of keys returned is 1000. This limits it to
@@ -35,13 +46,13 @@ app.use('/api/v1/s3/list', [
 
       while (isTruncated) {
         const { Contents, IsTruncated, NextContinuationToken } =
-          await s3.client.send(command)
+          await client.send(command)
         if (Contents == null) break
         const contentsList: string = Contents.map(
           // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
-          (c: any) => ` • ${c.Key}`
+          (c: any) => `   ${c.Key}`
         ).join('\n')
-        contents += contentsList + '\n'
+        contents += contentsList
         isTruncated = IsTruncated ?? true
         command.input.ContinuationToken = NextContinuationToken
       }
@@ -49,6 +60,32 @@ app.use('/api/v1/s3/list', [
     } catch (err: any) {
       console.log(err)
       _res.sendStatus(500)
+    }
+  }
+])
+app.use('/api/v1/s3/delete/:keyId', [
+  async (_req: Request, _res: Response) => {
+    try {
+      const client = new S3Client({
+        region: process.env.REGION,
+        credentials: {
+          accessKeyId: process.env.ACCESS_KEY ?? '',
+          secretAccessKey: process.env.SECRET_ACCESS_KEY ?? ''
+        }
+      })
+
+      const keyId = _req.params.keyId
+
+      await client.send(
+        new DeleteObjectCommand({
+          Bucket: process.env.BUCKET,
+          Key: keyId
+        })
+      )
+      // will delete normal if not exist
+      return _res.sendStatus(204)
+    } catch {
+      return _res.sendStatus(500)
     }
   }
 ])

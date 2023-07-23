@@ -1,17 +1,16 @@
 import { type Request, type Response, type NextFunction } from 'express'
 import { type Result, type ValidationError } from 'express-validator'
+import { dbQuery } from '../db/connection'
+import { queryList } from '../db/queries'
 const { validationResult } = require('express-validator')
 const nodemailer = require('nodemailer')
 require('dotenv').config()
-const dbConnection = require('../db/connection')
-const queries = require('../db/queries')
 
-// eslint-disable-next-line consistent-return
-exports.sendVerificationMail = async (
+export const sendVerificationMail = async (
   _req: Request,
   _res: Response,
   _next: NextFunction
-) => {
+): Promise<any> => {
   const errors: Result<ValidationError> = validationResult(_req)
   if (!errors.isEmpty()) {
     return _res.status(400).json({ errors: errors.array() })
@@ -20,10 +19,9 @@ exports.sendVerificationMail = async (
   try {
     const mail: string = _req.body.mail.toLowerCase()
 
-    const queryResp1 = await dbConnection.dbQuery(
-      queries.queryList.GET_ACCOUNT_DETAILS_BY_MAIL,
-      [mail]
-    )
+    const queryResp1 = await dbQuery(queryList.GET_ACCOUNT_DETAILS_BY_MAIL, [
+      mail
+    ])
     if (queryResp1.rows.length === 0) return _res.sendStatus(404)
     const accountDetail: {
       id: number
@@ -33,10 +31,9 @@ exports.sendVerificationMail = async (
       last_name: string
     } = queryResp1.rows[0]
 
-    const queryResp2 = await dbConnection.dbQuery(
-      queries.queryList.GET_VERIFICATION_ID,
-      [accountDetail.id]
-    )
+    const queryResp2 = await dbQuery(queryList.GET_VERIFICATION_ID, [
+      String(accountDetail.id)
+    ])
     if (queryResp2.rows.length === 0) return _res.sendStatus(400)
 
     const verificationId: string = queryResp2.rows[0].verification_id
@@ -82,69 +79,72 @@ exports.sendVerificationMail = async (
       if (err != null) console.log(err)
     })
 
-    _next()
+    return _res.sendStatus(200)
   } catch {
     return _res.sendStatus(500)
   }
 }
 
-exports.sendResetPasswordMail = async (
+export const sendResetPasswordMail = async (
   _req: Request,
   _res: Response,
   _next: NextFunction
-) => {
-  const mail: string = _req.body.mail.toLowerCase()
-  const resetId: string = _res.locals.resetId
+): Promise<any> => {
+  try {
+    const mail: string = _req.body.mail.toLowerCase()
+    const resetId: string = _res.locals.resetId
 
-  const queryResp1 = await dbConnection.dbQuery(
-    queries.queryList.GET_ACCOUNT_DETAILS_BY_MAIL,
-    [mail]
-  )
-  if (queryResp1.rows.length === 0) return _res.sendStatus(404)
-  const accountDetail: {
-    id: number
-    mail: string
-    role: string
-    first_name: string
-    last_name: string
-  } = queryResp1.rows[0]
+    const queryResp1 = await dbQuery(queryList.GET_ACCOUNT_DETAILS_BY_MAIL, [
+      mail
+    ])
+    if (queryResp1.rows.length === 0) return _res.sendStatus(404)
+    const accountDetail: {
+      id: number
+      mail: string
+      role: string
+      first_name: string
+      last_name: string
+    } = queryResp1.rows[0]
 
-  const transporter = nodemailer.createTransport({
-    host: 'smtp.gmail.com',
-    port: 465,
-    secure: true,
-    auth: {
-      user: process.env.SENDER_GMAIL,
-      pass: process.env.SENDER_PASSWORD
+    const transporter = nodemailer.createTransport({
+      host: 'smtp.gmail.com',
+      port: 465,
+      secure: true,
+      auth: {
+        user: process.env.SENDER_GMAIL,
+        pass: process.env.SENDER_PASSWORD
+      }
+    })
+    const mailOptions = {
+      from: process.env.SENDER_GMAIL,
+      to: mail,
+      subject: 'Password Reset Request - Action Required',
+      html: `
+      <p>Dear ${accountDetail.first_name} ${accountDetail.last_name},</p>
+      <p>We received a request to reset your password for your account with Nexus. To proceed with the password reset process, please follow the instructions below:</p>
+  
+      <ol>
+          <li>Click on the following link to reset your password: <a href="${
+            process.env.VITE_WEB_ROOT_URL ?? ''
+          }?reset=${resetId}">Reset Password</a><br>
+              <small>(Note: The link will expire soon, so please make sure to complete the process promptly.)</small>
+          </li>
+          <li>You will be directed to a secure page where you can enter a new password for your account.</li>
+      </ol>
+  
+      <p>If you did not initiate this password reset request or believe this email was sent to you in error, please disregard it. Your password will not be changed unless you follow the link and complete the reset process.</p>
+  
+      <p>Ensuring the security of your account is of utmost importance to us. If you have any concerns or need further assistance, please contact our support team.</p>
+  
+      <p>Best regards,</p>
+      <p>Nexus team<br>`
     }
-  })
-  const mailOptions = {
-    from: process.env.SENDER_GMAIL,
-    to: mail,
-    subject: 'Password Reset Request - Action Required',
-    html: `
-    <p>Dear ${accountDetail.first_name} ${accountDetail.last_name},</p>
-    <p>We received a request to reset your password for your account with Nexus. To proceed with the password reset process, please follow the instructions below:</p>
+    transporter.sendMail(mailOptions, (err: any) => {
+      if (err != null) console.log(err)
+    })
 
-    <ol>
-        <li>Click on the following link to reset your password: <a href="${
-          process.env.VITE_WEB_ROOT_URL ?? ''
-        }?reset=${resetId}">Reset Password</a><br>
-            <small>(Note: The link will expire soon, so please make sure to complete the process promptly.)</small>
-        </li>
-        <li>You will be directed to a secure page where you can enter a new password for your account.</li>
-    </ol>
-
-    <p>If you did not initiate this password reset request or believe this email was sent to you in error, please disregard it. Your password will not be changed unless you follow the link and complete the reset process.</p>
-
-    <p>Ensuring the security of your account is of utmost importance to us. If you have any concerns or need further assistance, please contact our support team.</p>
-
-    <p>Best regards,</p>
-    <p>Nexus team<br>`
+    return _res.sendStatus(200)
+  } catch {
+    return _res.sendStatus(500)
   }
-  transporter.sendMail(mailOptions, (err: any) => {
-    if (err != null) console.log(err)
-  })
-
-  _next()
 }

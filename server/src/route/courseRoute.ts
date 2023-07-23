@@ -20,9 +20,6 @@ router.post('/:courseId/reading/:publicId', courseController.readingUploadPost)
 router.post('/:courseId/quiz/:publicId', courseController.quizUploadPost)
 router.get('/:courseId/quiz/:publicId', courseController.quizGet)
 
-// remove this endpoint
-router.delete('/:courseId/lesson/:publicId', courseController.lessonDelete)
-
 router.post('/:courseId', courseController.coursePurchasePost)
 
 export = router

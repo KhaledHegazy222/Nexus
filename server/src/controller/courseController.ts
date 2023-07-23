@@ -1,21 +1,26 @@
 import { type Request, type Response, type NextFunction } from 'express'
 import { type Result, type ValidationError } from 'express-validator'
+import { dbQuery } from '../db/connection'
+import { queryList } from '../db/queries'
+import { getRole } from '../middleware/roleMW'
+import { authenticateToken } from '../middleware/authMW'
 import {
-  PutObjectCommand,
-  DeleteObjectCommand,
-  HeadObjectCommand
-} from '@aws-sdk/client-s3'
+  getCourseContent,
+  updateContent,
+  checkAuthor,
+  checkLessonAccess,
+  getLessonType
+} from '../middleware/courseMW'
+import {
+  uploader,
+  getReading,
+  uploadReading,
+  createAWSStream,
+  checkVideoExist
+} from '../util/awsInterface'
 const format = require('pg-format')
 const { body, validationResult } = require('express-validator')
 const { v4: uuidv4 } = require('uuid')
-const dbConnection = require('../db/connection')
-const queries = require('../db/queries')
-const uploadHelper = require('../middleware/uploadHelper')
-const authHelper = require('../middleware/authHelper')
-const roleHelper = require('../middleware/roleHelper')
-const readStreamHelper = require('../middleware/readStreamHelper')
-const getFromAWSHelper = require('../middleware/getFromAWSHelper')
-const s3 = require('../s3Client')
 
 export const courseCreatePost = [
   body('title').not().isEmpty().withMessage('title must be specified.'),
@@ -34,8 +39,8 @@ export const courseCreatePost = [
     .not()
     .isEmpty()
     .withMessage('content must be specified'),
-  authHelper.authenticateToken,
-  roleHelper.getRole,
+  authenticateToken,
+  getRole,
   async (_req: Request, _res: Response) => {
     const errors: Result<ValidationError> = validationResult(_req)
     if (!errors.isEmpty()) {
@@ -45,7 +50,7 @@ export const courseCreatePost = [
     if (_res.locals.role === 'student') return _res.sendStatus(403)
 
     try {
-      await dbConnection.dbQuery(queries.queryList.ADD_COURSE, [
+      await dbQuery(queryList.ADD_COURSE, [
         _res.locals.accountId,
         _req.body.title,
         _req.body.level,
@@ -57,9 +62,7 @@ export const courseCreatePost = [
         _req.body.requirements
       ])
 
-      const queryResp = await dbConnection.dbQuery(
-        queries.queryList.GET_LAST_ADDED_COURSE_ID
-      )
+      const queryResp = await dbQuery(queryList.GET_LAST_ADDED_COURSE_ID, [])
 
       return _res.status(201).json({ id: queryResp.rows[0].currval })
     } catch {
@@ -85,8 +88,8 @@ export const courseEditPut = [
     .not()
     .isEmpty()
     .withMessage('content must be specified'),
-  authHelper.authenticateToken,
-  roleHelper.checkAuthor,
+  authenticateToken,
+  checkAuthor,
   async (_req: Request, _res: Response) => {
     const errors: Result<ValidationError> = validationResult(_req)
     if (!errors.isEmpty()) {
@@ -94,7 +97,7 @@ export const courseEditPut = [
     }
 
     try {
-      await dbConnection.dbQuery(queries.queryList.UPDATE_COURSE, [
+      await dbQuery(queryList.UPDATE_COURSE, [
         _req.body.title,
         _req.body.level,
         _req.body.field,
@@ -113,231 +116,121 @@ export const courseEditPut = [
 ]
 
 export const courseEditContentPatch = [
-  body('fields.*.week_title')
+  body('weeks.*.id').not().isEmpty().withMessage('id must be specified.'),
+  body('weeks.*.title')
     .not()
     .isEmpty()
     .withMessage('week title must be specified.'),
-  body('fields.*.week_content.*.id')
+  body('weeks.*.content')
+    .isArray({ min: 1 })
+    .withMessage('lesson content must be specified.'),
+  body('weeks.*.content.*.id')
     .not()
     .isEmpty()
     .withMessage('id must be specified.'),
-  body('fields.*.week_content.*.title')
+  body('weeks.*.content.*.title')
     .not()
     .isEmpty()
     .withMessage('title must be specified.'),
-  body('fields.*.week_content.*.type')
+  body('weeks.*.content.*.type')
     .isIn(['video', 'reading', 'quiz'])
     .withMessage('invalid value.'),
-  body('fields.*.week_content.*.public')
+  body('weeks.*.content.*.is_public')
     .isBoolean()
-    .withMessage('public must be boolean.'),
-  authHelper.authenticateToken,
-  roleHelper.checkAuthor,
-  async (_req: Request, _res: Response) => {
+    .withMessage('is_public must be boolean.'),
+  authenticateToken,
+  checkAuthor,
+  getCourseContent,
+  async (_req: Request, _res: Response, _next: NextFunction) => {
     const errors: Result<ValidationError> = validationResult(_req)
     if (!errors.isEmpty()) {
       return _res.status(400).json({ errors: errors.array() })
     }
+    interface Lesson {
+      id: string
+      type: string
+      title: string
+      is_public: boolean
+    }
+    interface Week {
+      id: string
+      title: string
+      content: Lesson[]
+    }
+    interface CourseContent {
+      weeks: Week[]
+    }
 
     try {
-      const courseId: string = _req.params.courseId
-      const newLessons: any = []
-      _req.body.fields.forEach((field: any) => {
-        field.week_content.forEach((lesson: any) => {
-          newLessons.push({ id: lesson.id, type: lesson.type })
-        })
-      })
+      const courseId = _req.params.courseId
+      const courseContent: CourseContent = _req.body
+      const OldCourseContent: Week[] = _res.locals.courseContent
 
-      // get the files must be deleted and changed
-      const queryResp = await dbConnection.dbQuery(
-        queries.queryList.GET_COURSE_CONTENT,
-        [courseId]
-      )
-      if (queryResp.rows[0].content !== null) {
-        const oldLessons: any = []
-        queryResp.rows[0].content.fields.forEach((field: any) => {
-          field.week_content.forEach((lesson: any) => {
-            oldLessons.push({ id: lesson.id, type: lesson.type })
-          })
-        })
-
-        const oldIds: string[] = oldLessons.map((lesson: any) => lesson.id)
-        const newIds: string[] = newLessons.map((value: any) => value.id)
-
-        const toDelete = oldLessons.filter((oldLesson: any) => {
-          return !newIds.includes(oldLesson.id)
-        })
-
-        const toUpdate: any[] = []
-        newLessons.forEach((newLesson: any) => {
-          if (oldIds.includes(newLesson.id)) {
-            const oldLesson: any = oldLessons.filter(
-              (oldLesson: any) => oldLesson.id === newLesson.id
-            )[0]
-            if (oldLesson.type !== newLesson.type) {
-              const lesson = newLesson
-              lesson.oldType = oldLesson.type
-              toUpdate.push(lesson)
+      if (OldCourseContent.length === 0) {
+        // first time to add content
+        await dbQuery('begin', [])
+        let weekOrder = 0
+        for (const week of courseContent.weeks) {
+          await dbQuery(queryList.ADD_WEEK, [
+            week.id,
+            courseId,
+            week.title,
+            String(weekOrder++)
+          ])
+          let lessonOrder = 0
+          for (const lesson of week.content) {
+            await dbQuery(queryList.ADD_LESSON, [
+              lesson.id,
+              week.id,
+              courseId,
+              lesson.title,
+              String(lessonOrder++),
+              lesson.type,
+              String(lesson.is_public)
+            ])
+            if (lesson.type === 'video') {
+              await dbQuery(queryList.ADD_VIDEO_HIDDEN_ID, [
+                lesson.id,
+                uuidv4()
+              ])
             }
           }
-        })
-        const toInsert = newLessons.filter(
-          (lesson: any) => !oldIds.includes(lesson.id)
-        )
-
-        // console.log('delete from s3 ', toDelete)
-        // console.log('update from s3 ', toUpdate)
-        // console.log('insert from s3 ', toInsert)
-
-        // // delete toDelete, update files from s3
-        await Promise.all(
-          toDelete.map(async (lesson: any) => {
-            if (lesson.type === 'video' || lesson.type === 'reading') {
-              let idToDelete = lesson.id
-              if (lesson.type === 'video') {
-                const queryResp = await dbConnection.dbQuery(
-                  queries.queryList.GET_VIDEO_ID,
-                  [lesson.id]
-                )
-                if (queryResp.rows.length === 1) {
-                  idToDelete = queryResp.rows[0].hidden_id
-                }
-              }
-              await s3.client.send(
-                new DeleteObjectCommand({
-                  Bucket: s3.BUCKET,
-                  Key: idToDelete
-                })
-              )
-            }
-          })
-        )
-        await Promise.all(
-          toUpdate.map(async (lesson: any) => {
-            if (lesson.oldType === 'video' || lesson.oldType === 'reading') {
-              let idToDelete = lesson.id
-              if (lesson.oldType === 'video') {
-                const queryResp = await dbConnection.dbQuery(
-                  queries.queryList.GET_VIDEO_ID,
-                  [lesson.id]
-                )
-                if (queryResp.rows.length === 1) {
-                  idToDelete = queryResp.rows[0].hidden_id
-                }
-              }
-              await s3.client.send(
-                new DeleteObjectCommand({
-                  Bucket: s3.BUCKET,
-                  Key: idToDelete
-                })
-              )
-            }
-          })
-        )
-
-        // // update db
-        const transaction: any = [
-          ...toDelete
-            .filter((lesson: any) => lesson.type !== 'reading')
-            .map((lesson: any) => {
-              if (lesson.type === 'video') {
-                return {
-                  query: queries.queryList.DELETE_VIDEOS_HIDDEN_ID,
-                  params: [lesson.id]
-                }
-              } else {
-                // quiz
-                return {
-                  query: queries.queryList.DELETE_QUIZ,
-                  params: [lesson.id]
-                }
-              }
-            }),
-          ...toUpdate
-            .filter((lesson: any) => lesson.oldType !== 'reading')
-            .map((lesson: any) => {
-              if (lesson.oldType === 'video') {
-                return {
-                  query: queries.queryList.DELETE_VIDEOS_HIDDEN_ID,
-                  params: [lesson.id]
-                }
-              } else {
-                // quiz
-                return {
-                  query: queries.queryList.DELETE_QUIZ,
-                  params: [lesson.id]
-                }
-              }
-            }),
-          ...toUpdate
-            .filter((lesson: any) => lesson.type === 'video')
-            .map((lesson: any) => {
-              return {
-                query: queries.queryList.ADD_VIDEO_HIDDEN_ID,
-                params: [lesson.id, uuidv4()]
-              }
-            }),
-          ...toInsert
-            .filter((lesson: any) => lesson.type === 'video')
-            .map((lesson: any) => {
-              return {
-                query: queries.queryList.ADD_VIDEO_HIDDEN_ID,
-                params: [lesson.id, uuidv4()]
-              }
-            }),
-          {
-            query: queries.queryList.UPDATE_COURSE_CONTENT,
-            params: [_req.body, courseId]
-          }
-        ]
-
-        await dbConnection.dbQueries(transaction)
-      } else {
-        // first time to set content
-        await dbConnection.dbQueries([
-          ...newLessons
-            .filter((lesson: any) => lesson.type === 'video')
-            .map((lesson: any) => {
-              return {
-                query: queries.queryList.ADD_VIDEO_HIDDEN_ID,
-                params: [lesson.id, uuidv4()]
-              }
-            }),
-          {
-            query: queries.queryList.UPDATE_COURSE_CONTENT,
-            params: [_req.body, courseId]
-          }
-        ])
+        }
+        await dbQuery('commit', [])
+        return _res.sendStatus(200)
       }
+
+      await dbQuery('begin', [])
+      await updateContent(OldCourseContent, courseContent.weeks, courseId)
+      await dbQuery('commit', [])
 
       return _res.sendStatus(200)
     } catch {
+      await dbQuery('rollback', [])
       return _res.sendStatus(500)
     }
   }
 ]
 
 export const courseDetailsGet = [
-  authHelper.authenticateToken,
+  getCourseContent,
   async (_req: Request, _res: Response) => {
     try {
-      const queryResp1 = await dbConnection.dbQuery(
-        queries.queryList.GET_COURSE,
-        [_req.params.courseId]
-      )
+      const queryResp1 = await dbQuery(queryList.GET_COURSE, [
+        _req.params.courseId
+      ])
       if (queryResp1.rows.length === 0) return _res.sendStatus(400)
       const course = queryResp1.rows[0]
+      course.content = _res.locals.courseContent
 
       // get author data
       const queryResp2 = await Promise.all([
-        dbConnection.dbQuery(
-          queries.queryList.GET_STUDENT_ACCOUNT_DETAILS_BY_ID,
-          [course.author_id]
-        ),
-        dbConnection.dbQuery(
-          queries.queryList.GET_INSTRUCTOR_ACCOUNT_DETAILS_BY_ID,
-          [course.author_id]
-        )
+        dbQuery(queryList.GET_STUDENT_ACCOUNT_DETAILS_BY_ID, [
+          course.author_id
+        ]),
+        dbQuery(queryList.GET_INSTRUCTOR_ACCOUNT_DETAILS_BY_ID, [
+          course.author_id
+        ])
       ])
       if (queryResp2[0].rows.length === 0) return _res.sendStatus(404)
 
@@ -360,14 +253,14 @@ export const courseDetailsGet = [
 ]
 
 export const courseMineGet = [
-  authHelper.authenticateToken,
-  roleHelper.getRole,
+  authenticateToken,
+  getRole,
   async (_req: Request, _res: Response) => {
     try {
-      const queryResp = await dbConnection.dbQuery(
+      const queryResp = await dbQuery(
         _res.locals.role === 'student'
-          ? queries.queryList.GET_STUDENT_COURSES
-          : queries.queryList.GET_INSTRUCTOR_COURSES,
+          ? queryList.GET_STUDENT_COURSES
+          : queryList.GET_INSTRUCTOR_COURSES,
         [_res.locals.accountId]
       )
 
@@ -379,13 +272,11 @@ export const courseMineGet = [
 ]
 
 export const coursePublishPost = [
-  authHelper.authenticateToken,
-  roleHelper.checkAuthor,
+  authenticateToken,
+  checkAuthor,
   async (_req: Request, _res: Response) => {
     try {
-      await dbConnection.dbQuery(queries.queryList.PUBLISH_COURSE, [
-        _req.params.courseId
-      ])
+      await dbQuery(queryList.PUBLISH_COURSE, [_req.params.courseId])
 
       return _res.sendStatus(200)
     } catch {
@@ -395,38 +286,31 @@ export const coursePublishPost = [
 ]
 
 export const streamTokenGet = [
-  authHelper.authenticateToken,
-  roleHelper.checkLessonAccess,
-  roleHelper.getLessonType,
+  authenticateToken,
+  checkLessonAccess,
+  getLessonType,
   async function (_req: Request, _res: Response) {
     if (_res.locals.lessonType !== 'video') return _res.sendStatus(400)
 
     try {
       const publicId = _req.params.publicId
-      const queryResp = await dbConnection.dbQuery(
-        queries.queryList.GET_VIDEO_ID,
-        [publicId]
-      )
+      const queryResp = await dbQuery(queryList.GET_VIDEO_ID, [publicId])
       if (queryResp.rows.length === 0) return _res.sendStatus(403)
 
-      await s3.client.send(
-        new HeadObjectCommand({
-          Bucket: s3.BUCKET,
-          Key: queryResp.rows[0].hidden_id
-        })
-      )
+      const isExist = await checkVideoExist(queryResp.rows[0].hidden_id)
+      if (!isExist) return _res.sendStatus(404)
 
       const token = uuidv4()
-      await dbConnection.dbQuery(queries.queryList.ADD_LESSON_TOKEN, [token])
+      await dbQuery(queryList.ADD_LESSON_TOKEN, [token])
       setTimeout(() => {
-        dbConnection.dbQuery(queries.queryList.DELETE_LESSON_TOKEN, [token])
+        dbQuery(queryList.DELETE_LESSON_TOKEN, [token]).catch((err) => {
+          console.log('could not remove video token : ', token)
+          console.log(err)
+        })
       }, 60_000)
 
       return _res.status(200).json({ token })
-    } catch (err: unknown) {
-      if (err instanceof Error) {
-        if (err.message === 'UnknownError') return _res.sendStatus(404)
-      }
+    } catch {
       return _res.sendStatus(500)
     }
   }
@@ -438,19 +322,14 @@ export const videoStreamGet = [
       const publicId = _req.params.publicId
       const token = _req.params.token
 
-      const queryResp = await dbConnection.dbQuery(
-        queries.queryList.CHECK_LESSON_TOKEN,
-        [token]
-      )
+      const queryResp = await dbQuery(queryList.CHECK_LESSON_TOKEN, [token])
       if (queryResp.rows[0].exists === true) {
         const queryResp = await Promise.all([
-          dbConnection.dbQuery(queries.queryList.GET_VIDEO_ID, [publicId]),
-          dbConnection.dbQuery(queries.queryList.DELETE_LESSON_TOKEN, [token])
+          dbQuery(queryList.GET_VIDEO_ID, [publicId]),
+          dbQuery(queryList.DELETE_LESSON_TOKEN, [token])
         ])
         if (queryResp[0].rows.length === 0) return _res.sendStatus(400)
-        const stream = await readStreamHelper.createAWSStream(
-          queryResp[0].rows[0].hidden_id
-        )
+        const stream = await createAWSStream(queryResp[0].rows[0].hidden_id)
         // Pipe it into the _response
         stream.pipe(_res)
       } else {
@@ -463,18 +342,15 @@ export const videoStreamGet = [
 ]
 
 export const videoUploadPost = [
-  authHelper.authenticateToken,
-  roleHelper.checkAuthor,
-  roleHelper.getLessonType,
+  authenticateToken,
+  checkAuthor,
+  getLessonType,
   async function (_req: Request, _res: Response, _next: NextFunction) {
     if (_res.locals.lessonType !== 'video') return _res.sendStatus(400)
 
     try {
       const publicId: string = _req.params.publicId
-      const queryResp = await dbConnection.dbQuery(
-        queries.queryList.GET_VIDEO_ID,
-        [publicId]
-      )
+      const queryResp = await dbQuery(queryList.GET_VIDEO_ID, [publicId])
       if (queryResp.rows.length === 0) return _res.sendStatus(400)
 
       _next()
@@ -482,30 +358,21 @@ export const videoUploadPost = [
       return _res.sendStatus(500)
     }
   },
-  uploadHelper.upload.single('file'),
+  uploader.single('file'),
   function (_req: Request, _res: Response) {
     return _res.sendStatus(200)
   }
 ]
 
 export const readingUploadPost = [
-  authHelper.authenticateToken,
-  roleHelper.checkAuthor,
-  roleHelper.getLessonType,
+  authenticateToken,
+  checkAuthor,
+  getLessonType,
   async (_req: Request, _res: Response) => {
     if (_res.locals.lessonType !== 'reading') return _res.sendStatus(400)
 
-    const publicId = _req.params.publicId
-
     try {
-      const command = new PutObjectCommand({
-        Bucket: s3.BUCKET,
-        Key: publicId,
-        Body: _req.body.content
-      })
-      const response = await s3.client.send(command)
-      console.log(response)
-
+      await uploadReading(_req.params.publicId, _req.body.content)
       return _res.sendStatus(201)
     } catch {
       return _res.sendStatus(500)
@@ -514,58 +381,16 @@ export const readingUploadPost = [
 ]
 
 export const readingGet = [
-  authHelper.authenticateToken,
-  roleHelper.checkLessonAccess,
-  roleHelper.getLessonType,
-  (_req: Request, _res: Response, _next: NextFunction) => {
+  authenticateToken,
+  checkLessonAccess,
+  getLessonType,
+  async (_req: Request, _res: Response, _next: NextFunction) => {
     if (_res.locals.lessonType !== 'reading') return _res.sendStatus(400)
-    _next()
-  },
-  getFromAWSHelper.getObject,
-  (_req: Request, _res: Response) => {
-    return _res.status(200).json({ content: _res.locals.reading })
-  }
-]
-
-export const lessonDelete = [
-  authHelper.authenticateToken,
-  roleHelper.checkAuthor,
-  roleHelper.getLessonType,
-  async (_req: Request, _res: Response) => {
-    try {
-      const publicId = _req.params.publicId
-
-      if (_res.locals.lessonType === 'quiz') {
-        await dbConnection.dbQuery(queries.queryList.DELETE_QUIZ, [
-          _req.params.publicId
-        ])
-        return _res.sendStatus(204)
-      }
-
-      let idToDelete = ''
-      if (_res.locals.lessonType === 'video') {
-        const queryResp = await dbConnection.dbQuery(
-          queries.queryList.GET_VIDEO_ID,
-          [publicId]
-        )
-        if (queryResp.rows.length === 0) {
-          return _res.sendStatus(400)
-        }
-        idToDelete = queryResp.rows[0].hidden_id
-      } else {
-        idToDelete = publicId
-      }
-
-      await s3.client.send(
-        new DeleteObjectCommand({
-          Bucket: s3.BUCKET,
-          Key: idToDelete
-        })
-      )
-      // will delete normal if not exist
-      return _res.sendStatus(204)
-    } catch {
-      return _res.sendStatus(500)
+    const resp = await getReading(_req.params.publicId)
+    if (resp.ok === true) {
+      return _res.status(200).json({ content: resp.str })
+    } else {
+      return _res.sendStatus(404)
     }
   }
 ]
@@ -585,9 +410,9 @@ export const quizUploadPost = [
     .not()
     .isEmpty()
     .withMessage('answer must be specified.'),
-  authHelper.authenticateToken,
-  roleHelper.checkAuthor,
-  roleHelper.getLessonType,
+  authenticateToken,
+  checkAuthor,
+  getLessonType,
   async (_req: Request, _res: Response) => {
     const errors: Result<ValidationError> = validationResult(_req)
     if (!errors.isEmpty()) {
@@ -597,45 +422,50 @@ export const quizUploadPost = [
     if (_res.locals.lessonType !== 'quiz') return _res.sendStatus(400)
 
     const publicId = _req.params.publicId
-    const courseId = _req.params.courseId
     try {
-      await dbConnection.dbQuery(queries.queryList.DELETE_QUIZ, [publicId])
+      await dbQuery(queryList.DELETE_QUIZ, [publicId])
 
-      await dbConnection.dbQuery(
+      await dbQuery(
         format(
-          queries.queryList.ADD_QUIZ,
-          _req.body.body.map((q: any, i: number) => [
+          queryList.ADD_QUIZ,
+          _req.body.body.map((q: any, qOrder: number) => [
             publicId,
-            courseId,
-            i,
+            qOrder,
             q.title,
             q.answer,
             q.options
           ])
-        )
+        ),
+        []
       )
 
       return _res.sendStatus(201)
-    } catch (err) {
-      console.log(err)
+    } catch {
       return _res.sendStatus(500)
     }
   }
 ]
 
 export const quizGet = [
-  authHelper.authenticateToken,
-  roleHelper.checkLessonAccess,
-  roleHelper.getLessonType,
+  authenticateToken,
+  checkLessonAccess,
+  getLessonType,
   async (_req: Request, _res: Response) => {
     if (_res.locals.lessonType !== 'quiz') return _res.sendStatus(400)
 
     try {
-      const queryResp = await dbConnection.dbQuery(queries.queryList.GET_QUIZ, [
+      const queryResp = await dbQuery(queryList.GET_QUIZ, [
         _req.params.publicId
       ])
 
-      return _res.status(200).json({ body: queryResp.rows })
+      const quiz = queryResp.rows
+      if (_res.locals.accessType === 'student') {
+        quiz.forEach((q: any) => {
+          delete q.answer
+        })
+      }
+
+      return _res.status(200).json({ body: quiz })
     } catch {
       return _res.sendStatus(500)
     }
@@ -644,8 +474,8 @@ export const quizGet = [
 
 export const coursePurchasePost = [
   body('mail').isEmail().escape().withMessage('invalid email'),
-  authHelper.authenticateToken,
-  roleHelper.getRole,
+  authenticateToken,
+  getRole,
   async (_req: Request, _res: Response) => {
     const errors: Result<ValidationError> = validationResult(_req)
     if (!errors.isEmpty()) {
@@ -656,12 +486,8 @@ export const coursePurchasePost = [
       if (_res.locals.role !== 'admin') return _res.sendStatus(403)
 
       const queryResp = await Promise.all([
-        dbConnection.dbQuery(queries.queryList.GET_ACCOUNT_DETAILS_BY_MAIL, [
-          _req.body.mail
-        ]),
-        dbConnection.dbQuery(queries.queryList.GET_COURSE, [
-          _req.params.courseId
-        ])
+        dbQuery(queryList.GET_ACCOUNT_DETAILS_BY_MAIL, [_req.body.mail]),
+        dbQuery(queryList.GET_COURSE, [_req.params.courseId])
       ])
 
       if (queryResp[0].rows.length === 0 || queryResp[1].rows.length === 0) {
@@ -669,13 +495,13 @@ export const coursePurchasePost = [
       }
       if (queryResp[0].rows[0].role !== 'student') return _res.sendStatus(400)
 
-      const queryResp2 = await dbConnection.dbQuery(
-        queries.queryList.CHECK_PURCHASE,
-        [queryResp[0].rows[0].id, _req.params.courseId]
-      )
+      const queryResp2 = await dbQuery(queryList.CHECK_PURCHASE, [
+        queryResp[0].rows[0].id,
+        _req.params.courseId
+      ])
 
       if (queryResp2.rows[0].exists === false) {
-        await dbConnection.dbQuery(queries.queryList.ADD_PURCHASE, [
+        await dbQuery(queryList.ADD_PURCHASE, [
           queryResp[0].rows[0].id,
           _req.params.courseId
         ])
