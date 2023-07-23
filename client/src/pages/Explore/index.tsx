@@ -1,17 +1,6 @@
-import {
-  Box,
-  Card,
-  CardContent,
-  CardMedia,
-  Grid,
-  Paper,
-  Rating,
-  TextField,
-  Typography,
-} from "@mui/material";
+import { Box, Grid, Paper, TextField, Typography } from "@mui/material";
 import courseImage from "@/assets/images/course.jpg";
 import { StyledLayoutPage } from "@/components/Layout.styled";
-import { Link } from "react-router-dom";
 import Filter from "@/components/Filter";
 import CourseCard from "@/components/CourseCard";
 

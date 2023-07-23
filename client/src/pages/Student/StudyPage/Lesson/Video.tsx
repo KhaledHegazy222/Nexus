@@ -1,6 +1,6 @@
 import useAuth from "@/contexts/useAuth";
 import { serverAxios } from "@/utils/axios";
-import { CheckCircle, CheckCircleOutline } from "@mui/icons-material";
+import { CheckCircle, } from "@mui/icons-material";
 import { Box, Button } from "@mui/material";
 import { AxiosError } from "axios";
 import { useEffect, useState } from "react";

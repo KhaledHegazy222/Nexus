@@ -25,11 +25,9 @@ type AuthProviderProps = {
 
 const AuthContext = createContext<AuthValueType>({
   token: null,
-  // eslint-disable-next-line @typescript-eslint/no-empty-function
   setToken: () => {},
   user: null,
   loading: true,
-  // eslint-disable-next-line @typescript-eslint/no-empty-function
   logout: () => {},
 });
 
