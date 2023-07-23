@@ -1,4 +1,5 @@
 import { serverAxios } from "@/utils/axios";
+import { AxiosError } from "axios";
 import React, {
   ReactNode,
   createContext,
@@ -43,12 +44,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const navigate = useNavigate();
   const [token, setToken] = useState<string | null>(null);
   const [user, setUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState<boolean>(true);
+
   const logout = useCallback(() => {
     setToken(null);
     localStorage.removeItem("token");
     navigate("/");
   }, [setToken, navigate]);
-  const [loading, setLoading] = useState<boolean>(true);
   useEffect(() => {
     if (localStorage.getItem("token")) {
       setToken(localStorage.getItem("token"));
@@ -56,22 +58,28 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   }, [setToken]);
   useEffect(() => {
     if (token) localStorage.setItem("token", token);
-  }, [token, setToken]);
+  }, [token]);
   useEffect(() => {
     async function loadData() {
       setLoading(true);
-      const response = await serverAxios.get("/details", {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-      const { first_name, last_name, mail, role } = response.data;
-      setUser({
-        first_name,
-        last_name,
-        role,
-        mail,
-      });
+      try {
+        const response = await serverAxios.get("/details", {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        const { first_name, last_name, mail, role } = response.data;
+
+        setUser({
+          first_name,
+          last_name,
+          role,
+          mail,
+        });
+      } catch (error) {
+        console.log((error as AxiosError).message);
+      }
+
       setLoading(false);
     }
     if (token) {

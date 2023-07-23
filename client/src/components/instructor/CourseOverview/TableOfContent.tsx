@@ -43,12 +43,12 @@ import { SubmitHandler, useForm } from "react-hook-form";
 import useAuth from "@/contexts/useAuth";
 import { serverAxios } from "@/utils/axios";
 
-type LessonValueType = {
+export type LessonValueType = {
   id: string;
   title: string;
   type: "video" | "reading" | "quiz";
 };
-type WeekValueType = {
+export type WeekValueType = {
   title: string;
   lessons: LessonValueType[];
 };

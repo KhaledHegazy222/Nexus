@@ -6,6 +6,7 @@ import {
 } from "@/components/Layout.styled";
 import { Route, Routes } from "react-router-dom";
 import MyCourses from "./MyCourses";
+import StudyPage from "./StudyPage";
 
 const Student = () => {
   return (
@@ -15,6 +16,7 @@ const Student = () => {
         <StyledPaper>
           <Routes>
             <Route path="/" element={<MyCourses />} />
+            <Route path="/course/:courseId/*" element={<StudyPage />} />
           </Routes>
         </StyledPaper>
       </StyledContentContainer>

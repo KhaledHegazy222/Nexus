@@ -34,14 +34,14 @@ export const pagesData: pageType[] = [
     component: <Instructor />,
   },
   {
+    name: "Student",
+    path: "/student/*",
+    component: <Student />,
+  },
+  {
     name: "Explore",
     path: "/explore",
     component: <Explore />,
-  },
-  {
-    name: "Student",
-    path: "/student",
-    component: <Student />,
   },
   {
     name: "Course Details",
