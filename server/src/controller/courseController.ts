@@ -29,6 +29,14 @@ export const courseCreatePost = [
     .optional({ checkFalsy: true })
     .isNumeric()
     .withMessage('price must be a decimal'),
+  body('discount')
+    .trim()
+    .isInt({ min: 0, max: 100 })
+    .withMessage('discount must be in range 0, 100'),
+  body('discount_last_date')
+    .isISO8601()
+    .toDate()
+    .withMessage('invalid timestamp'),
   body('what_you_will_learn.body.*')
     .trim()
     .not()
@@ -57,6 +65,8 @@ export const courseCreatePost = [
         _req.body.field,
         _req.body.department,
         _req.body.price,
+        _req.body.discount,
+        _req.body.discount_last_date,
         _req.body.description,
         _req.body.what_you_will_learn,
         _req.body.requirements
@@ -78,6 +88,14 @@ export const courseEditPut = [
     .optional({ checkFalsy: true })
     .isNumeric()
     .withMessage('price must be a decimal'),
+  body('discount')
+    .trim()
+    .isInt({ min: 0, max: 100 })
+    .withMessage('discount must be in range 0, 100'),
+  body('discount_last_date')
+    .isISO8601()
+    .toDate()
+    .withMessage('invalid timestamp'),
   body('what_you_will_learn.body.*')
     .trim()
     .not()
@@ -103,6 +121,8 @@ export const courseEditPut = [
         _req.body.field,
         _req.body.department,
         _req.body.price,
+        _req.body.discount,
+        _req.body.discount_last_date,
         _req.body.description,
         _req.body.what_you_will_learn,
         _req.body.requirements,

@@ -54,6 +54,8 @@ CREATE TABLE course (
   field VARCHAR(255),
   department VARCHAR(255),
   price NUMERIC NOT NULL,
+  discount NUMERIC NOT NULL,
+  discount_last_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   description TEXT,
   what_you_will_learn JSON,
   requirements JSON,

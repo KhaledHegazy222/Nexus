@@ -37,9 +37,9 @@ export const queryList = {
   DELETE_RESET_ID: 'delete from reset_password where account_id = $1',
 
   ADD_COURSE:
-    'insert into course(author_id, title, level, field, department, price, description, what_you_will_learn, requirements) values($1, $2, $3, $4, $5, $6, $7, $8, $9)',
+    'insert into course(author_id, title, level, field, department, price, discount, discount_last_date, description, what_you_will_learn, requirements) values($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)',
   UPDATE_COURSE:
-    'update course set title = $1, level = $2, field = $3, department = $4, price = $5, description = $6, what_you_will_learn = $7, requirements = $8 where id = $9',
+    'update course set title = $1, level = $2, field = $3, department = $4, price = $5, discount = $6, discount_last_date = $7, description = $8, what_you_will_learn = $9, requirements = $10 where id = $11',
   PUBLISH_COURSE: 'update course set publish = true where id = $1',
   CHECK_COURSE_AUTHOR:
     'select exists(select id from course where id = $1 and author_id = $2)',
