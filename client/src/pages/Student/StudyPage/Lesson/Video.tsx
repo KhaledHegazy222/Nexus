@@ -1,15 +1,14 @@
 import useAuth from "@/contexts/useAuth";
 import { serverAxios } from "@/utils/axios";
-import { CheckCircle, } from "@mui/icons-material";
-import { Box, Button } from "@mui/material";
+import { Box } from "@mui/material";
 import { AxiosError } from "axios";
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
+import LessonButtons from "./LessonButtons";
 
 const Video = () => {
   const { token } = useAuth();
   const { courseId, lessonId } = useParams();
-  // const [videoSrc, setVideoSrc] = useState<string | null>(null);
   const [completed, setCompleted] = useState(false);
   const toggleCompleted = () => {
     setCompleted(!completed);
@@ -54,41 +53,7 @@ const Video = () => {
           type="video/mp4"
         />
       </video>
-      <Box
-        sx={{
-          width: "100%",
-          display: "flex",
-          justifyContent: "space-between",
-        }}
-      >
-        <Button variant="contained" color="secondary">
-          Previous Lesson
-        </Button>
-        <Button
-          variant={completed ? "contained" : "outlined"}
-          onClick={toggleCompleted}
-          sx={{
-            textTransform: "none",
-          }}
-        >
-          {completed ? (
-            <>
-              <CheckCircle
-                sx={{
-                  marginRight: "10px",
-                  fontSize: "1.4rem",
-                }}
-              />
-              Completed
-            </>
-          ) : (
-            "Mark as Completed"
-          )}
-        </Button>
-        <Button variant="contained" color="primary">
-          Next Lesson
-        </Button>
-      </Box>
+      <LessonButtons completed={completed} toggleCompleted={toggleCompleted} />
     </Box>
   );
 };
