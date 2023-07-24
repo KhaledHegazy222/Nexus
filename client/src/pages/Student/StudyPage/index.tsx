@@ -152,7 +152,10 @@ const StudyPage = () => {
           sx={{
             borderRight: "1px solid gray",
             padding: "5px",
-            height: "100%",
+            height: "500px",
+            overflowY: "auto",
+            overflowX: "visible",
+            width: "600px",
           }}
         >
           {tableOfContent.map((week, weekIndex) => (
