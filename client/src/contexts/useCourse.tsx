@@ -15,12 +15,7 @@ export type courseType = {
   content: {
     id: string;
     title: string;
-    content: {
-      id: string;
-      title: string;
-      type: "video" | "reading" | "quiz";
-      completed: boolean;
-    }[];
+    content: Lesson[];
   }[];
 };
 

@@ -14,10 +14,12 @@ import Logo from "@/assets/images/Logo.png";
 
 import useMenu from "@/hooks/useMenu";
 import useAuth from "@/contexts/useAuth";
+import { useNavigate } from "react-router-dom";
 
 const DashboardNavbar = () => {
   const accountMenu = useMenu();
   const { user, logout } = useAuth();
+  const navigate = useNavigate();
   return (
     <StyledAppBar position="static">
       <StyledToolbar>
@@ -46,7 +48,13 @@ const DashboardNavbar = () => {
           onClose={accountMenu.handleClose}
         >
           <MenuItem>Profile</MenuItem>
-          <MenuItem>My Courses</MenuItem>
+          <MenuItem
+            onClick={() =>
+              navigate(user?.role === "admin" ? "/instructor" : "/student")
+            }
+          >
+            My Courses
+          </MenuItem>
           <MenuItem onClick={() => logout()}>Logout</MenuItem>
         </Menu>
       </StyledToolbar>

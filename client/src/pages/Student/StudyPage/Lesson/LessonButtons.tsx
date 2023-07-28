@@ -5,14 +5,7 @@ import { serverAxios } from "@/utils/axios";
 import { CheckCircle } from "@mui/icons-material";
 import { Box, Button, CircularProgress } from "@mui/material";
 import { FC, useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
-
-type studentLessonType = {
-  id: string;
-  title: string;
-  type: "video" | "reading" | "quiz";
-  completed: boolean;
-};
+import { useNavigate, useParams } from "react-router-dom";
 
 type Props = {
   completed: boolean;
@@ -20,10 +13,15 @@ type Props = {
 };
 const LessonButtons: FC<Props> = () => {
   const { token } = useAuth();
+  const navigate = useNavigate();
   const { lessonId, courseId } = useParams();
   const { courseData, refresh } = useCourse();
-  const [completed, setCompleted] = useState(false);
+  const [currentLesson, setCurrentLesson] = useState<Lesson | null>(null);
+  const completed = currentLesson?.completed || false;
   const [isLoading, setIsLoading] = useState(false);
+  const [nextAllowed, setNextAllowed] = useState(true);
+  const [previousAllowed, setPreviousAllowed] = useState(true);
+
   const toggleCompleted = async () => {
     try {
       setIsLoading(true);
@@ -38,26 +36,61 @@ const LessonButtons: FC<Props> = () => {
     } finally {
       setIsLoading(false);
     }
-    setCompleted((state) => !state);
   };
   useEffect(() => {
     const serializeLessons = courseData.content.reduce(
       (serializedData, currentWeek) => {
         return [...serializedData, ...currentWeek.content];
       },
-      [] as {
-        id: string;
-        title: string;
-        type: "video" | "reading" | "quiz";
-        completed: boolean;
-      }[]
+      [] as Lesson[]
     );
-
-    const currentLesson = serializeLessons.find(
+    const index = serializeLessons.findIndex(
       (lesson) => lesson.id === lessonId
-    )!;
-    setCompleted(currentLesson.completed);
+    );
+    console.log(index, serializeLessons.length);
+    if (index === 0) setPreviousAllowed(false);
+    if (index === serializeLessons.length - 1) setNextAllowed(false);
+    if (index === -1) {
+      throw new Error("Invalid Lesson Url");
+    }
+    const foundLesson = serializeLessons[index];
+    setCurrentLesson(foundLesson ?? null);
   }, [courseData, lessonId]);
+
+  const handlePrevious = () => {
+    const serializeLessons = courseData.content.reduce(
+      (serializedData, currentWeek) => {
+        return [...serializedData, ...currentWeek.content];
+      },
+      [] as Lesson[]
+    );
+    const index = serializeLessons.findIndex(
+      (lesson) => lesson.id === lessonId
+    );
+    if (index <= 0) return;
+    navigate(
+      `/student/course/${courseId}/${serializeLessons[index - 1].type}/${
+        serializeLessons[index - 1].id
+      }`
+    );
+  };
+  const handleNext = () => {
+    const serializeLessons = courseData.content.reduce(
+      (serializedData, currentWeek) => {
+        return [...serializedData, ...currentWeek.content];
+      },
+      [] as Lesson[]
+    );
+    const index = serializeLessons.findIndex(
+      (lesson) => lesson.id === lessonId
+    );
+    if (index === -1 || index + 1 === serializeLessons.length) return;
+    navigate(
+      `/student/course/${courseId}/${serializeLessons[index + 1].type}/${
+        serializeLessons[index + 1].id
+      }`
+    );
+  };
   return (
     <Box
       sx={{
@@ -66,7 +99,12 @@ const LessonButtons: FC<Props> = () => {
         justifyContent: "space-between",
       }}
     >
-      <Button variant="contained" color="secondary">
+      <Button
+        variant="contained"
+        color="secondary"
+        disabled={!previousAllowed}
+        onClick={handlePrevious}
+      >
         Previous Lesson
       </Button>
       <Button
@@ -98,7 +136,12 @@ const LessonButtons: FC<Props> = () => {
           "Mark as Completed"
         )}
       </Button>
-      <Button variant="contained" color="primary">
+      <Button
+        variant="contained"
+        color="primary"
+        disabled={!nextAllowed}
+        onClick={handleNext}
+      >
         Next Lesson
       </Button>
     </Box>

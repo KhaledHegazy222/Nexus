@@ -12,10 +12,11 @@ type Week = {
 };
 
 type Course = {
-  id: string;
+  id: number;
   title: string;
   image?: string;
   description?: string;
+  weeks?: Week[];
   price?: string;
   rating?: string;
   progress?: string;
