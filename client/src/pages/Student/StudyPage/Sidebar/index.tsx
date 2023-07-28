@@ -18,13 +18,15 @@ import {
 import { useNavigate, useParams } from "react-router-dom";
 
 const Sidebar = () => {
-  const { courseId } = useParams();
+  const { courseId, lessonId } = useParams();
+  console.log(useParams());
   const { courseData } = useCourse();
   const navigate = useNavigate();
   const { listState, toggleCollapse } = useCollapseList(
     courseData.content.length,
     true
   );
+
   return (
     <List
       sx={{
@@ -68,33 +70,40 @@ const Sidebar = () => {
           <Collapse in={listState[weekIndex]}>
             <Divider />
             <List>
-              {week.content.map((lesson) => (
-                <ListItemButton
-                  key={lesson.id}
-                  onClick={() => {
-                    navigate(
-                      `/student/course/${courseId}/${lesson.type}/${lesson.id}`
-                    );
-                  }}
-                >
-                  <ListItemIcon
+              {week.content.map((lesson) => {
+                if (lesson.id === lessonId)
+                  if (!listState[weekIndex]) toggleCollapse(weekIndex);
+                return (
+                  <ListItemButton
+                    key={lesson.id}
+                    onClick={() => {
+                      navigate(
+                        `/student/course/${courseId}/${lesson.type}/${lesson.id}`
+                      );
+                    }}
                     sx={{
-                      color: "green",
+                      bgcolor: lesson.id === lessonId ? "#ddd" : "#fff",
                     }}
                   >
-                    {lesson.completed ? (
-                      <>
-                        <CheckCircle />
-                      </>
-                    ) : (
-                      <>
-                        <RadioButtonUnchecked />
-                      </>
-                    )}
-                  </ListItemIcon>
-                  <ListItemText>{lesson.title}</ListItemText>
-                </ListItemButton>
-              ))}
+                    <ListItemIcon
+                      sx={{
+                        color: "green",
+                      }}
+                    >
+                      {lesson.completed ? (
+                        <>
+                          <CheckCircle />
+                        </>
+                      ) : (
+                        <>
+                          <RadioButtonUnchecked />
+                        </>
+                      )}
+                    </ListItemIcon>
+                    <ListItemText>{lesson.title}</ListItemText>
+                  </ListItemButton>
+                );
+              })}
             </List>
           </Collapse>
           {weekIndex !== courseData.content.length - 1 && <Divider />}

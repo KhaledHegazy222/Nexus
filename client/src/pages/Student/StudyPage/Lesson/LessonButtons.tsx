@@ -47,7 +47,6 @@ const LessonButtons: FC<Props> = () => {
     const index = serializeLessons.findIndex(
       (lesson) => lesson.id === lessonId
     );
-    console.log(index, serializeLessons.length);
     if (index === 0) setPreviousAllowed(false);
     if (index === serializeLessons.length - 1) setNextAllowed(false);
     if (index === -1) {

@@ -1,6 +1,6 @@
 import { Box, Typography } from "@mui/material";
 import Lesson from "./Lesson";
-import { useParams } from "react-router-dom";
+import { Route, Routes, useParams } from "react-router-dom";
 import LessonProvider from "@/contexts/useCourse";
 import Sidebar from "./Sidebar";
 
@@ -20,7 +20,11 @@ const StudyPage = () => {
           margin: "20px 0",
         }}
       >
-        <Sidebar />
+        <Routes>
+          <Route path="/video/:lessonId?" element={<Sidebar />} />
+          <Route path="/reading/:lessonId?" element={<Sidebar />} />
+          <Route path="/quiz/:lessonId?" element={<Sidebar />} />
+        </Routes>
         <Lesson />
       </Box>
     </LessonProvider>
