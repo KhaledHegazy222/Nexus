@@ -1,12 +1,63 @@
+/* eslint-disable */
+import useAuth from "@/contexts/useAuth";
+import { useCourse } from "@/contexts/useCourse";
+import { serverAxios } from "@/utils/axios";
 import { CheckCircle } from "@mui/icons-material";
-import { Box, Button } from "@mui/material";
-import { FC } from "react";
+import { Box, Button, CircularProgress } from "@mui/material";
+import { FC, useEffect, useState } from "react";
+import { useParams } from "react-router-dom";
+
+type studentLessonType = {
+  id: string;
+  title: string;
+  type: "video" | "reading" | "quiz";
+  completed: boolean;
+};
 
 type Props = {
   completed: boolean;
   toggleCompleted: () => void;
 };
-const LessonButtons: FC<Props> = ({ completed, toggleCompleted }) => {
+const LessonButtons: FC<Props> = () => {
+  const { token } = useAuth();
+  const { lessonId, courseId } = useParams();
+  const { courseData, refresh } = useCourse();
+  const [completed, setCompleted] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const toggleCompleted = async () => {
+    try {
+      setIsLoading(true);
+      await serverAxios.post(
+        `/course/${courseId}/lesson/${lessonId}`,
+        {},
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      await refresh();
+    } catch {
+      /* error */
+    } finally {
+      setIsLoading(false);
+    }
+    setCompleted((state) => !state);
+  };
+  useEffect(() => {
+    const serializeLessons = courseData.content.reduce(
+      (serializedData, currentWeek) => {
+        return [...serializedData, ...currentWeek.content];
+      },
+      [] as {
+        id: string;
+        title: string;
+        type: "video" | "reading" | "quiz";
+        completed: boolean;
+      }[]
+    );
+
+    const currentLesson = serializeLessons.find(
+      (lesson) => lesson.id === lessonId
+    )!;
+    setCompleted(currentLesson.completed);
+  }, [courseData, lessonId]);
   return (
     <Box
       sx={{
@@ -19,13 +70,21 @@ const LessonButtons: FC<Props> = ({ completed, toggleCompleted }) => {
         Previous Lesson
       </Button>
       <Button
-        variant={completed ? "contained" : "outlined"}
+        disabled={completed}
+        variant={"contained"}
         onClick={toggleCompleted}
         sx={{
           textTransform: "none",
         }}
       >
-        {completed ? (
+        {isLoading ? (
+          <CircularProgress
+            size={20}
+            sx={{
+              color: "white",
+            }}
+          />
+        ) : completed ? (
           <>
             <CheckCircle
               sx={{

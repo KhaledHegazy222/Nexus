@@ -28,7 +28,7 @@ const Video = () => {
           import.meta.env.VITE_API_ROOT_URL
         }/api/v1/course/video/${lessonId}/${videoToken}`
       );
-    } catch {
+    } finally {
       setLoadFetching(false);
     }
     setLoadFetching(false);
