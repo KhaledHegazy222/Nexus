@@ -1,10 +1,15 @@
+/* eslint-disable */
 import { Route, Routes } from "react-router-dom";
 import Quiz from "./Quiz";
 import Reading from "./Reading";
 import Video from "./Video";
-import { Box } from "@mui/material";
+import { Box, CircularProgress } from "@mui/material";
+import { useCourse } from "@/contexts/useCourse";
+import NoLesson from "./NoLesson";
 
 const Lesson = () => {
+  const { isLoading } = useCourse();
+
   return (
     <Box
       sx={{
@@ -12,12 +17,25 @@ const Lesson = () => {
         padding: "10px",
       }}
     >
-      <Routes>
-        <Route path="/" element={<>No Lesson</>} />
-        <Route path="/video/:lessonId" element={<Video />} />
-        <Route path="/reading/:lessonId" element={<Reading />} />
-        <Route path="/quiz/:lessonId" element={<Quiz />} />
-      </Routes>
+      {isLoading ? (
+        <Box
+          sx={{
+            width: "100%",
+            height: "100%",
+            display: "grid",
+            placeContent: "center",
+          }}
+        >
+          <CircularProgress />
+        </Box>
+      ) : (
+        <Routes>
+          <Route path="/" element={<NoLesson />} />
+          <Route path="/video/:lessonId" element={<Video />} />
+          <Route path="/reading/:lessonId" element={<Reading />} />
+          <Route path="/quiz/:lessonId" element={<Quiz />} />
+        </Routes>
+      )}
     </Box>
   );
 };
