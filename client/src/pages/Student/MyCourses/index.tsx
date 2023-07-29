@@ -52,9 +52,9 @@ const MyCourses = () => {
               >
                 <CourseCard
                   link={`/student/course/${course.id}`}
-                  image={course.image}
+                  image={course.image!}
                   title={course.title}
-                  progress={10}
+                  progress={course.progress}
                 />
               </Grid>
             ))}

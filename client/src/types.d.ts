@@ -19,6 +19,13 @@ type Course = {
   weeks?: Week[];
   price?: string;
   rating?: string;
-  progress?: string;
+  progress?: number;
   instructor?: string;
+};
+
+type Quiz = {
+  title: string;
+  options: string[];
+  answer?: string;
+  is_correct?: boolean;
 };

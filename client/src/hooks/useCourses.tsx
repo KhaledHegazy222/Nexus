@@ -30,7 +30,7 @@ const useCourses = () => {
             description: "Learn Learn Learn",
             image: courseImage,
             title: elem.title,
-            progress: elem.completion_percentage,
+            progress: Number(elem.completion_percentage),
           })
         )
       );
