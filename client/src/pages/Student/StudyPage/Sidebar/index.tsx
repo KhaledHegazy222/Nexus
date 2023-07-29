@@ -19,7 +19,6 @@ import { useNavigate, useParams } from "react-router-dom";
 
 const Sidebar = () => {
   const { courseId, lessonId } = useParams();
-  console.log(useParams());
   const { courseData } = useCourse();
   const navigate = useNavigate();
   const { listState, toggleCollapse } = useCollapseList(
