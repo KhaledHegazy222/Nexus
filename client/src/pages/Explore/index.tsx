@@ -3,6 +3,7 @@ import courseImage from "@/assets/images/course.jpg";
 import { StyledLayoutPage } from "@/components/Layout.styled";
 import Filter from "@/components/Filter";
 import CourseCard from "@/components/CourseCard";
+import { useEffect, useState } from "react";
 
 const courses = [
   {
@@ -14,28 +15,28 @@ const courses = [
   },
   {
     id: 2,
-    title: "Fundamentals of Backend Engineering",
+    title: "Fundamentals of Frontend Engineering",
     rating: 3.5,
     instructorName: "Omar El-Sayed",
     price: 199.99,
   },
   {
     id: 3,
-    title: "Fundamentals of Backend Engineering",
+    title: "Fundamentals of Python Engineering",
     rating: 3.5,
     instructorName: "Omar El-Sayed",
     price: 199.99,
   },
   {
     id: 4,
-    title: "Fundamentals of Backend Engineering",
+    title: "Fundamentals of C++ Engineering",
     rating: 3.5,
     instructorName: "Omar El-Sayed",
     price: 199.99,
   },
   {
     id: 5,
-    title: "Fundamentals of Backend Engineering",
+    title: "Fundamentals of Buggy Engineering",
     rating: 3.5,
     instructorName: "Omar El-Sayed",
     price: 199.99,
@@ -43,6 +44,16 @@ const courses = [
 ];
 
 function Explore() {
+  const [exploreCourses] = useState(courses);
+  const [filteredCourses, setFilteredCourses] = useState(courses);
+  const [searchText, setSearchText] = useState("");
+  useEffect(() => {
+    setFilteredCourses(
+      exploreCourses.filter((course) =>
+        course.title.toLowerCase().includes(searchText.toLowerCase())
+      )
+    );
+  }, [searchText, exploreCourses]);
   return (
     <>
       <StyledLayoutPage>
@@ -73,6 +84,8 @@ function Explore() {
                   fontSize: "0.9rem",
                 },
               }}
+              value={searchText}
+              onChange={(event) => setSearchText(event.target.value)}
             />
 
             <Filter />
@@ -83,7 +96,7 @@ function Explore() {
               placeContent: "center",
             }}
           >
-            {courses.map((course) => (
+            {filteredCourses.map((course) => (
               <Grid
                 item
                 key={course.id}
