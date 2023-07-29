@@ -24,6 +24,7 @@ const StudyPage = () => {
           <Route path="/video/:lessonId?" element={<Sidebar />} />
           <Route path="/reading/:lessonId?" element={<Sidebar />} />
           <Route path="/quiz/:lessonId?" element={<Sidebar />} />
+          <Route path="/" element={<Sidebar />} />
         </Routes>
         <Lesson />
       </Box>
