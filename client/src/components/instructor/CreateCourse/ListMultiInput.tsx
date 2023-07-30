@@ -1,34 +1,39 @@
-import { Add, Close } from "@mui/icons-material";
-import { Box, Button, IconButton, Typography } from "@mui/material";
-import React, { useEffect, useRef, useState } from "react";
-import { StyledTextField } from "./CreateCourse.styled";
-import { UseFormSetValue, UseFormWatch } from "react-hook-form";
+import { FC, useEffect, useRef, useState } from "react";
 import { FormValuesType } from "./CreateCourse";
+import { UseFormSetValue, UseFormWatch } from "react-hook-form";
+import { Box, Button, IconButton, Typography } from "@mui/material";
+import { Add, Close } from "@mui/icons-material";
+import { StyledTextField } from "./CreateCourse.styled";
 
 export type RequirementsType = {
   requirements: string[];
 };
-type RequirementsProps = {
+export type WhatYouWillLearnType = {
+  what_you_will_learn: string[];
+};
+type Props = {
+  title: string;
+  name: "requirements" | "what_you_will_learn";
   watch: UseFormWatch<FormValuesType>;
   setValue: UseFormSetValue<FormValuesType>;
 };
-const Requirements: React.FC<RequirementsProps> = ({ setValue, watch }) => {
-  const [requirements, setRequirements] = useState<string[]>([]);
+const ListMultiInput: FC<Props> = ({ title, name, setValue, watch }) => {
+  const [listValues, setListValues] = useState<string[]>([]);
   const [collectInput, setCollectInput] = useState<boolean>(true);
   const inputRef = useRef<HTMLInputElement | null>(null);
   const handleAdd = () => {
-    setRequirements((prevRequirements) => [
-      ...prevRequirements,
+    setListValues((prevList) => [
+      ...prevList,
       inputRef.current?.value as string,
     ]);
     inputRef.current!.value = "";
   };
   useEffect(() => {
-    setValue("requirements", requirements);
-  }, [requirements, setValue]);
+    setValue(name, listValues);
+  }, [listValues, setValue, name]);
   useEffect(() => {
-    setRequirements(watch("requirements"));
-  }, [watch]);
+    setListValues(watch(name));
+  }, [watch, name]);
   return (
     <>
       <Box
@@ -38,14 +43,14 @@ const Requirements: React.FC<RequirementsProps> = ({ setValue, watch }) => {
           alignItems: "center",
         }}
       >
-        <Typography variant="h4">Requirements</Typography>
+        <Typography variant="h4">{title}</Typography>
         <IconButton color="primary" onClick={() => setCollectInput(true)}>
           <Add />
         </IconButton>
       </Box>
       <hr />
       <Box>
-        {requirements.map((requirement: string, index: number) => (
+        {listValues.map((listItem: string, index: number) => (
           <Box
             key={index}
             sx={{
@@ -55,13 +60,13 @@ const Requirements: React.FC<RequirementsProps> = ({ setValue, watch }) => {
               margin: "0 10px ",
             }}
           >
-            <Typography>{requirement}</Typography>
+            <Typography>{listItem}</Typography>
             <IconButton
               onClick={() =>
-                setRequirements((prevRequirements) =>
-                  prevRequirements.filter(
-                    (prevRequirement, prevIndex) =>
-                      prevRequirement !== requirement || prevIndex !== index
+                setListValues((prevList) =>
+                  prevList.filter(
+                    (prevListItem, prevIndex) =>
+                      prevListItem !== listItem || prevIndex !== index
                   )
                 )
               }
@@ -75,11 +80,7 @@ const Requirements: React.FC<RequirementsProps> = ({ setValue, watch }) => {
           </Box>
         ))}
         {collectInput && (
-          <StyledTextField
-            label="Requirement"
-            inputRef={inputRef}
-            size="small"
-          />
+          <StyledTextField label={title} inputRef={inputRef} size="small" />
         )}
       </Box>
       {collectInput && (
@@ -103,4 +104,4 @@ const Requirements: React.FC<RequirementsProps> = ({ setValue, watch }) => {
   );
 };
 
-export default Requirements;
+export default ListMultiInput;

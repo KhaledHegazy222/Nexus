@@ -17,8 +17,8 @@ type Course = {
   image?: string;
   description?: string;
   weeks?: Week[];
-  price?: string;
-  rating?: string;
+  price?: number;
+  rating?: number;
   progress?: number;
   instructor?: string;
 };

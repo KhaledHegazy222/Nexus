@@ -42,6 +42,7 @@ import useMenu from "@/hooks/useMenu";
 import { SubmitHandler, useForm } from "react-hook-form";
 import useAuth from "@/contexts/useAuth";
 import { serverAxios } from "@/utils/axios";
+import { AxiosError } from "axios";
 
 export type LessonValueType = {
   id: string;
@@ -53,81 +54,15 @@ export type WeekValueType = {
   lessons: LessonValueType[];
 };
 
-const TableOfContentInitialValue: WeekValueType[] = [
-  {
-    title: "Introduction to Python Programming",
-    lessons: [
-      {
-        id: uuid(),
-        title: "Introduction to python programming",
-        type: "video",
-      },
-      {
-        id: uuid(),
-        title: "Python Documentations",
-        type: "reading",
-      },
-      {
-        id: uuid(),
-        title: "Unit 1 Exercise",
-        type: "quiz",
-      },
-    ],
-  },
-  {
-    title: "Introduction to Python Programming",
-    lessons: [
-      {
-        id: uuid(),
-        title: "Introduction to python programming",
-        type: "video",
-      },
-      {
-        id: uuid(),
-        title: "Python Documentations",
-        type: "reading",
-      },
-      {
-        id: uuid(),
-        title: "Unit 1 Exercise",
-        type: "quiz",
-      },
-    ],
-  },
-  {
-    title: "Introduction to Python Programming",
-    lessons: [
-      {
-        id: uuid(),
-        title: "Introduction to python programming",
-        type: "video",
-      },
-      {
-        id: uuid(),
-        title: "Python Documentations",
-        type: "reading",
-      },
-      {
-        id: uuid(),
-        title: "Unit 1 Exercise",
-        type: "quiz",
-      },
-    ],
-  },
-];
-
 const TableOfContent = () => {
   const { id } = useParams();
   const { token } = useAuth();
-
   const navigate = useNavigate();
   const [selectedWeek, setSelectedWeek] = useState<number>(-1);
   const [selectedLessonId, setSelectedLessonId] = useState<string>("");
   const [selectedWeekToEdit, setSelectedWeekToEdit] = useState(-1);
   const [openLessonDialog, setOpenLessonDialog] = useState(false);
-  const [tableOfContent, setTableOfContent] = useState<WeekValueType[]>(
-    TableOfContentInitialValue
-  );
+  const [tableOfContent, setTableOfContent] = useState<WeekValueType[]>([]);
   const [tableOfContentBackup, setTableOfContentBackup] = useState<
     WeekValueType[]
   >([]);
@@ -311,17 +246,17 @@ const TableOfContent = () => {
         });
         type responseDataType = {
           week_title: string;
-          week_content: {
+          content: {
             id: string;
             type: string;
             title: string;
             public: boolean;
           }[];
         };
-        const tableData: WeekValueType[] = response.data.content.fields.map(
+        const tableData: WeekValueType[] = response.data.content.map(
           (weekObject: responseDataType): WeekValueType => ({
             title: weekObject.week_title,
-            lessons: weekObject.week_content.map((lessonObject) => ({
+            lessons: weekObject.content.map((lessonObject) => ({
               id: lessonObject.id,
               title: lessonObject.title,
               type: lessonObject.type as "video" | "reading" | "quiz",
@@ -329,7 +264,8 @@ const TableOfContent = () => {
           })
         );
         setTableOfContent(tableData);
-      } catch {
+      } catch (error) {
+        console.log((error as AxiosError).message);
         /* empty */
       }
     }
