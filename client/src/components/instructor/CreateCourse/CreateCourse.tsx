@@ -1,20 +1,19 @@
 import { Box, Button } from "@mui/material";
 import { StyledTitle } from "./CreateCourse.styled";
 
-import Requirements, { RequirementsType } from "./Requirements";
+import { RequirementsType, WhatYouWillLearnType } from "./ListMultiInput";
 import GeneralInfo, { GeneralInfoType } from "./GeneralInfo";
 import { SubmitHandler, useForm } from "react-hook-form";
 import { serverAxios } from "@/utils/axios";
 import useAuth from "@/contexts/useAuth";
 import { useNavigate, useParams } from "react-router-dom";
 import { useEffect } from "react";
+import ListMultiInput from "./ListMultiInput";
+import { AxiosError } from "axios";
 
 export type FormValuesType = GeneralInfoType &
-  RequirementsType & {
-    what_you_will_learn: {
-      body: string[];
-    };
-  };
+  RequirementsType &
+  WhatYouWillLearnType;
 
 const CreateCourse = ({ courseData }: { courseData?: FormValuesType }) => {
   const { id } = useParams();
@@ -35,28 +34,34 @@ const CreateCourse = ({ courseData }: { courseData?: FormValuesType }) => {
   const navigate = useNavigate();
 
   const onSubmit: SubmitHandler<FormValuesType> = async (data) => {
-    /* eslint-disable-next-line */
-    const requestBody: any = data;
-    requestBody.what_you_will_learn = {
-      body: [],
-    };
-    requestBody.requirements = {
-      body: data.requirements,
-    };
-    if (id) {
-      await serverAxios.put(`/course/${id}`, requestBody, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-      navigate(`/instructor/course/${id}`);
-    } else {
-      const response = await serverAxios.post(`/course/create`, requestBody, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-      navigate(`/instructor/course/${response.data.id}`);
+    try {
+      /* eslint-disable-next-line */
+      const requestBody: any = data;
+      requestBody.what_you_will_learn = {
+        body: data.what_you_will_learn,
+      };
+      requestBody.requirements = {
+        body: data.requirements,
+      };
+      requestBody.discount = 0;
+      requestBody.discount_last_date = "2023-04-15T10:39:37.000Z";
+      if (id) {
+        await serverAxios.put(`/course/${id}`, requestBody, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        navigate(`/instructor/course/${id}`);
+      } else {
+        const response = await serverAxios.post(`/course/create`, requestBody, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        navigate(`/instructor/course/${response.data.id}`);
+      }
+    } catch (error) {
+      console.log((error as AxiosError).response?.data);
     }
   };
   useEffect(() => {
@@ -85,9 +90,26 @@ const CreateCourse = ({ courseData }: { courseData?: FormValuesType }) => {
         }}
       >
         <StyledTitle>New Course</StyledTitle>
-        <form onSubmit={handleSubmit(onSubmit)}>
+        <form
+          onSubmit={handleSubmit(onSubmit)}
+          onKeyDown={(event) => {
+            if (event.key === "Enter") event.preventDefault();
+          }}
+        >
           <GeneralInfo register={register} />
-          <Requirements setValue={setValue} watch={watch} />
+          {/* <Requirements setValue={setValue} watch={watch} /> */}
+          <ListMultiInput
+            title="Requirements"
+            name="requirements"
+            setValue={setValue}
+            watch={watch}
+          />
+          <ListMultiInput
+            title="What You will learn"
+            name="what_you_will_learn"
+            setValue={setValue}
+            watch={watch}
+          />
 
           <Button
             type="submit"

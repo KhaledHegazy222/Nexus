@@ -4,48 +4,11 @@ import { StyledLayoutPage } from "@/components/Layout.styled";
 import Filter from "@/components/Filter";
 import CourseCard from "@/components/CourseCard";
 import { useEffect, useState } from "react";
-
-const courses = [
-  {
-    id: 1,
-    title: "Fundamentals of Backend Engineering",
-    rating: 3.5,
-    instructorName: "Omar El-Sayed",
-    price: 199.99,
-  },
-  {
-    id: 2,
-    title: "Fundamentals of Frontend Engineering",
-    rating: 3.5,
-    instructorName: "Omar El-Sayed",
-    price: 199.99,
-  },
-  {
-    id: 3,
-    title: "Fundamentals of Python Engineering",
-    rating: 3.5,
-    instructorName: "Omar El-Sayed",
-    price: 199.99,
-  },
-  {
-    id: 4,
-    title: "Fundamentals of C++ Engineering",
-    rating: 3.5,
-    instructorName: "Omar El-Sayed",
-    price: 199.99,
-  },
-  {
-    id: 5,
-    title: "Fundamentals of Buggy Engineering",
-    rating: 3.5,
-    instructorName: "Omar El-Sayed",
-    price: 199.99,
-  },
-];
+import { serverAxios } from "@/utils/axios";
 
 function Explore() {
-  const [exploreCourses] = useState(courses);
-  const [filteredCourses, setFilteredCourses] = useState(courses);
+  const [exploreCourses, setExploreCourses] = useState<Course[]>([]);
+  const [filteredCourses, setFilteredCourses] = useState<Course[]>([]);
   const [searchText, setSearchText] = useState("");
   useEffect(() => {
     setFilteredCourses(
@@ -54,6 +17,31 @@ function Explore() {
       )
     );
   }, [searchText, exploreCourses]);
+  useEffect(() => {
+    fetchData();
+    async function fetchData() {
+      const response = await serverAxios.get(`/course/explore`);
+
+      setExploreCourses(
+        response.data.map(
+          (elem: {
+            id: number;
+            title: string;
+            price: string;
+            first_name: string;
+            last_name: string;
+          }): Course => ({
+            id: elem.id,
+            title: elem.title,
+            image: courseImage,
+            rating: 3.5,
+            price: Number(elem.price),
+            instructor: `${elem.first_name} ${elem.last_name}`,
+          })
+        )
+      );
+    }
+  }, []);
   return (
     <>
       <StyledLayoutPage>
@@ -111,8 +99,8 @@ function Explore() {
                   image={courseImage}
                   link={`/course/${course.id}`}
                   rating={3.5}
-                  instructorName="Omar El-Sayed"
-                  price={199.99}
+                  instructorName={course.instructor}
+                  price={course.price}
                 />
               </Grid>
             ))}
