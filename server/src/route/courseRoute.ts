@@ -16,6 +16,7 @@ import {
   quizStatusGet,
   quizGet,
   markAsCompletedPost,
+  markAsUncompletedPost,
   progressGet,
   coursePurchasePost
 } from '../controller/courseController'
@@ -43,7 +44,8 @@ router.post('/:courseId/quiz/:publicId/submit', quizSubmitPost)
 router.get('/:courseId/quiz/:publicId/status', quizStatusGet)
 router.get('/:courseId/quiz/:publicId', quizGet)
 
-router.post('/:courseId/lesson/:publicId', markAsCompletedPost)
+router.post('/:courseId/lesson/:publicId/completed', markAsCompletedPost)
+router.post('/:courseId/lesson/:publicId/uncompleted', markAsUncompletedPost)
 router.get('/:courseId/progress', progressGet)
 
 router.post('/:courseId', coursePurchasePost)

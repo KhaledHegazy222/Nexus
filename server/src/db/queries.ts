@@ -114,6 +114,8 @@ ac.last_name;
 
   MARK_COMPLETED:
     'insert into lesson_completed(account_id, lesson_id) values($1, $2)',
+  MARK_UNCOMPLETED:
+    'delete from lesson_completed where account_id = $1 and lesson_id = $2',
   CHECK_COMPLETED:
     'select exists(select * from lesson_completed where account_id = $1 and lesson_id = $2)',
   GET_COMPLETED:
