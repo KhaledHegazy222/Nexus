@@ -133,5 +133,5 @@ CREATE TABLE lesson_completed (
   account_id INT NOT NULL,
   lesson_id VARCHAR(255) NOT NULL,
   FOREIGN KEY (account_id) REFERENCES account (id),
-  FOREIGN KEY (lesson_id) REFERENCES lesson (lesson_id)
+  FOREIGN KEY (lesson_id) REFERENCES lesson (lesson_id) ON DELETE CASCADE
 );
