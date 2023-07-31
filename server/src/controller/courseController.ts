@@ -297,6 +297,15 @@ export const coursePublishPost = [
   checkAuthor,
   async (_req: Request, _res: Response) => {
     try {
+      const queryResp = await dbQuery(queryList.COUNT_COURSE_LESSONS, [
+        _req.params.courseId
+      ])
+      if (Number(queryResp.rows[0].count) === 0) {
+        return _res
+          .status(400)
+          .json({ msg: 'can not publish course with empty content' })
+      }
+
       await dbQuery(queryList.PUBLISH_COURSE, [_req.params.courseId])
 
       return _res.sendStatus(200)
@@ -606,7 +615,12 @@ export const coursePurchasePost = [
       if (queryResp[0].rows.length === 0 || queryResp[1].rows.length === 0) {
         return _res.sendStatus(404)
       }
-      if (queryResp[0].rows[0].role !== 'student') return _res.sendStatus(400)
+      if (
+        queryResp[0].rows[0].role !== 'student' ||
+        queryResp[1].rows[0].publish === false
+      ) {
+        return _res.sendStatus(400)
+      }
 
       const queryResp2 = await dbQuery(queryList.CHECK_PURCHASE, [
         queryResp[0].rows[0].id,

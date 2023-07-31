@@ -58,6 +58,7 @@ export const queryList = {
   UPDATE_LESSON:
     'update lesson set week_id = $2, lesson_title = $3, lesson_order = $4, is_public = $5 where lesson_id = $1',
   GET_LESSON: 'select * from lesson where lesson_id = $1',
+  COUNT_COURSE_LESSONS: 'select count(*) from lesson where course_id = $1;',
 
   GET_COURSE: 'select * from course where id = $1',
   GET_LAST_ADDED_COURSE_ID: "SELECT currval('course_id_seq')",
