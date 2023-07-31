@@ -5,6 +5,7 @@ import Filter from "@/components/Filter";
 import CourseCard from "@/components/CourseCard";
 import { useEffect, useState } from "react";
 import { serverAxios } from "@/utils/axios";
+import Navbar from "@/components/Navbar";
 
 function Explore() {
   const [exploreCourses, setExploreCourses] = useState<Course[]>([]);
@@ -45,7 +46,8 @@ function Explore() {
   return (
     <>
       <StyledLayoutPage>
-        <Paper sx={{ m: "20px auto", p: "50px 0", width: "70%" }} elevation={4}>
+        <Navbar />
+        <Paper sx={{ m: "80px auto", p: "50px 0", width: "70%" }} elevation={4}>
           <Typography
             variant="h4"
             sx={{
