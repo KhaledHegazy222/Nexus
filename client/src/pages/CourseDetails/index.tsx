@@ -10,10 +10,13 @@ import {
   Button,
 } from "@mui/material";
 
-import { useState } from "react";
-// import { useParams } from "react-router-dom";
-import { StyledSection } from "./CourseDetails.styled";
+import { useEffect, useState } from "react";
+import { StyledSection, StyledSectionTitle } from "./CourseDetails.styled";
 import { StyledLayoutPage } from "@/components/Layout.styled";
+import { useParams } from "react-router-dom";
+import { serverAxios } from "@/utils/axios";
+import TableOfContent from "./TableOfContent";
+import Reviews from "./Reviews";
 type CourseValueType = {
   title: string;
   description: string;
@@ -46,21 +49,64 @@ const CourseInitialValue: CourseValueType = {
 };
 
 const CourseDetails = () => {
-  // const { courseId } = useParams();
-  const [courseData] = useState<CourseValueType>(CourseInitialValue);
+  const { courseId } = useParams();
+  const [courseData, setCourseData] =
+    useState<CourseValueType>(CourseInitialValue);
+  const [tableOfContent, setTableOfContent] = useState<Week[]>([]);
+  useEffect(() => {
+    fetchData();
+    async function fetchData() {
+      const response = await serverAxios.get(`/course/${courseId}`);
+      const {
+        title,
+        level,
+        field,
+        price,
+        rating,
+        description,
+        what_you_will_learn: { body: what_you_will_learn },
+        requirements: { body: requirements },
+        author: { first_name, last_name },
+        content,
+      } = response.data;
+
+      setCourseData({
+        title,
+        description,
+        level,
+        field,
+        price,
+        requirements,
+        whatYouWillLearn: what_you_will_learn,
+        rating: Number(rating) || 3.4,
+        instructorName: `${first_name} ${last_name}`,
+      });
+      setTableOfContent(
+        content.map(
+          (weekElem: {
+            id: string;
+            title: string;
+            content: {
+              id: string;
+              title: string;
+              type: "video" | "reading" | "quiz";
+              is_public: boolean;
+            }[];
+          }): Week => ({
+            id: weekElem.id,
+            title: weekElem.title,
+            lessons: weekElem.content,
+          })
+        )
+      );
+    }
+  }, [courseId]);
 
   return (
     <>
       <StyledLayoutPage>
         <StyledSection>
-          <Typography
-            variant="h4"
-            sx={{
-              fontWeight: "600",
-            }}
-          >
-            {courseData.title}
-          </Typography>
+          <StyledSectionTitle>{courseData.title}</StyledSectionTitle>
           <Typography variant="subtitle1">{courseData.description}</Typography>
           <Typography
             component="span"
@@ -107,7 +153,7 @@ const CourseDetails = () => {
           </Button>
         </StyledSection>
         <StyledSection>
-          <Typography>What you&apos;ll learn</Typography>
+          <StyledSectionTitle>What you&apos;ll learn</StyledSectionTitle>
           <List>
             {courseData.whatYouWillLearn.map((elem) => (
               <ListItem key={elem} disablePadding>
@@ -126,10 +172,11 @@ const CourseDetails = () => {
           </List>
         </StyledSection>
         <StyledSection>
-          <Typography>Table of content</Typography>
+          <StyledSectionTitle>Table of content</StyledSectionTitle>
+          <TableOfContent content={tableOfContent} />
         </StyledSection>
         <StyledSection>
-          <Typography>Requirements</Typography>
+          <StyledSectionTitle>Requirements</StyledSectionTitle>
           <List>
             {courseData.requirements.map((elem) => (
               <ListItem key={elem} disablePadding>
@@ -148,7 +195,8 @@ const CourseDetails = () => {
           </List>
         </StyledSection>
         <StyledSection>
-          <Typography>Reviews</Typography>
+          <StyledSectionTitle>Reviews</StyledSectionTitle>
+          <Reviews />
         </StyledSection>
       </StyledLayoutPage>
     </>

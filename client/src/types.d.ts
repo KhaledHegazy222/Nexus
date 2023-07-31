@@ -3,6 +3,7 @@ type Lesson = {
   title: string;
   type: "video" | "reading" | "quiz";
   completed?: boolean;
+  isPublic?: boolean;
 };
 
 type Week = {
