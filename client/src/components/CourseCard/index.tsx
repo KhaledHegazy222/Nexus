@@ -69,7 +69,7 @@ const CourseCard: FC<CourseProps> = ({
           >
             {instructorName}
           </Typography>
-          {(price || rating) && (
+          {(price !== undefined || rating !== undefined) && (
             <Box
               sx={{
                 display: "flex",
@@ -77,7 +77,7 @@ const CourseCard: FC<CourseProps> = ({
                 justifyContent: "flex-end",
               }}
             >
-              {price && (
+              {price !== undefined && (
                 <Typography
                   variant="h6"
                   sx={{
@@ -88,7 +88,7 @@ const CourseCard: FC<CourseProps> = ({
                   {`${price} EGP`}{" "}
                 </Typography>
               )}
-              {rating && (
+              {rating !== undefined && (
                 <>
                   <Box display="flex" alignItems="center">
                     <Typography
@@ -106,7 +106,7 @@ const CourseCard: FC<CourseProps> = ({
               )}
             </Box>
           )}
-          {progress && (
+          {progress !== undefined && (
             <>
               <Typography
                 sx={{

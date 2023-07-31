@@ -6,10 +6,11 @@ export const StyledLayoutPage = styled(Box)<BoxProps>(() => ({
   flexDirection: "column",
   justifyContent: "space-between",
   alignItems: "center",
-  height: "100vh",
+  minHeight: "100vh",
   backgroundImage: `url(${DashboardBackground})`,
   backgroundSize: "cover",
   backgroundPosition: "center center",
+  backgroundAttachment: "fixed",
 }));
 
 export const StyledContentContainer = styled(Box)<BoxProps>(() => ({

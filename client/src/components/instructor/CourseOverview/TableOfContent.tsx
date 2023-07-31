@@ -50,6 +50,7 @@ export type LessonValueType = {
   type: "video" | "reading" | "quiz";
 };
 export type WeekValueType = {
+  id: string;
   title: string;
   lessons: LessonValueType[];
 };
@@ -221,7 +222,7 @@ const TableOfContent = () => {
         if (weekIndex === tableOfContent.length - 1) {
           setTableOfContent((prevValue) => {
             const copy = structuredClone(prevValue);
-            copy.push({ title: "New Week", lessons: [] });
+            copy.push({ id: uuid(), title: "New Week", lessons: [] });
             return copy;
           });
         }
@@ -245,17 +246,19 @@ const TableOfContent = () => {
           },
         });
         type responseDataType = {
-          week_title: string;
+          id: string;
+          title: string;
           content: {
             id: string;
             type: string;
             title: string;
-            public: boolean;
+            is_public: boolean;
           }[];
         };
         const tableData: WeekValueType[] = response.data.content.map(
           (weekObject: responseDataType): WeekValueType => ({
-            title: weekObject.week_title,
+            id: weekObject.id,
+            title: weekObject.title,
             lessons: weekObject.content.map((lessonObject) => ({
               id: lessonObject.id,
               title: lessonObject.title,
@@ -517,6 +520,7 @@ const TableOfContent = () => {
           setTableOfContent((prevTable) => [
             ...prevTable,
             {
+              id: uuid(),
               title: "New Week",
               lessons: [],
             },
