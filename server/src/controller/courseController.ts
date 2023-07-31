@@ -673,6 +673,31 @@ export const markAsCompletedPost = [
   }
 ]
 
+export const markAsUncompletedPost = [
+  authenticateToken,
+  checkPurchase,
+  async (_req: Request, _res: Response) => {
+    try {
+      const accountId: string = _res.locals.accountId
+      const courseId = _req.params.courseId
+      const publicId = _req.params.publicId
+
+      const queryResp = await dbQuery(queryList.GET_LESSON, [publicId])
+
+      if (queryResp.rows.length === 0) return _res.sendStatus(404)
+      if (String(queryResp.rows[0].course_id) !== courseId) {
+        return _res.sendStatus(400)
+      }
+
+      await dbQuery(queryList.MARK_UNCOMPLETED, [accountId, publicId])
+
+      return _res.sendStatus(200)
+    } catch {
+      return _res.sendStatus(500)
+    }
+  }
+]
+
 export const progressGet = [
   authenticateToken,
   checkPurchase,
