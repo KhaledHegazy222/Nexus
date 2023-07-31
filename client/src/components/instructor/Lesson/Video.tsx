@@ -1,6 +1,12 @@
 import useAuth from "@/contexts/useAuth";
 import { serverAxios } from "@/utils/axios";
-import { Box, Button, CircularProgress, Typography } from "@mui/material";
+import {
+  Box,
+  Button,
+  CircularProgress,
+  LinearProgress,
+  Typography,
+} from "@mui/material";
 
 import React, { useCallback, useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
@@ -74,7 +80,39 @@ const Video = () => {
   return (
     <>
       {loadUploading ? (
-        <>{uploadedPercentage}</>
+        <Box
+          sx={{
+            mt: "30px",
+            width: "100%",
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: "10px",
+          }}
+        >
+          <Typography variant="h3">Uploading Your Video...</Typography>
+          <Typography variant="subtitle1" color="gray">
+            Don&apos;t Close This Pages
+          </Typography>
+          <LinearProgress
+            variant="determinate"
+            value={uploadedPercentage}
+            color="primary"
+            sx={{
+              m: "10px",
+              width: "clamp(260px,70%,1200px)",
+              height: "10px",
+              borderRadius: "10px",
+            }}
+          />
+          <Typography
+            variant="subtitle1"
+            sx={{
+              color: "primary.main",
+            }}
+          >{`${uploadedPercentage}%`}</Typography>
+        </Box>
       ) : loadFetching ? (
         <>
           <Box

@@ -17,6 +17,7 @@ import { useParams } from "react-router-dom";
 import { serverAxios } from "@/utils/axios";
 import TableOfContent from "./TableOfContent";
 import Reviews from "./Reviews";
+import Navbar from "@/components/Navbar";
 type CourseValueType = {
   title: string;
   description: string;
@@ -105,99 +106,104 @@ const CourseDetails = () => {
   return (
     <>
       <StyledLayoutPage>
-        <StyledSection>
-          <StyledSectionTitle>{courseData.title}</StyledSectionTitle>
-          <Typography variant="subtitle1">{courseData.description}</Typography>
-          <Typography
-            component="span"
-            sx={{
-              color: "primary.main",
-              fontWeight: "600",
-            }}
-          >
-            Created By:
-          </Typography>{" "}
-          <Typography
-            component="span"
-            sx={{
-              color: "gray",
-            }}
-          >
-            {courseData.instructorName}
-          </Typography>
-          <Box
-            sx={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "flex-start",
-              gap: "10px",
-            }}
-          >
-            <Typography>{courseData.rating}</Typography>
-            <Rating value={courseData.rating} precision={0.1} readOnly />
-          </Box>
-          <Typography
-            variant="h5"
-            sx={{
-              fontWeight: "600",
-            }}
-          >{`${courseData.price} EGP`}</Typography>
-          <Button
-            variant="contained"
-            sx={{
-              display: "block",
-              m: "auto",
-            }}
-          >
-            Enroll Now
-          </Button>
-        </StyledSection>
-        <StyledSection>
-          <StyledSectionTitle>What you&apos;ll learn</StyledSectionTitle>
-          <List>
-            {courseData.whatYouWillLearn.map((elem) => (
-              <ListItem key={elem} disablePadding>
-                <ListItemIcon
-                  sx={{
-                    minWidth: "unset",
-                    p: "5px",
-                    marginRight: "10px",
-                  }}
-                >
-                  <Check />
-                </ListItemIcon>
-                <ListItemText>{elem}</ListItemText>
-              </ListItem>
-            ))}
-          </List>
-        </StyledSection>
-        <StyledSection>
-          <StyledSectionTitle>Table of content</StyledSectionTitle>
-          <TableOfContent content={tableOfContent} />
-        </StyledSection>
-        <StyledSection>
-          <StyledSectionTitle>Requirements</StyledSectionTitle>
-          <List>
-            {courseData.requirements.map((elem) => (
-              <ListItem key={elem} disablePadding>
-                <ListItemIcon
-                  sx={{
-                    minWidth: "unset",
-                    p: "5px",
-                    marginRight: "10px",
-                  }}
-                >
-                  <Adjust />
-                </ListItemIcon>
-                <ListItemText>{elem}</ListItemText>
-              </ListItem>
-            ))}
-          </List>
-        </StyledSection>
-        <StyledSection>
-          <StyledSectionTitle>Reviews</StyledSectionTitle>
-          <Reviews />
-        </StyledSection>
+        <Navbar />
+        <Box mt="80px" width={"100%"}>
+          <StyledSection>
+            <StyledSectionTitle>{courseData.title}</StyledSectionTitle>
+            <Typography variant="subtitle1">
+              {courseData.description}
+            </Typography>
+            <Typography
+              component="span"
+              sx={{
+                color: "primary.main",
+                fontWeight: "600",
+              }}
+            >
+              Created By:
+            </Typography>{" "}
+            <Typography
+              component="span"
+              sx={{
+                color: "gray",
+              }}
+            >
+              {courseData.instructorName}
+            </Typography>
+            <Box
+              sx={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "flex-start",
+                gap: "10px",
+              }}
+            >
+              <Typography>{courseData.rating}</Typography>
+              <Rating value={courseData.rating} precision={0.1} readOnly />
+            </Box>
+            <Typography
+              variant="h5"
+              sx={{
+                fontWeight: "600",
+              }}
+            >{`${courseData.price} EGP`}</Typography>
+            <Button
+              variant="contained"
+              sx={{
+                display: "block",
+                m: "auto",
+              }}
+            >
+              Enroll Now
+            </Button>
+          </StyledSection>
+          <StyledSection>
+            <StyledSectionTitle>What you&apos;ll learn</StyledSectionTitle>
+            <List>
+              {courseData.whatYouWillLearn.map((elem) => (
+                <ListItem key={elem} disablePadding>
+                  <ListItemIcon
+                    sx={{
+                      minWidth: "unset",
+                      p: "5px",
+                      marginRight: "10px",
+                    }}
+                  >
+                    <Check />
+                  </ListItemIcon>
+                  <ListItemText>{elem}</ListItemText>
+                </ListItem>
+              ))}
+            </List>
+          </StyledSection>
+          <StyledSection>
+            <StyledSectionTitle>Table of content</StyledSectionTitle>
+            <TableOfContent content={tableOfContent} />
+          </StyledSection>
+          <StyledSection>
+            <StyledSectionTitle>Requirements</StyledSectionTitle>
+            <List>
+              {courseData.requirements.map((elem) => (
+                <ListItem key={elem} disablePadding>
+                  <ListItemIcon
+                    sx={{
+                      minWidth: "unset",
+                      p: "5px",
+                      marginRight: "10px",
+                    }}
+                  >
+                    <Adjust />
+                  </ListItemIcon>
+                  <ListItemText>{elem}</ListItemText>
+                </ListItem>
+              ))}
+            </List>
+          </StyledSection>
+          <StyledSection>
+            <StyledSectionTitle>Reviews</StyledSectionTitle>
+            <Reviews />
+          </StyledSection>
+        </Box>
       </StyledLayoutPage>
     </>
   );

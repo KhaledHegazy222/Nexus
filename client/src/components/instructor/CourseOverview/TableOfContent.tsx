@@ -115,30 +115,33 @@ const TableOfContent = () => {
         id: string;
         type: "video" | "reading" | "quiz";
         title: string;
-        public: boolean;
+        is_public: boolean;
       };
       type weekEntity = {
-        week_title: string;
-        week_content: lessonEntity[];
+        id: string;
+        title: string;
+        content: lessonEntity[];
       };
       type requestType = {
-        fields: weekEntity[];
+        weeks: weekEntity[];
       };
       const requestBody: requestType = {
-        fields: tableOfContent.map(
+        weeks: tableOfContent.map(
           (week): weekEntity => ({
-            week_title: week.title,
-            week_content: week.lessons.map(
+            id: week.id,
+            title: week.title,
+            content: week.lessons.map(
               (lesson): lessonEntity => ({
                 id: lesson.id,
                 type: lesson.type,
                 title: lesson.title,
-                public: true,
+                is_public: true,
               })
             ),
           })
         ),
       };
+      console.log(JSON.stringify(requestBody, null, 2));
       await serverAxios.patch(`/course/${id}/content`, requestBody, {
         headers: {
           Authorization: `Bearer ${token}`,
