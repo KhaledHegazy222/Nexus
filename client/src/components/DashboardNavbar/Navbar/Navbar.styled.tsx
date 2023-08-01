@@ -44,5 +44,5 @@ export const StyledLogoText = styled(Typography)<TypographyProps>(() => ({
 export const StyledUserContainer = styled(Box)<BoxProps>(() => ({
   display: "flex",
   alignItems: "center",
-  gap: "5px",
+  gap: "10px",
 }));

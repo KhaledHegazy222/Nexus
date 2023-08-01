@@ -1,4 +1,4 @@
-import { Box, Button } from "@mui/material";
+import { Box, Button, ButtonGroup } from "@mui/material";
 import { StyledTitle } from "./CreateCourse.styled";
 
 import { RequirementsType, WhatYouWillLearnType } from "./ListMultiInput";
@@ -32,7 +32,6 @@ const CreateCourse = ({ courseData }: { courseData?: FormValuesType }) => {
   });
   const { token } = useAuth();
   const navigate = useNavigate();
-
   const onSubmit: SubmitHandler<FormValuesType> = async (data) => {
     try {
       /* eslint-disable-next-line */
@@ -64,6 +63,7 @@ const CreateCourse = ({ courseData }: { courseData?: FormValuesType }) => {
       console.log((error as AxiosError).response?.data);
     }
   };
+  const handleCancel = () => navigate(-1);
   useEffect(() => {
     if (courseData) {
       Object.entries(courseData).forEach((pair) => {
@@ -82,6 +82,7 @@ const CreateCourse = ({ courseData }: { courseData?: FormValuesType }) => {
       });
     }
   }, [courseData, setValue]);
+
   return (
     <>
       <Box
@@ -97,34 +98,53 @@ const CreateCourse = ({ courseData }: { courseData?: FormValuesType }) => {
           }}
         >
           <GeneralInfo register={register} />
-          {/* <Requirements setValue={setValue} watch={watch} /> */}
           <ListMultiInput
             title="Requirements"
             name="requirements"
+            defaultValue={courseData?.requirements || []}
             setValue={setValue}
             watch={watch}
           />
           <ListMultiInput
             title="What You will learn"
             name="what_you_will_learn"
+            defaultValue={courseData?.what_you_will_learn || []}
             setValue={setValue}
             watch={watch}
           />
-
-          <Button
-            type="submit"
-            variant="contained"
+          <ButtonGroup
             sx={{
-              fontSize: "1.3rem",
-              textTransform: "none",
-              fontWeight: "600",
-              margin: "30px 0",
-              marginLeft: "auto",
-              display: "block",
+              m: "60px auto",
+              display: "flex",
+              justifyContent: "center",
+              alignItems: "center",
             }}
           >
-            Save Course
-          </Button>
+            <Button
+              type="submit"
+              variant="contained"
+              sx={{
+                fontSize: "1.3rem",
+                textTransform: "none",
+                fontWeight: "600",
+              }}
+            >
+              Save Course
+            </Button>
+            <Button
+              variant="contained"
+              color="error"
+              type="button"
+              onClick={handleCancel}
+              sx={{
+                fontSize: "1.3rem",
+                textTransform: "none",
+                fontWeight: "600",
+              }}
+            >
+              Cancel
+            </Button>
+          </ButtonGroup>
         </form>
       </Box>
     </>
