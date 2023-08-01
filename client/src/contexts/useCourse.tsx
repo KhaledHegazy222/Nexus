@@ -42,18 +42,18 @@ const CourseProviderProvider: FC<ProviderProps> = ({ courseId, children }) => {
   );
   const [isLoading, setIsLoading] = useState<boolean>(defaultValue.isLoading);
   const fetchData = useCallback(async () => {
-    try {
-      setIsLoading(true);
-      const response = await serverAxios.get(`/course/${courseId}/progress`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      setCourseData(response.data);
-    } finally {
-      setIsLoading(false);
-    }
+    const response = await serverAxios.get(`/course/${courseId}/progress`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    setCourseData(response.data);
   }, [token, courseId]);
   useEffect(() => {
-    fetchData();
+    init();
+    async function init() {
+      setIsLoading(true);
+      await fetchData();
+      setIsLoading(false);
+    }
   }, [fetchData]);
   const value = useMemo(
     () => ({
