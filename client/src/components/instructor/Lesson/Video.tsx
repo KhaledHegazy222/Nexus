@@ -10,7 +10,7 @@ import {
 
 import React, { useCallback, useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-
+const abortController = new AbortController();
 const Video = () => {
   const { courseId, lessonId } = useParams();
   const { token } = useAuth();
@@ -66,9 +66,9 @@ const Video = () => {
                 Math.round((100 * event.loaded) / event.total!)
               );
             },
+            signal: abortController.signal,
           }
         );
-        console.log("Done");
         await fetchData();
       } catch (error) {
         console.log(error);
@@ -91,10 +91,18 @@ const Video = () => {
             gap: "10px",
           }}
         >
-          <Typography variant="h3">Uploading Your Video...</Typography>
-          <Typography variant="subtitle1" color="gray">
-            Don&apos;t Close This Pages
+          <Typography variant="h4" sx={{ fontSize: "2.5rem" }}>
+            Uploading Your Video...
           </Typography>
+          <Typography variant="subtitle1" color="red" fontWeight="600">
+            Don&apos;t Close This Page
+          </Typography>
+          <Typography
+            variant="subtitle1"
+            sx={{
+              color: "primary.main",
+            }}
+          >{`${uploadedPercentage}%`}</Typography>
           <LinearProgress
             variant="determinate"
             value={uploadedPercentage}
@@ -106,12 +114,13 @@ const Video = () => {
               borderRadius: "10px",
             }}
           />
-          <Typography
-            variant="subtitle1"
-            sx={{
-              color: "primary.main",
-            }}
-          >{`${uploadedPercentage}%`}</Typography>
+          <Button
+            color="error"
+            variant="contained"
+            onClick={() => abortController.abort()}
+          >
+            Cancel
+          </Button>
         </Box>
       ) : loadFetching ? (
         <>
@@ -138,12 +147,9 @@ const Video = () => {
             </>
           ) : (
             <>
-              <video
-                width="500"
-                height="600"
-                controls
-                src={videoStreamUrl}
-              ></video>
+              <video width="500" height="600" controls>
+                <source src={videoStreamUrl} type="video/mp4"></source>
+              </video>
             </>
           )}
           <Button
