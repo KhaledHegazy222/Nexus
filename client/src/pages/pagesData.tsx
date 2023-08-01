@@ -5,6 +5,7 @@ import Instructor from "./Instructor";
 import Explore from "./Explore";
 import Student from "./Student";
 import CourseDetails from "./CourseDetails";
+import Admin from "./Admin";
 export type pageType = {
   name: string;
   path: string;
@@ -47,5 +48,10 @@ export const pagesData: pageType[] = [
     name: "Course Details",
     path: "/course/:courseId",
     component: <CourseDetails />,
+  },
+  {
+    name: "Admin",
+    path: "/admin",
+    component: <Admin />,
   },
 ];
