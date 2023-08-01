@@ -26,7 +26,9 @@ const LessonButtons: FC<Props> = () => {
     try {
       setIsLoading(true);
       await serverAxios.post(
-        `/course/${courseId}/lesson/${lessonId}`,
+        `/course/${courseId}/lesson/${lessonId}/${
+          completed ? "uncompleted" : "completed"
+        }`,
         {},
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -107,8 +109,7 @@ const LessonButtons: FC<Props> = () => {
         Previous Lesson
       </Button>
       <Button
-        disabled={completed}
-        variant={"contained"}
+        variant={completed ? "contained" : "outlined"}
         onClick={toggleCompleted}
         sx={{
           textTransform: "none",
