@@ -47,7 +47,13 @@ const DashboardNavbar = () => {
           anchorEl={accountMenu.menuAnchor}
           onClose={accountMenu.handleClose}
         >
-          <MenuItem>Profile</MenuItem>
+          {user?.role === "admin" && (
+            <MenuItem
+              onClick={() => navigate(`/instructor/profile/${user.id}`)}
+            >
+              Profile
+            </MenuItem>
+          )}
           <MenuItem
             onClick={() =>
               navigate(user?.role === "admin" ? "/instructor" : "/student")
