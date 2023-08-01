@@ -31,13 +31,6 @@ const AuthContext = createContext<AuthValueType>({
   logout: () => {},
 });
 
-type User = {
-  first_name: string;
-  last_name: string;
-  mail: string;
-  role: "student" | "admin";
-};
-
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const navigate = useNavigate();
   const [token, setToken] = useState<string | null>(null);
@@ -66,14 +59,21 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             Authorization: `Bearer ${token}`,
           },
         });
-        const { first_name, last_name, mail, role } = response.data;
-
-        setUser({
-          first_name,
-          last_name,
-          role,
-          mail,
-        });
+        const { id, first_name, last_name, mail, role, bio, contacts } =
+          response.data;
+        if (role === "admin") {
+          setUser({
+            id: Number(id),
+            first_name,
+            last_name,
+            role,
+            mail,
+            bio,
+            contacts,
+          });
+        } else {
+          setUser({ id: Number(id), first_name, last_name, role, mail });
+        }
       } catch (error) {
         console.log((error as AxiosError).message);
       }

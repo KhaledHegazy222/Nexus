@@ -8,6 +8,7 @@ import {
   StyledLayoutPage,
   StyledPaper,
 } from "@/components/Layout.styled";
+import Profile from "./Profile";
 
 const Instructor = () => {
   return (
@@ -19,6 +20,7 @@ const Instructor = () => {
             <Routes>
               <Route path="/" element={<Dashboard />} />
               <Route path="/course/*" element={<CoursePage />} />
+              <Route path="/profile/:userId" element={<Profile />} />
             </Routes>
           </StyledPaper>
         </StyledContentContainer>

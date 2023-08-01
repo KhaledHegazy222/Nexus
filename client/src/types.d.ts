@@ -1,3 +1,13 @@
+type User = {
+  id: number;
+  first_name: string;
+  last_name: string;
+  mail: string;
+  role: "student" | "admin";
+  bio?: string;
+  contacts?: string[];
+};
+
 type Lesson = {
   id: string;
   title: string;
