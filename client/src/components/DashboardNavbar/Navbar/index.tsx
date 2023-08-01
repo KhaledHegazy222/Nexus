@@ -1,4 +1,4 @@
-import { Avatar, Button, Menu, MenuItem, Typography } from "@mui/material";
+import { Avatar, Box, Button, Menu, MenuItem, Typography } from "@mui/material";
 import { ExpandLess, ExpandMore } from "@mui/icons-material";
 import {
   StyledAppBar,
@@ -36,7 +36,7 @@ const DashboardNavbar = () => {
               sx={{
                 textTransform: "capitalize",
                 fontWeight: "600",
-                fontSize: "1.1rem",
+                fontSize: "1.3rem",
               }}
             >{`${user?.first_name} ${user?.last_name}`}</Typography>
             {accountMenu.open ? <ExpandLess /> : <ExpandMore />}
@@ -46,22 +46,35 @@ const DashboardNavbar = () => {
           open={accountMenu.open}
           anchorEl={accountMenu.menuAnchor}
           onClose={accountMenu.handleClose}
+          anchorOrigin={{
+            vertical: "bottom",
+            horizontal: "right",
+          }}
+          transformOrigin={{
+            vertical: "top",
+            horizontal: "right",
+          }}
         >
-          {user?.role === "admin" && (
+          <Box sx={{ width: "250px" }}>
+            {user?.role === "admin" && (
+              <>
+                <MenuItem
+                  onClick={() => navigate(`/instructor/profile/${user.id}`)}
+                >
+                  Profile
+                </MenuItem>
+                <MenuItem onClick={() => navigate(`/admin`)}>Admin</MenuItem>
+              </>
+            )}
             <MenuItem
-              onClick={() => navigate(`/instructor/profile/${user.id}`)}
+              onClick={() =>
+                navigate(user?.role === "admin" ? "/instructor" : "/student")
+              }
             >
-              Profile
+              My Courses
             </MenuItem>
-          )}
-          <MenuItem
-            onClick={() =>
-              navigate(user?.role === "admin" ? "/instructor" : "/student")
-            }
-          >
-            My Courses
-          </MenuItem>
-          <MenuItem onClick={() => logout()}>Logout</MenuItem>
+            <MenuItem onClick={() => logout()}>Logout</MenuItem>
+          </Box>
         </Menu>
       </StyledToolbar>
     </StyledAppBar>

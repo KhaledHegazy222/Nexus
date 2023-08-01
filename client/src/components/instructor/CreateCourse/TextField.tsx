@@ -10,6 +10,7 @@ type TextFieldProps = {
   multiline?: boolean;
   maxRows?: number;
   helperText?: string;
+  step?: number;
 };
 
 const TextField = ({ name, label, register, ...props }: TextFieldProps) => {

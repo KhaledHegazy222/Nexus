@@ -41,6 +41,7 @@ const GeneralInfo: FC<GeneralInfoProps> = ({ register }) => {
         name="price"
         label="Price"
         type="number"
+        step={0.01}
         helperText="Enter the price in EGP"
       />
       <SelectField
