@@ -3,7 +3,6 @@ import { type Result, type ValidationError } from 'express-validator'
 
 import { dbQuery } from '../db/connection'
 import { queryList } from '../db/queries'
-import { getRole } from '../middleware/roleMW'
 import { authenticateToken, generateAccessToken } from '../middleware/authMW'
 import { verifyIdToken } from '../util/googleOauth'
 import {
@@ -150,11 +149,9 @@ export const googleOauthHandler = [
 
 export const accountDetailsGet = [
   authenticateToken,
-  getRole,
   async (_req: Request, _res: Response) => {
     try {
       const accountId: string = _res.locals.accountId
-      const role: string = _res.locals.role
 
       const queryResp1 = await dbQuery(
         queryList.GET_STUDENT_ACCOUNT_DETAILS_BY_ID,
@@ -163,10 +160,11 @@ export const accountDetailsGet = [
       if (queryResp1.rows.length === 0) return _res.sendStatus(404)
 
       const accData = queryResp1.rows[0]
-      accData.bio = ''
-      accData.contacts = {}
 
-      if (role !== 'student') {
+      if (queryResp1.rows[0].role !== 'student') {
+        accData.bio = ''
+        accData.contacts = {}
+
         const queryResp2 = await dbQuery(
           queryList.GET_INSTRUCTOR_ACCOUNT_DETAILS_BY_ID,
           [accountId]
@@ -207,6 +205,38 @@ export const accountDetailPost = [
       }
 
       return _res.sendStatus(200)
+    } catch {
+      return _res.sendStatus(500)
+    }
+  }
+]
+
+export const accountPublicDetailsGet = [
+  async (_req: Request, _res: Response) => {
+    try {
+      const accountId: string = _req.params.accountId
+
+      const queryResp1 = await dbQuery(
+        queryList.GET_STUDENT_ACCOUNT_DETAILS_BY_ID,
+        [accountId]
+      )
+      if (queryResp1.rows.length === 0) return _res.sendStatus(404)
+      if (queryResp1.rows[0].role === 'student') return _res.sendStatus(403)
+
+      const accData = queryResp1.rows[0]
+      accData.bio = ''
+      accData.contacts = {}
+
+      const queryResp2 = await dbQuery(
+        queryList.GET_INSTRUCTOR_ACCOUNT_DETAILS_BY_ID,
+        [accountId]
+      )
+      if (queryResp2.rows.length !== 0) {
+        accData.bio = queryResp2.rows[0].bio
+        accData.contacts = queryResp2.rows[0].contacts
+      }
+
+      return _res.status(200).json(accData)
     } catch {
       return _res.sendStatus(500)
     }
