@@ -5,7 +5,18 @@ import {
   RequirementsType,
   WhatYouWillLearnType,
 } from "../CreateCourse/ListMultiInput";
-import { Box, Fab, List, ListItem, Typography } from "@mui/material";
+import {
+  Box,
+  Button,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  Fab,
+  List,
+  ListItem,
+  Typography,
+} from "@mui/material";
 import { ArrowRight, Edit } from "@mui/icons-material";
 import CourseImage from "@/assets/images/course.jpg";
 
@@ -14,17 +25,19 @@ import useAuth from "@/contexts/useAuth";
 import { serverAxios } from "@/utils/axios";
 type CourseValueType = GeneralInfoType &
   RequirementsType &
-  WhatYouWillLearnType;
+  WhatYouWillLearnType & {
+    isPublished: boolean;
+  };
 
 const CourseInitialValue: CourseValueType = {
-  title: "Learn Python in Three Seconds",
-  description:
-    "Learn Python like a Professional Start from the basics and go all the way to creating your own applications and games",
+  title: "",
+  description: "",
   field: "Software",
   level: "Beginner",
-  price: 11,
+  price: 0,
   requirements: [],
   what_you_will_learn: [],
+  isPublished: false,
 };
 
 const CourseOverview = () => {
@@ -33,7 +46,10 @@ const CourseOverview = () => {
   const navigate = useNavigate();
   const [courseData, setCourseData] =
     useState<CourseValueType>(CourseInitialValue);
-
+  const [showAcceptDialog, setShowAcceptDialog] = useState(false);
+  const handlePublish = () => {
+    setCourseData((prevData) => ({ ...prevData, isPublished: true }));
+  };
   useEffect(() => {
     loadData();
     async function loadData() {
@@ -48,6 +64,7 @@ const CourseOverview = () => {
         requirements,
         price,
         what_you_will_learn,
+        publish,
       } = response.data;
       setCourseData({
         title,
@@ -57,6 +74,7 @@ const CourseOverview = () => {
         price: Number(price),
         requirements: requirements.body,
         what_you_will_learn: what_you_will_learn.body,
+        isPublished: publish,
       });
     }
   }, [id, token]);
@@ -133,7 +151,55 @@ const CourseOverview = () => {
           ))}
         </List>
         <TableOfContent />
+        <Button
+          variant="contained"
+          sx={{ m: "auto", display: "block", textTransform: "none" }}
+          onClick={() => setShowAcceptDialog(true)}
+          disabled={courseData.isPublished}
+        >
+          {courseData.isPublished ? "Published" : "Publish Course"}
+        </Button>
       </Box>
+      <Dialog open={showAcceptDialog}>
+        <DialogTitle
+          sx={{
+            fontWeight: "600",
+            fontSize: "1.7rem",
+          }}
+        >
+          Publish Course
+        </DialogTitle>
+        <DialogContent>
+          Please note that publishing the course is{" "}
+          <Typography
+            component="span"
+            sx={{ color: "red", fontWeight: "bold" }}
+          >
+            IRREVERSIBLE
+          </Typography>{" "}
+          action, also this will allow users to enroll and view the current
+          content of this course. Do you want to proceed ?
+        </DialogContent>
+        <DialogActions>
+          <Button
+            variant="contained"
+            color="primary"
+            onClick={() => {
+              setShowAcceptDialog(false);
+              handlePublish();
+            }}
+          >
+            Publish Course
+          </Button>
+          <Button
+            variant="contained"
+            color="error"
+            onClick={() => setShowAcceptDialog(false)}
+          >
+            Cancel
+          </Button>
+        </DialogActions>
+      </Dialog>
       <Fab
         sx={{
           position: "fixed",
