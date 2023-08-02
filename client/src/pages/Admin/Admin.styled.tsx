@@ -15,4 +15,10 @@ export const StyledGridCell = styled(Grid)<GridProps>(({ theme }) => ({
   fontSize: "1.4rem",
   fontWeight: "600",
   borderRadius: "10px",
+  transition: "all ease-in-out 300ms",
+  "&:hover": {
+    transform: "scale(1.07)",
+    boxShadow: "4px 4px 7px gray",
+    cursor: "pointer",
+  },
 }));
