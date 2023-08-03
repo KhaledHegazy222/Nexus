@@ -226,15 +226,18 @@ export const accountPublicDetailsGet = [
       const accData = queryResp1.rows[0]
       accData.bio = ''
       accData.contacts = {}
+      accData.courses = []
 
-      const queryResp2 = await dbQuery(
-        queryList.GET_INSTRUCTOR_ACCOUNT_DETAILS_BY_ID,
-        [accountId]
-      )
-      if (queryResp2.rows.length !== 0) {
-        accData.bio = queryResp2.rows[0].bio
-        accData.contacts = queryResp2.rows[0].contacts
+      const queryResp2 = await Promise.all([
+        dbQuery(queryList.GET_INSTRUCTOR_ACCOUNT_DETAILS_BY_ID, [accountId]),
+        dbQuery(queryList.GET_PUBLISHED_INSTRUCTOR_COURSES, [accountId])
+      ])
+
+      if (queryResp2[0].rows.length !== 0) {
+        accData.bio = queryResp2[0].rows[0].bio
+        accData.contacts = queryResp2[0].rows[0].contacts
       }
+      accData.courses = queryResp2[1].rows
 
       return _res.status(200).json(accData)
     } catch {

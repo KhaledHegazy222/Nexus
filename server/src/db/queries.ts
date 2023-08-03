@@ -63,7 +63,9 @@ export const queryList = {
   GET_COURSE: 'select * from course where id = $1',
   GET_LAST_ADDED_COURSE_ID: "SELECT currval('course_id_seq')",
   GET_INSTRUCTOR_COURSES:
-    'select c.id, c.title, c.price, a.first_name, a.last_name from (select id, author_id, title, price from course where author_id = $1) as c inner join account as a on c.author_id = a.id',
+    'select c.id, c.title, c.price, a.first_name, a.last_name from (select id, author_id, title, price from course where author_id = $1) as c inner join account as a on c.author_id = a.id order by id',
+  GET_PUBLISHED_INSTRUCTOR_COURSES:
+    'select c.id, c.title, c.price, a.first_name, a.last_name from (select id, author_id, title, price from course where author_id = $1 and publish = true) as c inner join account as a on c.author_id = a.id order by id',
   GET_STUDENT_COURSES: `
 select
   c.id,
@@ -80,8 +82,9 @@ left join lesson_completed lc on l.lesson_id = lc.lesson_id
 group by
 c.id,
 ac.first_name,
-ac.last_name;
-`,
+ac.last_name
+order by
+completion_percentage;`,
   EXPLORE_COURSES:
     'select c.id, c.title, c.price, a.first_name, a.last_name from (select id, author_id, title, price from course) as c inner join account as a on c.author_id = a.id',
   ADD_VIDEO_HIDDEN_ID:
