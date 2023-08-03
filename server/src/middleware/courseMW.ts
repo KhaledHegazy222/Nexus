@@ -355,7 +355,9 @@ export const checkPurchase = async (
 ): Promise<any> => {
   try {
     const accountId: string = _res.locals.accountId
-    const courseId = _req.params.courseId
+    const courseId = _req.params.courseId ?? _req.body.course_id
+
+    if (!/^[0-9]+$/.test(courseId)) return _res.sendStatus(400)
 
     const queryResp2 = await dbQuery(queryList.CHECK_PURCHASE, [
       accountId,

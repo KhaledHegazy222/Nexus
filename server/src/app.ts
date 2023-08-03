@@ -11,6 +11,7 @@ require('dotenv').config()
 
 const accountRoute = require('./route/accountRoute')
 const courseRoute = require('./route/courseRoute')
+const reviewRoute = require('./route/reviewRoute')
 
 const app = express()
 
@@ -22,6 +23,7 @@ app.use(bodyParser.urlencoded({ extended: false }))
 
 app.use('/api/v1', accountRoute)
 app.use('/api/v1/course', courseRoute)
+app.use('/api/v1/review', reviewRoute)
 
 // temp
 app.use('/api/v1/s3/list', [

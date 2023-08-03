@@ -122,5 +122,13 @@ completion_percentage;`,
   CHECK_COMPLETED:
     'select exists(select * from lesson_completed where account_id = $1 and lesson_id = $2)',
   GET_COMPLETED:
-    'select * from ((select * from lesson_completed where account_id = $1) as lc inner join (select lesson_id, course_id from lesson where course_id = $2) as l on lc.lesson_id = l.lesson_id)'
+    'select * from ((select * from lesson_completed where account_id = $1) as lc inner join (select lesson_id, course_id from lesson where course_id = $2) as l on lc.lesson_id = l.lesson_id)',
+
+  ADD_REVIEW:
+    'insert into review(account_id, course_id, content, rate) values($1, $2, $3, $4)',
+  DELETE_REVIEW: 'delete from review where account_id = $1 and course_id = $2',
+  GET_COURSE_REVIEWS:
+    'select rate, content, created_at from review where course_id = $1 order by created_at',
+  GET_REVIEWS:
+    'select rate, content, created_at from review order by created_at'
 }
