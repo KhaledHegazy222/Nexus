@@ -1,4 +1,5 @@
 -- drop all tables
+drop table review;
 drop table lesson_completed;
 drop table purchase;
 drop table lesson_token;
@@ -134,4 +135,15 @@ CREATE TABLE lesson_completed (
   lesson_id VARCHAR(255) NOT NULL,
   FOREIGN KEY (account_id) REFERENCES account (id),
   FOREIGN KEY (lesson_id) REFERENCES lesson (lesson_id) ON DELETE CASCADE
+);
+
+-- Create the 'review' table
+CREATE TABLE review (
+  account_id INT NOT NULL,
+  course_id INT NOT NULL,
+  content TEXT,
+  rate NUMERIC,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (account_id) REFERENCES account (id),
+  FOREIGN KEY (course_id) REFERENCES course (id)
 );
