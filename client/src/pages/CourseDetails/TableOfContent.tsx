@@ -62,8 +62,11 @@ const TableOfContent: FC<Props> = ({ content }) => {
                     borderRadius: "10px",
                     transition: "all ease-in-out 200ms",
                     "&:hover": {
-                      outline: "2px solid",
-                      outlineColor: (theme) => `${theme.palette.primary.main}`,
+                      ...(lesson.is_public && {
+                        outline: "2px solid",
+                        outlineColor: (theme) =>
+                          `${theme.palette.primary.main}`,
+                      }),
                     },
                   }}
                 >
@@ -75,18 +78,20 @@ const TableOfContent: FC<Props> = ({ content }) => {
                     <QuizOutlined />
                   )}
                   <Typography sx={{ m: "10px", textTransform: "capitalize" }}>
-                    {lesson.isPublic ? (
-                      lesson.title
-                    ) : (
+                    {lesson.is_public ? (
                       <Link
                         to={`/student/course/${courseId}/${lesson.type}/${lesson.id}`}
                       >
                         {lesson.title}
                       </Link>
+                    ) : (
+                      lesson.title
                     )}
                   </Typography>
-                  {lesson.isPublic && (
-                    <Typography variant="subtitle1">(Free)</Typography>
+                  {lesson.is_public && (
+                    <Typography variant="subtitle2" color={"gray"}>
+                      (Free)
+                    </Typography>
                   )}
                 </ListItem>
               ))}
