@@ -5,12 +5,11 @@ import {
   StyledLink,
   StyledLogoContainer,
   StyledLogoImage,
-  StyledLogoText,
   StyledToolbar,
   StyledUserContainer,
 } from "./Navbar.styled";
 
-import Logo from "@/assets/images/Logo.png";
+import LogoText from "@/assets/images/Brand/LogoText.svg";
 
 import useMenu from "@/hooks/useMenu";
 import useAuth from "@/contexts/useAuth";
@@ -25,8 +24,7 @@ const DashboardNavbar = () => {
       <StyledToolbar>
         <StyledLink to="/">
           <StyledLogoContainer>
-            <StyledLogoImage src={Logo} />
-            <StyledLogoText>exus</StyledLogoText>
+            <StyledLogoImage src={LogoText} />
           </StyledLogoContainer>
         </StyledLink>
         <Button onClick={accountMenu.handleClick}>

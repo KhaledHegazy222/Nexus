@@ -13,7 +13,7 @@ import { Link } from "react-router-dom";
 
 export const StyledAppBar = styled(AppBar)<AppBarProps>(({ theme }) => ({
   padding: "10px",
-  backgroundColor: `${theme.palette.primary.light}aa`,
+  backgroundColor: `#d0c2e5`,
   color: `${theme.palette.text.primary}`,
   boxShadow: "none",
 }));
@@ -32,8 +32,7 @@ export const StyledLogoContainer = styled(Box)<BoxProps>(() => ({
   gap: "5px",
 }));
 export const StyledLogoImage = styled("img")(() => ({
-  width: "40px",
-  aspectRatio: "1 / 1",
+  width: "200px",
 }));
 export const StyledLogoText = styled(Typography)<TypographyProps>(() => ({
   fontWeight: "600",

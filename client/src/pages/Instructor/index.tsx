@@ -16,7 +16,7 @@ const Instructor = () => {
       <StyledLayoutPage>
         <DashboardNavbar />
         <StyledContentContainer>
-          <StyledPaper>
+          <StyledPaper elevation={10}>
             <Routes>
               <Route path="/" element={<Dashboard />} />
               <Route path="/course/*" element={<CoursePage />} />

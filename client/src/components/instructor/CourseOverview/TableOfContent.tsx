@@ -290,6 +290,7 @@ const TableOfContent = () => {
           <ListItem
             key={weekIndex}
             sx={{
+              m: "10px 0",
               padding: "0",
               outline: "1px solid",
               outlineColor: (theme) => `${theme.palette.primary.main}`,
@@ -305,7 +306,7 @@ const TableOfContent = () => {
                   display: "flex",
                   justifyContent: "space-between",
                   alignItems: "center",
-                  backgroundColor: "primary.light",
+                  backgroundColor: "#9362d022",
                   padding: "10px",
                 }}
               >
@@ -391,13 +392,25 @@ const TableOfContent = () => {
               </Box>
 
               <Collapse in={listState[weekIndex]}>
-                <List>
+                <List
+                  sx={{
+                    p: "5px",
+                  }}
+                >
                   {week.lessons.map((lesson, lessonIndex) => (
                     <ListItem
                       key={lesson.id}
                       sx={{
                         gap: "10px",
                         justifyContent: "space-between",
+                        border: "1px solid #ddd",
+                        m: "3px 0",
+                        borderRadius: "10px",
+                        transition: "all ease-in-out 300ms",
+                        "&:hover": {
+                          backgroundColor: "primary.main",
+                          color: "white",
+                        },
                       }}
                     >
                       {lesson.type === "video" ? (
@@ -416,6 +429,7 @@ const TableOfContent = () => {
                         {lesson.title}
                       </Typography>
                       <IconButton
+                        sx={{ color: "inherit" }}
                         onClick={() =>
                           shiftUpDown(weekIndex, lessonIndex, "Downward")
                         }
@@ -423,6 +437,7 @@ const TableOfContent = () => {
                         <KeyboardArrowDown />
                       </IconButton>
                       <IconButton
+                        sx={{ color: "inherit" }}
                         disabled={weekIndex === 0 && lessonIndex === 0}
                         onClick={() =>
                           shiftUpDown(weekIndex, lessonIndex, "Upward")
@@ -431,6 +446,7 @@ const TableOfContent = () => {
                         <KeyboardArrowUp />
                       </IconButton>
                       <IconButton
+                        sx={{ color: "inherit" }}
                         onClick={(
                           e: React.MouseEvent<HTMLButtonElement, MouseEvent>
                         ) => {

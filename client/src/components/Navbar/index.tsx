@@ -5,13 +5,12 @@ import {
   StyledListButton,
   StyledLoginButton,
   StyledLogoImage,
-  StyledLogoText,
   StyledNavList,
   StyledSignUpButton,
   StyledToolbar,
 } from "./Navbar.styled";
 import { navLinkType, navLinks } from "./navLinks";
-import Logo from "@/assets/images/Logo.png";
+import LogoText from "@/assets/images/Brand/LogoText.svg";
 import { useNavigate } from "react-router-dom";
 import useAuth from "@/contexts/useAuth";
 
@@ -28,8 +27,7 @@ const Navbar = () => {
               alignItems: "center",
             }}
           >
-            <StyledLogoImage src={Logo} alt="Logo" />
-            <StyledLogoText>exus</StyledLogoText>
+            <StyledLogoImage src={LogoText} alt="Logo" />
           </Box>
         </StyledLink>
 
