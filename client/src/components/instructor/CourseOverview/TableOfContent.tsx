@@ -290,7 +290,7 @@ const TableOfContent = () => {
           <ListItem
             key={weekIndex}
             sx={{
-              m: "10px 0",
+              m: "1px 0",
               padding: "0",
               outline: "1px solid",
               outlineColor: (theme) => `${theme.palette.primary.main}`,
@@ -403,13 +403,18 @@ const TableOfContent = () => {
                       sx={{
                         gap: "10px",
                         justifyContent: "space-between",
-                        border: "1px solid #ddd",
-                        m: "3px 0",
+                        outline: "1px solid #ddd",
+                        m: "6px 0",
                         borderRadius: "10px",
-                        transition: "all ease-in-out 300ms",
+                        transition: "all ease-in-out 200ms",
+
                         "&:hover": {
-                          backgroundColor: "primary.main",
-                          color: "white",
+                          outline: "2px solid",
+                          outlineColor: (theme) =>
+                            `${theme.palette.primary.main}`,
+                          backgroundColor: "primary.light",
+                          transform: "scale(1.01)",
+                          // color: "white",
                         },
                       }}
                     >
