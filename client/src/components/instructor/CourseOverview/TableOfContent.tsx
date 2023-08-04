@@ -5,12 +5,14 @@ import { v4 as uuid } from "uuid";
 import {
   Box,
   Button,
+  Checkbox,
   Collapse,
   Dialog,
   DialogActions,
   DialogContent,
   DialogTitle,
   FormControl,
+  FormControlLabel,
   IconButton,
   InputLabel,
   List,
@@ -48,6 +50,7 @@ export type LessonValueType = {
   id: string;
   title: string;
   type: "video" | "reading" | "quiz";
+  is_public: boolean;
 };
 export type WeekValueType = {
   id: string;
@@ -80,6 +83,15 @@ const TableOfContent = () => {
       setEditMode(true);
     }
   }, [editMode, tableOfContent, setTableOfContentBackup, setEditMode]);
+  const toggleFree = (weekIndex: number, lessonIndex: number) => {
+    startEditMode();
+    setTableOfContent((prevState) => {
+      const copy = structuredClone(prevState);
+      copy[weekIndex].lessons[lessonIndex].is_public =
+        !copy[weekIndex].lessons[lessonIndex].is_public;
+      return copy;
+    });
+  };
   const cancelEditModeChanges = () => {
     setTableOfContent(tableOfContentBackup);
     setEditMode(false);
@@ -135,7 +147,7 @@ const TableOfContent = () => {
                 id: lesson.id,
                 type: lesson.type,
                 title: lesson.title,
-                is_public: true,
+                is_public: lesson.is_public,
               })
             ),
           })
@@ -266,6 +278,7 @@ const TableOfContent = () => {
               id: lessonObject.id,
               title: lessonObject.title,
               type: lessonObject.type as "video" | "reading" | "quiz",
+              is_public: lessonObject.is_public,
             })),
           })
         );
@@ -413,8 +426,7 @@ const TableOfContent = () => {
                           outlineColor: (theme) =>
                             `${theme.palette.primary.main}`,
                           backgroundColor: "primary.light",
-                          transform: "scale(1.01)",
-                          // color: "white",
+                          transform: "scale(1.005)",
                         },
                       }}
                     >
@@ -433,6 +445,21 @@ const TableOfContent = () => {
                       >
                         {lesson.title}
                       </Typography>
+                      <FormControlLabel
+                        label="Free"
+                        control={
+                          <Checkbox
+                            checked={
+                              tableOfContent[weekIndex].lessons[lessonIndex]
+                                .is_public ?? false
+                            }
+                            onChange={() => toggleFree(weekIndex, lessonIndex)}
+                            sx={{
+                              color: "primary.main",
+                            }}
+                          />
+                        }
+                      />
                       <IconButton
                         sx={{ color: "inherit" }}
                         onClick={() =>
