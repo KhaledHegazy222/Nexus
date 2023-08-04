@@ -46,9 +46,27 @@ const TableOfContent: FC<Props> = ({ content }) => {
             </IconButton>
           </ListItem>
           <Collapse in={listState[index]}>
-            <List disablePadding>
+            <List
+              sx={{
+                p: "5px",
+              }}
+            >
               {week.lessons.map((lesson) => (
-                <ListItem key={lesson.id}>
+                <ListItem
+                  key={lesson.id}
+                  sx={{
+                    gap: "10px",
+                    justifyContent: "flex-start",
+                    outline: "1px solid #ddd",
+                    m: "6px 0",
+                    borderRadius: "10px",
+                    transition: "all ease-in-out 200ms",
+                    "&:hover": {
+                      outline: "2px solid",
+                      outlineColor: (theme) => `${theme.palette.primary.main}`,
+                    },
+                  }}
+                >
                   {lesson.type === "video" ? (
                     <OndemandVideo />
                   ) : lesson.type === "reading" ? (
