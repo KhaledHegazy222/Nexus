@@ -14,8 +14,7 @@ import {
 import { Link } from "react-router-dom";
 
 export const StyledAppBar = styled(AppBar)<AppBarProps>(({ theme }) => ({
-  backgroundColor: "#eef9f6",
-  // backgroundColor: "transparent",
+  backgroundColor: "#d0c2e5",
   boxShadow: "none",
   color: `${theme.palette.text.primary}`,
 }));
@@ -33,8 +32,7 @@ export const StyledLink = styled(Link)(({ theme }) => ({
 
 // Logo Image
 export const StyledLogoImage = styled("img")(() => ({
-  width: "40px",
-  aspectRatio: "1 / 1",
+  width: "200px",
 }));
 
 // Logo Typography

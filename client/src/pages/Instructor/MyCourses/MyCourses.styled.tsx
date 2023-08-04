@@ -17,5 +17,6 @@ export const StyledGridItem = styled(Grid)<GridProps>(() => ({
 }));
 
 export const StyledCard = styled(Card)(() => ({
-  height: "300px",
+  minHeight: "300px",
+  height: "100%",
 }));

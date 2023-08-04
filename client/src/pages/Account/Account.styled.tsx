@@ -8,7 +8,7 @@ import {
 } from "@mui/material";
 
 export const StyledAccountBody = styled(Box)(() => ({
-  backgroundImage: "linear-gradient(180deg, #eef9f6 37%, #b4e6d9 100%)",
+  backgroundImage: "linear-gradient(180deg, #d0c2e5 37%, #9362d0 100%)",
   minHeight: "100vh",
   display: "flex",
   flexDirection: "column",
