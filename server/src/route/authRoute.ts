@@ -2,27 +2,22 @@ import {
   accountSignupPost,
   accountLoginPost,
   googleOauthHandler,
-  accountDetailsGet,
-  accountDetailPost,
-  accountPublicDetailsGet,
   accountSendVerificationPost,
-  accountVerifyPost,
+  accountVerifyPatch,
   accountSendResetPasswordPost,
-  accountResetPasswordPost
-} from '../controller/accountController'
+  accountResetPasswordPatch
+} from '../controller/authController'
 const express = require('express')
 const router = express.Router()
 
 router.post('/signup', accountSignupPost)
 router.post('/login', accountLoginPost)
 router.post('/oauth/google', googleOauthHandler)
-router.get('/details', accountDetailsGet)
-router.post('/details', accountDetailPost)
-router.get('/details/:accountId', accountPublicDetailsGet)
 
 router.post('/verify', accountSendVerificationPost)
-router.post('/verify/:verificationId', accountVerifyPost)
+router.patch('/verify', accountVerifyPatch)
+
 router.post('/reset-password', accountSendResetPasswordPost)
-router.post('/reset-password/:resetId', accountResetPasswordPost)
+router.patch('/reset-password', accountResetPasswordPatch)
 
 export = router
