@@ -25,13 +25,18 @@ const LessonButtons: FC<Props> = () => {
   const toggleCompleted = async () => {
     try {
       setIsLoading(true);
-      await serverAxios.post(
-        `/course/${courseId}/lesson/${lessonId}/${
-          completed ? "uncompleted" : "completed"
-        }`,
-        {},
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+      if (completed) {
+        await serverAxios.delete(
+          `/lesson/${lessonId}`,
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+      } else {
+        await serverAxios.post(
+          `/lesson/${lessonId}`,
+          {},
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+      }
       await refresh();
     } catch {
       /* error */

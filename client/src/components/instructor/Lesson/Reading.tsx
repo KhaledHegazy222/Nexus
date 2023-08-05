@@ -11,26 +11,23 @@ import "react-quill/dist/quill.snow.css";
 const ReadingContentInitialValue = `<h1>Lesson Title</h1><h2><strong>Lesson Subtitle </strong></h2><p>Lesson paragraph</p><h3>Main topics</h3><ol><li>Topic one</li><li>Topic two</li><li>Topic three</li><li>Topic four</li></ol><h3><strong>Reference:</strong></h3><ul><li><a href="https://www.wikipedia.org/" rel="noopener noreferrer" target="_blank">Wikipedia</a></li><li><a href="https://www.youtube.com/" rel="noopener noreferrer" target="_blank">Video Playlist</a></li></ul>`;
 
 const Reading = () => {
-  const { courseId, lessonId } = useParams();
+  const { lessonId } = useParams();
   const { token } = useAuth();
   const [editMode, setEditMode] = useState(false);
   const [value, setValue] = useState(ReadingContentInitialValue);
 
   const loadData = useCallback(async () => {
     try {
-      const response = await serverAxios.get(
-        `/course/${courseId}/reading/${lessonId}`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+      const response = await serverAxios.get(`/lesson/reading/${lessonId}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
       setValue(response.data.content);
     } catch {
       /* empty */
     }
-  }, [courseId, lessonId, token]);
+  }, [lessonId, token]);
 
   const handleSave = () => {
     const regex = /(<p><br><\/p>)+/g;
@@ -38,7 +35,7 @@ const Reading = () => {
 
     try {
       serverAxios.post(
-        `/course/${courseId}/reading/${lessonId}`,
+        `/lesson/reading/${lessonId}`,
         {
           content: filterValue,
         },

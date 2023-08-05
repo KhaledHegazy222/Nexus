@@ -54,7 +54,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     async function loadData() {
       setLoading(true);
       try {
-        const response = await serverAxios.get("/details", {
+        const response = await serverAxios.get("/member/details", {
           headers: {
             Authorization: `Bearer ${token}`,
           },

@@ -11,7 +11,7 @@ const GoogleLogin = () => {
   const { setToken } = useAuth();
   const handleSuccess = async (credentialResponse: CredentialResponse) => {
     const response = await serverAxios.post(
-      "/oauth/google",
+      "/auth/oauth/google",
       {},
       {
         headers: { Authorization: credentialResponse.credential },

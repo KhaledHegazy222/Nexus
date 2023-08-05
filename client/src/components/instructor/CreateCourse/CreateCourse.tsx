@@ -52,7 +52,7 @@ const CreateCourse = ({ courseData }: { courseData?: FormValuesType }) => {
         });
         navigate(`/instructor/course/${id}`);
       } else {
-        const response = await serverAxios.post(`/course/create`, requestBody, {
+        const response = await serverAxios.post(`/course`, requestBody, {
           headers: {
             Authorization: `Bearer ${token}`,
           },

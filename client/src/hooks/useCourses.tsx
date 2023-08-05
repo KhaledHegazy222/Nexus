@@ -12,13 +12,13 @@ const useCourses = () => {
     fetchData();
     async function fetchData() {
       setLoading(true);
-      const response = await serverAxios.get(`/course`, {
+      const response = await serverAxios.get(`/member/details`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
       });
       setCourses(
-        response.data.map(
+        response.data.courses.map(
           (elem: {
             id: number;
             title: string;

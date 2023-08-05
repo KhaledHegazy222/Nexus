@@ -21,7 +21,7 @@ function Explore() {
   useEffect(() => {
     fetchData();
     async function fetchData() {
-      const response = await serverAxios.get(`/course/explore`);
+      const response = await serverAxios.get(`/course`);
 
       setExploreCourses(
         response.data.map(
