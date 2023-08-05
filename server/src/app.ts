@@ -9,8 +9,10 @@ const cors = require('cors')
 const bodyParser = require('body-parser')
 require('dotenv').config()
 
-const accountRoute = require('./route/accountRoute')
+const authRoute = require('./route/authRoute')
+const memberRoute = require('./route/memberRoute')
 const courseRoute = require('./route/courseRoute')
+const lessonRoute = require('./route/lessonRoute')
 const reviewRoute = require('./route/reviewRoute')
 
 const app = express()
@@ -21,8 +23,10 @@ app.use(bodyParser.json())
 // parse application/x-www-form-urlencoded parser
 app.use(bodyParser.urlencoded({ extended: false }))
 
-app.use('/api/v1', accountRoute)
+app.use('/api/v1/auth', authRoute)
+app.use('/api/v1/member', memberRoute)
 app.use('/api/v1/course', courseRoute)
+app.use('/api/v1/lesson', lessonRoute)
 app.use('/api/v1/review', reviewRoute)
 
 // temp

@@ -264,7 +264,7 @@ export const checkAuthor = async (
 ): Promise<any> => {
   try {
     const accountId: string = _res.locals.accountId
-    const courseId: string = _req.params.courseId
+    const courseId: string = _req.params.courseId ?? _res.locals.courseId
 
     if (accountId == null) return _res.sendStatus(401)
     if (!/^[0-9]+$/.test(courseId)) return _res.sendStatus(400)
@@ -289,33 +289,29 @@ export const checkLessonAccess = async (
 ): Promise<any> => {
   try {
     const accountId: string = _res.locals.accountId
-    const courseId: string = _req.params.courseId
     const publicId: string = _req.params.publicId
 
     if (accountId == null) return _res.sendStatus(401)
-    if (!/^[0-9]+$/.test(courseId)) return _res.sendStatus(400)
 
-    const queryResp = await Promise.all([
+    const queryResp1 = await dbQuery(queryList.GET_LESSON, [publicId])
+    if (queryResp1.rows.length === 0) return _res.sendStatus(404)
+    const courseId = queryResp1.rows[0].course_id
+
+    const queryResp2 = await Promise.all([
       dbQuery(queryList.CHECK_COURSE_AUTHOR, [courseId, accountId]),
-      dbQuery(queryList.CHECK_PURCHASE, [accountId, courseId]),
-      dbQuery(queryList.GET_LESSON, [publicId])
+      dbQuery(queryList.CHECK_PURCHASE, [accountId, courseId])
     ])
 
     // author or bought it
     let hasAccess: boolean =
-      Boolean(queryResp[0].rows[0].exists) ||
-      Boolean(queryResp[1].rows[0].exists)
+      Boolean(queryResp2[0].rows[0].exists) ||
+      Boolean(queryResp2[1].rows[0].exists)
 
     // is lesson public ?
-    if (queryResp[2].rows.length !== 0) {
-      if (String(queryResp[2].rows[0].course_id) !== courseId) {
-        return _res.sendStatus(404)
-      }
-      hasAccess = hasAccess || queryResp[2].rows[0].is_public === true
-    }
+    hasAccess = hasAccess || queryResp1.rows[0].is_public === true
 
     _res.locals.accessType =
-      queryResp[0].rows[0].exists === true ? 'author' : 'student'
+      queryResp2[0].rows[0].exists === true ? 'author' : 'student'
     if (!hasAccess) return _res.sendStatus(403)
     _next()
   } catch {
@@ -323,25 +319,20 @@ export const checkLessonAccess = async (
   }
 }
 
-export const getLessonType = async (
+// type, courseId
+export const getLessonData = async (
   _req: Request,
   _res: Response,
   _next: NextFunction
 ): Promise<any> => {
   try {
-    const courseId = _req.params.courseId
     const publicId = _req.params.publicId
 
-    if (!/^[0-9]+$/.test(courseId)) return _res.sendStatus(400)
-
     const queryResp = await dbQuery(queryList.GET_LESSON, [publicId])
-
     if (queryResp.rows.length === 0) return _res.sendStatus(404)
-    if (String(queryResp.rows[0].course_id) !== courseId) {
-      return _res.sendStatus(404)
-    }
-
     _res.locals.lessonType = queryResp.rows[0].type
+    _res.locals.courseId = queryResp.rows[0].course_id
+
     _next()
   } catch {
     return _res.sendStatus(500)
@@ -355,7 +346,8 @@ export const checkPurchase = async (
 ): Promise<any> => {
   try {
     const accountId: string = _res.locals.accountId
-    const courseId = _req.params.courseId ?? _req.body.course_id
+    const courseId =
+      _req.params.courseId ?? _req.body.course_id ?? _res.locals.courseId
 
     if (!/^[0-9]+$/.test(courseId)) return _res.sendStatus(400)
 

@@ -1,9 +1,8 @@
 import { type Request, type Response, type NextFunction } from 'express'
 import { type Result, type ValidationError } from 'express-validator'
-
 import { dbQuery } from '../db/connection'
 import { queryList } from '../db/queries'
-import { authenticateToken, generateAccessToken } from '../middleware/authMW'
+import { generateAccessToken } from '../middleware/authMW'
 import { verifyIdToken } from '../util/googleOauth'
 import {
   sendVerificationMail,
@@ -147,114 +146,17 @@ export const googleOauthHandler = [
   }
 ]
 
-export const accountDetailsGet = [
-  authenticateToken,
-  async (_req: Request, _res: Response) => {
-    try {
-      const accountId: string = _res.locals.accountId
-
-      const queryResp1 = await dbQuery(
-        queryList.GET_STUDENT_ACCOUNT_DETAILS_BY_ID,
-        [accountId]
-      )
-      if (queryResp1.rows.length === 0) return _res.sendStatus(404)
-
-      const accData = queryResp1.rows[0]
-
-      if (queryResp1.rows[0].role !== 'student') {
-        accData.bio = ''
-        accData.contacts = {}
-
-        const queryResp2 = await dbQuery(
-          queryList.GET_INSTRUCTOR_ACCOUNT_DETAILS_BY_ID,
-          [accountId]
-        )
-        if (queryResp2.rows.length !== 0) {
-          accData.bio = queryResp2.rows[0].bio
-          accData.contacts = queryResp2.rows[0].contacts
-        }
-      }
-
-      return _res.status(200).json(accData)
-    } catch {
-      return _res.sendStatus(500)
-    }
-  }
-]
-
-export const accountDetailPost = [
-  authenticateToken,
-  async (_req: Request, _res: Response) => {
-    try {
-      const queryResp = await dbQuery(queryList.CHECK_INSTRUCTOR_DATA, [
-        _res.locals.accountId
-      ])
-
-      if (queryResp.rows[0].exists === false) {
-        await dbQuery(queryList.ADD_INSTRUCTOR_DATA, [
-          _res.locals.accountId,
-          _req.body.bio,
-          _req.body.contacts
-        ])
-      } else {
-        await dbQuery(queryList.UPDATE_INSTRUCTOR_DATA, [
-          _req.body.bio,
-          _req.body.contacts,
-          _res.locals.accountId
-        ])
-      }
-
-      return _res.sendStatus(200)
-    } catch {
-      return _res.sendStatus(500)
-    }
-  }
-]
-
-export const accountPublicDetailsGet = [
-  async (_req: Request, _res: Response) => {
-    try {
-      const accountId: string = _req.params.accountId
-
-      const queryResp1 = await dbQuery(
-        queryList.GET_STUDENT_ACCOUNT_DETAILS_BY_ID,
-        [accountId]
-      )
-      if (queryResp1.rows.length === 0) return _res.sendStatus(404)
-      if (queryResp1.rows[0].role === 'student') return _res.sendStatus(403)
-
-      const accData = queryResp1.rows[0]
-      accData.bio = ''
-      accData.contacts = {}
-      accData.courses = []
-
-      const queryResp2 = await Promise.all([
-        dbQuery(queryList.GET_INSTRUCTOR_ACCOUNT_DETAILS_BY_ID, [accountId]),
-        dbQuery(queryList.GET_PUBLISHED_INSTRUCTOR_COURSES, [accountId])
-      ])
-
-      if (queryResp2[0].rows.length !== 0) {
-        accData.bio = queryResp2[0].rows[0].bio
-        accData.contacts = queryResp2[0].rows[0].contacts
-      }
-      accData.courses = queryResp2[1].rows
-
-      return _res.status(200).json(accData)
-    } catch {
-      return _res.sendStatus(500)
-    }
-  }
-]
-
 export const accountSendVerificationPost = [
   body('mail').isEmail().escape().withMessage('invalid email'),
   sendVerificationMail
 ]
 
-export const accountVerifyPost = [
+export const accountVerifyPatch = [
   async (_req: Request, _res: Response) => {
     try {
-      const verificationId: string = _req.params.verificationId
+      const verificationId = _req.query.token?.toString()
+
+      if (verificationId === undefined) return _res.sendStatus(400)
 
       const queryResp = await dbQuery(queryList.GET_UNVERIFIED_ACCOUNT_ID, [
         verificationId
@@ -314,7 +216,7 @@ export const accountSendResetPasswordPost = [
   sendResetPasswordMail
 ]
 
-export const accountResetPasswordPost = [
+export const accountResetPasswordPatch = [
   body('password')
     .isLength({ min: 6 })
     .escape()
@@ -325,8 +227,10 @@ export const accountResetPasswordPost = [
       return _res.status(400).json({ errors: errors.array() })
     }
     try {
-      const resetId: string = _req.params.resetId
+      const resetId = _req.query.token?.toString()
       const password: string = _req.body.password
+
+      if (resetId === undefined) return _res.sendStatus(400)
 
       const queryResp1 = await dbQuery(queryList.GET_ACCOUNT_ID_BY_RESET_ID, [
         resetId
