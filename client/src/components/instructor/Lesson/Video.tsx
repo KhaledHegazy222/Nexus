@@ -12,7 +12,7 @@ import React, { useCallback, useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 const abortController = new AbortController();
 const Video = () => {
-  const { courseId, lessonId } = useParams();
+  const { lessonId } = useParams();
   const { token } = useAuth();
   const [videoStreamUrl, setVideoStreamUrl] = useState<string | null>(null);
 
@@ -23,7 +23,7 @@ const Video = () => {
     setLoadFetching(true);
     try {
       const response = await serverAxios.get(
-        `/course/${courseId}/video/${lessonId}`,
+        `/lesson/video/${lessonId}/token`,
         {
           headers: { Authorization: `Bearer ${token}` },
         }
@@ -32,13 +32,13 @@ const Video = () => {
       setVideoStreamUrl(
         `${
           import.meta.env.VITE_API_ROOT_URL
-        }/api/v1/course/video/${lessonId}/${videoToken}`
+        }/api/v1/lesson/video/${lessonId}?token=${videoToken}`
       );
     } finally {
       setLoadFetching(false);
     }
     setLoadFetching(false);
-  }, [token, courseId, lessonId]);
+  }, [token, lessonId]);
 
   useEffect(() => {
     fetchData();
@@ -52,23 +52,19 @@ const Video = () => {
       try {
         const requestBody = new FormData();
         requestBody.append("file", e.target.files[0]);
-        await serverAxios.post(
-          `/course/${courseId}/video/${lessonId}`,
-          requestBody,
-          {
-            headers: {
-              "Content-Type": "multipart/form-data",
-              Authorization: `Bearer ${token}`,
-            },
-            onUploadProgress: (event) => {
-              console.log(Math.round((100 * event.loaded) / event.total!));
-              setUploadedPercentage(
-                Math.round((100 * event.loaded) / event.total!)
-              );
-            },
-            signal: abortController.signal,
-          }
-        );
+        await serverAxios.post(`/lesson/video/${lessonId}`, requestBody, {
+          headers: {
+            "Content-Type": "multipart/form-data",
+            Authorization: `Bearer ${token}`,
+          },
+          onUploadProgress: (event) => {
+            console.log(Math.round((100 * event.loaded) / event.total!));
+            setUploadedPercentage(
+              Math.round((100 * event.loaded) / event.total!)
+            );
+          },
+          signal: abortController.signal,
+        });
         await fetchData();
       } catch (error) {
         console.log(error);

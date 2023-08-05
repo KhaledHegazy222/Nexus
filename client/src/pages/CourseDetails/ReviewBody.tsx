@@ -1,3 +1,5 @@
+import useAuth from "@/contexts/useAuth";
+import { serverAxios } from "@/utils/axios";
 import {
   Avatar,
   Box,
@@ -7,13 +9,16 @@ import {
   TextField,
   Typography,
 } from "@mui/material";
-import { FC, useState } from "react";
+import { FC, useEffect, useState } from "react";
+import { useParams } from "react-router-dom";
+import { toast } from "react-toastify";
 
 type Props = {
   username: string;
   rating: number;
   comment: string;
   editable?: boolean;
+  created_at: string;
 };
 
 const ReviewBody: FC<Props> = ({
@@ -21,8 +26,55 @@ const ReviewBody: FC<Props> = ({
   rating,
   comment,
   editable = false,
+  created_at,
 }) => {
+  const { courseId } = useParams();
+  const { token } = useAuth();
   const [editMode, setEditMode] = useState(false);
+  const [currentReview, setCurrentReview] = useState<{
+    rating: number;
+    comment: string;
+  }>({ rating: 0, comment: "" });
+
+  const [backup, setBackup] = useState<{
+    rating: number;
+    comment: string;
+  }>();
+  // useEffect(() => {
+  //   try {
+  //     }
+  // },[courseId])
+  useEffect(() => {
+    setCurrentReview({ rating, comment });
+  }, [rating, comment, setCurrentReview]);
+  const startEditMode = () => {
+    setEditMode(true);
+    setBackup(currentReview);
+  };
+  const handleCancel = () => {
+    setCurrentReview(backup!);
+    setEditMode(false);
+  };
+  const handleSave = async () => {
+    try {
+      await serverAxios.post(
+        `/review`,
+        {
+          course_id: courseId,
+          rate: currentReview.rating,
+          content: currentReview.comment,
+        },
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+      setEditMode(false);
+    } catch {
+      toast.error(
+        "Something unexpected just happened, please try again later!"
+      );
+    }
+  };
   return (
     <Box
       sx={{
@@ -45,10 +97,19 @@ const ReviewBody: FC<Props> = ({
         <Typography sx={{ fontSize: "1.5rem", fontWeight: "600", flex: "1" }}>
           {username}
         </Typography>
+        <Typography variant="subtitle2" color="gray">
+          {new Date(created_at).toLocaleDateString("en-GB")}
+        </Typography>
         <Rating
           readOnly={!editable || !editMode}
-          value={rating}
+          value={currentReview.rating || 1}
           precision={0.5}
+          onChange={(_event, newValue) => {
+            setCurrentReview((prevState) => ({
+              ...prevState,
+              rating: newValue!,
+            }));
+          }}
         />
       </Box>
       {editable ? (
@@ -57,7 +118,9 @@ const ReviewBody: FC<Props> = ({
             fullWidth
             variant="filled"
             label="Leave your review"
-            disabled={!editMode}
+            InputProps={{
+              readOnly: !editMode,
+            }}
             multiline={true}
             maxRows={5}
             sx={{
@@ -65,6 +128,13 @@ const ReviewBody: FC<Props> = ({
                 color: "gray",
               },
             }}
+            onChange={(event) => {
+              setCurrentReview((prevState) => ({
+                ...prevState,
+                comment: event.target.value,
+              }));
+            }}
+            value={currentReview.comment}
           />
           <ButtonGroup
             sx={{
@@ -78,20 +148,20 @@ const ReviewBody: FC<Props> = ({
                 <Button
                   variant="contained"
                   color="primary"
-                  onClick={() => setEditMode(false)}
+                  onClick={handleSave}
                 >
                   Save
                 </Button>
                 <Button
                   variant="contained"
                   color="error"
-                  onClick={() => setEditMode(false)}
+                  onClick={handleCancel}
                 >
                   Cancel
                 </Button>
               </>
             ) : (
-              <Button variant="contained" onClick={() => setEditMode(true)}>
+              <Button variant="contained" onClick={startEditMode}>
                 Edit
               </Button>
             )}
@@ -99,7 +169,7 @@ const ReviewBody: FC<Props> = ({
         </>
       ) : (
         <Typography variant="subtitle2" sx={{ p: "0 20px" }}>
-          {comment}
+          {currentReview.comment}
         </Typography>
       )}
     </Box>

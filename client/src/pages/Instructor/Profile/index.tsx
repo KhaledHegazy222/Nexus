@@ -14,7 +14,7 @@ const Profile = () => {
   useEffect(() => {
     fetchProfileData();
     async function fetchProfileData() {
-      const response = await serverAxios.get(`/details/${userId}`);
+      const response = await serverAxios.get(`/member/details/${userId}`);
       const { id, mail, role, first_name, last_name, bio, contacts } =
         response.data;
       setUser({

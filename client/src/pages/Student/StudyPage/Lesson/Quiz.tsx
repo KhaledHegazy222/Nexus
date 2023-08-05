@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import LessonButtons from "./LessonButtons";
 import {
+  Box,
   Button,
   FormControl,
   FormControlLabel,
@@ -23,7 +24,10 @@ const Quiz = () => {
   const [completed, setCompleted] = useState(false);
   const { setValue, handleSubmit } = useForm();
   const [quizResult, setQuizResult] = useState<boolean[]>([]);
-  console.log(quizResult);
+  const [degree, setDegree] = useState<{ result: number; total: number }>({
+    result: 0,
+    total: 0,
+  });
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const onSubmit = async (data: any) => {
     const requestBody: { answers: string[] } = {
@@ -35,14 +39,17 @@ const Quiz = () => {
     });
     const responseResult: boolean[] = [];
     const response = await serverAxios.post(
-      `/course/${courseId}/quiz/${lessonId}/submit`,
+      `/lesson/quiz/${lessonId}/submit`,
       requestBody,
       { headers: { Authorization: `Bearer ${token}` } }
     );
+    let degreeResult = 0;
     response.data.body.forEach((result: Quiz) => {
       responseResult.push(result.is_correct!);
+      degreeResult += Number(result.is_correct!);
     });
     setQuizResult(responseResult);
+    setDegree({ result: degreeResult, total: degree.total });
   };
   const toggleCompleted = () => {
     setCompleted(!completed);
@@ -50,14 +57,11 @@ const Quiz = () => {
   useEffect(() => {
     fetchData();
     async function fetchData() {
-      const response = await serverAxios.get(
-        `/course/${courseId}/quiz/${lessonId}`,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
+      const response = await serverAxios.get(`/lesson/quiz/${lessonId}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
       setQuestions(
-        response.data.body.map(
+        response.data.questions.map(
           (question: {
             title: string;
             options: { content: string[] };
@@ -67,6 +71,10 @@ const Quiz = () => {
           })
         )
       );
+      setDegree({
+        result: response.data.last_result,
+        total: response.data.total,
+      });
     }
   }, [token, lessonId, courseId]);
   return (
@@ -78,8 +86,46 @@ const Quiz = () => {
           padding: "10px",
           height: "480px",
           overflow: "auto",
+          position: "relative",
         }}
       >
+        {degree.total && (
+          <Box
+            sx={{
+              display: "flex",
+              gap: "10px",
+              alignItems: "center",
+              backgroundColor: "#ddd",
+              borderRadius: "10px",
+              width: "fit-content",
+              p: "5px 10px",
+              position: "absolute",
+              right: "10px",
+            }}
+          >
+            <Typography>Score</Typography>
+            <Typography
+              sx={{
+                fontWeight: "600",
+                color: "primary.main",
+              }}
+            >
+              {degree.result}
+            </Typography>
+            <Typography sx={{ fontWeight: "600", fontSize: "1.1rem" }}>
+              {" "}
+              /{" "}
+            </Typography>
+            <Typography
+              sx={{
+                fontWeight: "600",
+                color: "primary.main",
+              }}
+            >
+              {degree.total}
+            </Typography>
+          </Box>
+        )}
         <form onSubmit={handleSubmit(onSubmit)}>
           <List>
             {questions.map((question, index) => (

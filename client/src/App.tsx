@@ -9,6 +9,8 @@ import lightTheme from "@/theme/light";
 import routes from "./pages/routes";
 import useAuth from "./contexts/useAuth";
 
+import "react-toastify/dist/ReactToastify.css";
+import { ToastContainer } from "react-toastify";
 function App() {
   const { loading } = useAuth();
 
@@ -16,6 +18,7 @@ function App() {
     <>
       <ThemeProvider theme={lightTheme}>
         <CssBaseline />
+        <ToastContainer autoClose={3000} position="top-center" />
         {loading ? (
           <Box
             sx={{

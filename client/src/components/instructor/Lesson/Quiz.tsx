@@ -74,15 +74,11 @@ const Quiz = () => {
       ),
     };
     try {
-      await serverAxios.post(
-        `/course/${courseId}/quiz/${lessonId}`,
-        requestBody,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+      await serverAxios.post(`/lesson/quiz/${lessonId}`, requestBody, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
     } catch {
       /* empty */
     }
@@ -91,14 +87,13 @@ const Quiz = () => {
     loadData();
     async function loadData() {
       const response = await serverAxios.get(
-        `/course/${courseId}/quiz/${lessonId}`,
+        `/lesson/quiz/${lessonId}`,
         {
           headers: { Authorization: `Bearer ${token}` },
         }
       );
-      console.log(response.data.body);
       setQuizQuestions(
-        response.data.body.map(
+        response.data.questions.map(
           /* eslint-disable-next-line */
           (question: any): questionType => ({
             title: question.title,

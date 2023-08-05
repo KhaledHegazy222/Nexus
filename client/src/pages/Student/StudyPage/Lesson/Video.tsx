@@ -8,7 +8,7 @@ import { AxiosError } from "axios";
 
 const Video = () => {
   const { token } = useAuth();
-  const { courseId, lessonId } = useParams();
+  const { lessonId } = useParams();
   const [completed, setCompleted] = useState(false);
   const [loadFetching, setLoadFetching] = useState(true);
   const [videoStreamUrl, setVideoStreamUrl] = useState<string | null>(null);
@@ -16,7 +16,7 @@ const Video = () => {
     setLoadFetching(true);
     try {
       const response = await serverAxios.get(
-        `/course/${courseId}/video/${lessonId}`,
+        `/lesson/video/${lessonId}/token`,
         {
           headers: { Authorization: `Bearer ${token}` },
         }
@@ -25,7 +25,7 @@ const Video = () => {
       setVideoStreamUrl(
         `${
           import.meta.env.VITE_API_ROOT_URL
-        }/api/v1/course/video/${lessonId}/${videoToken}`
+        }/api/v1/lesson/video/${lessonId}?token=${videoToken}`
       );
     } catch (error) {
       console.log((error as AxiosError).message);
@@ -33,7 +33,7 @@ const Video = () => {
       setLoadFetching(false);
     }
     setLoadFetching(false);
-  }, [token, courseId, lessonId]);
+  }, [token, lessonId]);
   const toggleCompleted = () => {
     setCompleted(!completed);
   };

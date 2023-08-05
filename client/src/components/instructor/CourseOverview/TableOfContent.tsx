@@ -154,7 +154,7 @@ const TableOfContent = () => {
         ),
       };
       console.log(JSON.stringify(requestBody, null, 2));
-      await serverAxios.patch(`/course/${id}/content`, requestBody, {
+      await serverAxios.patch(`/course/${id}`, requestBody, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
