@@ -230,12 +230,25 @@ export const courseDetailsGet = [
       const queryResp1 = await dbQuery(queryList.GET_COURSE, [
         _req.params.courseId
       ])
-      if (queryResp1.rows.length === 0) return _res.sendStatus(400)
+      if (queryResp1.rows.length === 0) return _res.sendStatus(404)
       const course = queryResp1.rows[0]
+
+      const queryResp2 = await dbQuery(queryList.GET_COURSE_RATE, [
+        _req.params.courseId
+      ])
+      if (queryResp2.rows.length === 0) return _res.sendStatus(404)
+      course.rate = queryResp2.rows[0].avg
+
+      const queryResp3 = await dbQuery(queryList.GET_COURSE_PURCHASES_COUNT, [
+        _req.params.courseId
+      ])
+      if (queryResp3.rows.length === 0) return _res.sendStatus(404)
+      course.purchase_count = queryResp3.rows[0].count
+
       course.content = _res.locals.courseContent
 
       // get author data
-      const queryResp2 = await Promise.all([
+      const queryResp4 = await Promise.all([
         dbQuery(queryList.GET_STUDENT_ACCOUNT_DETAILS_BY_ID, [
           course.author_id
         ]),
@@ -243,15 +256,15 @@ export const courseDetailsGet = [
           course.author_id
         ])
       ])
-      if (queryResp2[0].rows.length === 0) return _res.sendStatus(404)
+      if (queryResp4[0].rows.length === 0) return _res.sendStatus(404)
 
-      const accData = queryResp2[0].rows[0]
+      const accData = queryResp4[0].rows[0]
       accData.bio = ''
       accData.contacts = {}
 
-      if (queryResp2[1].rows.length !== 0) {
-        accData.bio = queryResp2[1].rows[0].bio
-        accData.contacts = queryResp2[1].rows[0].contacts
+      if (queryResp4[1].rows.length !== 0) {
+        accData.bio = queryResp4[1].rows[0].bio
+        accData.contacts = queryResp4[1].rows[0].contacts
       }
 
       course.author = accData
@@ -288,6 +301,7 @@ export const coursePublishPatch = [
 
 export const coursePurchasePost = [
   body('mail').isEmail().escape().withMessage('invalid email'),
+  body('paid').isInt({ min: 0 }).withMessage('paid must be an integer'),
   authenticateToken,
   getRole,
   async (_req: Request, _res: Response) => {
@@ -322,7 +336,8 @@ export const coursePurchasePost = [
       if (queryResp2.rows[0].exists === false) {
         await dbQuery(queryList.ADD_PURCHASE, [
           queryResp[0].rows[0].id,
-          _req.params.courseId
+          _req.params.courseId,
+          _req.body.paid
         ])
       }
 

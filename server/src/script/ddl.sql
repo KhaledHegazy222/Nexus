@@ -125,6 +125,7 @@ CREATE TABLE lesson_token (
 CREATE TABLE purchase (
   account_id INT NOT NULL,
   course_id INT NOT NULL,
+  paid INT NOT NULL,
   FOREIGN KEY (account_id) REFERENCES account (id),
   FOREIGN KEY (course_id) REFERENCES course (id)
 );

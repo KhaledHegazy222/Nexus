@@ -43,9 +43,12 @@ export const queryList = {
   PUBLISH_COURSE: 'update course set publish = true where id = $1',
   CHECK_COURSE_AUTHOR:
     'select exists(select id from course where id = $1 and author_id = $2)',
-
   GET_COURSE_CONTENT:
     'select * from (select * from course_weeks where course_id = $1) as cw inner join lesson as l on cw.week_id = l.week_id order by cw.week_order, l.lesson_order',
+  GET_COURSE_RATE: 'select AVG(rate) from review where course_id = $1',
+  GET_COURSE_PURCHASES_COUNT:
+    'select count(*) from purchase where course_id = $1',
+
   ADD_WEEK:
     'insert into course_weeks(week_id, course_id, week_title, week_order) values($1, $2, $3, $4)',
   DELETE_WEEK: 'delete from course_weeks where week_id = $1',
@@ -62,8 +65,8 @@ export const queryList = {
 
   GET_COURSE: 'select * from course where id = $1',
   GET_LAST_ADDED_COURSE_ID: "SELECT currval('course_id_seq')",
-  GET_INSTRUCTOR_COURSES:
-    'select c.id, c.title, c.price, a.first_name, a.last_name from (select id, author_id, title, price from course where author_id = $1) as c inner join account as a on c.author_id = a.id order by id',
+  GET_UNPUBLISHED_INSTRUCTOR_COURSES:
+    'select c.id, c.title, c.price, a.first_name, a.last_name from (select id, author_id, title, price from course where author_id = $1 and publish = false) as c inner join account as a on c.author_id = a.id order by id',
   GET_PUBLISHED_INSTRUCTOR_COURSES:
     'select c.id, c.title, c.price, a.first_name, a.last_name from (select id, author_id, title, price from course where author_id = $1 and publish = true) as c inner join account as a on c.author_id = a.id order by id',
   GET_STUDENT_COURSES: `
@@ -85,8 +88,29 @@ ac.first_name,
 ac.last_name
 order by
 completion_percentage;`,
-  EXPLORE_COURSES:
-    'select c.id, c.title, c.price, a.first_name, a.last_name from (select id, author_id, title, price from course) as c inner join account as a on c.author_id = a.id',
+  EXPLORE_COURSES: `
+SELECT
+  c.id,
+  c.title,
+  c.price,
+  a.first_name,
+  a.last_name,
+  AVG(r.rate) AS rate,
+  COUNT(p.course_id) AS purchase_count
+FROM
+  course c
+JOIN
+  account a ON c.author_id = a.id
+LEFT JOIN
+  review r ON c.id = r.course_id
+LEFT JOIN
+  purchase p ON c.id = p.course_id
+WHERE
+  c.publish = true
+GROUP BY
+  c.id, c.title, c.price, a.first_name, a.last_name
+ORDER BY purchase_count DESC;
+`,
   ADD_VIDEO_HIDDEN_ID:
     'insert into s3_hidden_video_id (public_id, hidden_id) values ($1, $2)',
   DELETE_VIDEOS_HIDDEN_ID:
@@ -106,7 +130,8 @@ completion_percentage;`,
   GET_QUIZ_RESULT:
     'select * from quiz_results where student_id = $1 and quiz_id = $2',
 
-  ADD_PURCHASE: 'insert into purchase(account_id, course_id) values($1, $2)',
+  ADD_PURCHASE:
+    'insert into purchase(account_id, course_id, paid) values($1, $2, $3)',
   CHECK_PURCHASE:
     'select exists(select * from purchase where account_id = $1 and course_id = $2)',
 
@@ -128,7 +153,7 @@ completion_percentage;`,
     'insert into review(account_id, course_id, content, rate) values($1, $2, $3, $4)',
   DELETE_REVIEW: 'delete from review where account_id = $1 and course_id = $2',
   GET_COURSE_REVIEWS:
-    'select rate, content, created_at from review where course_id = $1 order by created_at',
+    'select a.first_name, a.last_name, r.rate, r.content, r.created_at from ((select account_id, rate, content, created_at from review where course_id = $1) as r inner join account as a on a.id = r.account_id) order by r.created_at',
   GET_REVIEWS:
-    'select rate, content, created_at from review order by created_at'
+    'select a.first_name, a.last_name, r.rate, r.content, r.created_at from ((select account_id, rate, content, created_at from review) as r inner join account as a on a.id = r.account_id) order by r.created_at'
 }
