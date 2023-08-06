@@ -23,21 +23,10 @@ export const accountDetailsGet = [
         ])
         accData.courses = queryResp2.rows
       } else {
-        accData.bio = ''
-        accData.contacts = {}
-
-        const queryResp3 = await dbQuery(
-          queryList.GET_INSTRUCTOR_ACCOUNT_DETAILS_BY_ID,
+        const queryResp2 = await dbQuery(
+          queryList.GET_UNPUBLISHED_INSTRUCTOR_COURSES,
           [accountId]
         )
-        if (queryResp3.rows.length !== 0) {
-          accData.bio = queryResp3.rows[0].bio
-          accData.contacts = queryResp3.rows[0].contacts
-        }
-
-        const queryResp2 = await dbQuery(queryList.GET_INSTRUCTOR_COURSES, [
-          accountId
-        ])
         accData.courses = queryResp2.rows
       }
 

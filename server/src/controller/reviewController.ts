@@ -8,10 +8,14 @@ import { checkPurchase } from '../middleware/courseMW'
 
 export const reviewCreatePost = [
   body('course_id').isInt().withMessage('course_id must be an int'),
-  body('rate')
-    .optional({ checkFalsy: true })
+  body('content')
     .trim()
-    .isFloat({ min: 0, max: 5 })
+    .not()
+    .isEmpty()
+    .withMessage('content must be specified'),
+  body('rate')
+    .trim()
+    .isFloat({ min: 1, max: 5 })
     .withMessage('rate must be a decimal from 0 to 5'),
   authenticateToken,
   checkPurchase,
