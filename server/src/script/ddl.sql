@@ -22,7 +22,8 @@ CREATE TABLE account (
   role VARCHAR(255) NOT NULL DEFAULT 'student',
   password VARCHAR(255) NOT NULL,
   first_name VARCHAR(255) NOT NULL,
-  last_name VARCHAR(255) NOT NULL
+  last_name VARCHAR(255) NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 -- Create the 'verification' table
@@ -63,6 +64,7 @@ CREATE TABLE course (
   what_you_will_learn JSON,
   requirements JSON,
   publish BOOL DEFAULT 'false',
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (author_id) REFERENCES account (id)
 );
 
@@ -126,6 +128,7 @@ CREATE TABLE purchase (
   account_id INT NOT NULL,
   course_id INT NOT NULL,
   paid INT NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (account_id) REFERENCES account (id),
   FOREIGN KEY (course_id) REFERENCES course (id)
 );
