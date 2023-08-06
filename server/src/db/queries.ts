@@ -155,5 +155,12 @@ ORDER BY purchase_count DESC;
   GET_COURSE_REVIEWS:
     'select a.first_name, a.last_name, r.rate, r.content, r.created_at from ((select account_id, rate, content, created_at from review where course_id = $1) as r inner join account as a on a.id = r.account_id) order by r.created_at',
   GET_REVIEWS:
-    'select a.first_name, a.last_name, r.rate, r.content, r.created_at from ((select account_id, rate, content, created_at from review) as r inner join account as a on a.id = r.account_id) order by r.created_at'
+    'select a.first_name, a.last_name, r.rate, r.content, r.created_at from ((select account_id, rate, content, created_at from review) as r inner join account as a on a.id = r.account_id) order by r.created_at',
+
+  ACCOUNT_COUNT:
+    "select count(*) from account where role <> 'admin' and created_at > $1",
+  COURSE_COUNT: 'select count(*) from course where created_at > $1',
+  REVIEWS_COUNT: 'select count(*) from review where created_at > $1',
+  ENROLLS_COUNT: 'select count(*) from purchase where created_at > $1',
+  TOTAL_INCOME: 'select sum(paid) from purchase where created_at > $1'
 }

@@ -14,6 +14,7 @@ const memberRoute = require('./route/memberRoute')
 const courseRoute = require('./route/courseRoute')
 const lessonRoute = require('./route/lessonRoute')
 const reviewRoute = require('./route/reviewRoute')
+const statisticsRoute = require('./route/statisticsRoute')
 
 const app = express()
 
@@ -28,6 +29,7 @@ app.use('/api/v1/member', memberRoute)
 app.use('/api/v1/course', courseRoute)
 app.use('/api/v1/lesson', lessonRoute)
 app.use('/api/v1/review', reviewRoute)
+app.use('/api/v1/statistics', statisticsRoute)
 
 // temp
 app.use('/api/v1/s3/list', [
