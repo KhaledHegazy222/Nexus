@@ -1,4 +1,6 @@
 import {
+  Grid,
+  GridProps,
   TextField,
   TextFieldProps,
   Typography,
@@ -16,11 +18,13 @@ export const StyledTitle = styled(Typography)<TypographyProps>(() => ({
 
 export const StyledTextField = styled(TextField)<TextFieldProps>(
   ({ theme }) => ({
-    margin: "10px",
-    display: "block",
-    maxWidth: "300px",
+    width: "100%",
     "& label": {
       color: `${theme.palette.text.disabled}`,
     },
   })
 );
+
+export const StyledGridCell = styled(Grid)<GridProps>(() => ({
+  padding: "10px",
+}));

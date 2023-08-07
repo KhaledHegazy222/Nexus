@@ -1,6 +1,6 @@
 import { FC, useEffect, useRef, useState } from "react";
 import { FormValuesType } from "./CreateCourse";
-import { UseFormSetValue, UseFormWatch } from "react-hook-form";
+import { UseFormSetValue } from "react-hook-form";
 import { Box, Button, IconButton, Typography } from "@mui/material";
 import { Add, Close } from "@mui/icons-material";
 import { StyledTextField } from "./CreateCourse.styled";
@@ -14,36 +14,32 @@ export type WhatYouWillLearnType = {
 type Props = {
   title: string;
   name: "requirements" | "what_you_will_learn";
-  watch: UseFormWatch<FormValuesType>;
+
   setValue: UseFormSetValue<FormValuesType>;
   defaultValue: string[];
 };
-const ListMultiInput: FC<Props> = ({
-  title,
-  name,
-  setValue,
-  watch,
-  defaultValue,
-}) => {
+const ListMultiInput: FC<Props> = ({ title, name, setValue, defaultValue }) => {
   const [listValues, setListValues] = useState<string[]>(defaultValue);
   const [collectInput, setCollectInput] = useState<boolean>(true);
   const inputRef = useRef<HTMLInputElement | null>(null);
   const handleAdd = () => {
-    setListValues((prevList) => [
-      ...prevList,
-      inputRef.current?.value as string,
-    ]);
-    inputRef.current!.value = "";
+    if (inputRef.current!.value) {
+      setListValues((prevList) => [
+        ...prevList,
+        inputRef.current?.value as string,
+      ]);
+      inputRef.current!.value = "";
+    }
   };
   useEffect(() => {
+    console.log("What");
     setValue(name, listValues);
   }, [listValues, setValue, name]);
+
   useEffect(() => {
-    setListValues(watch(name));
-  }, [watch, name]);
-  useEffect(() => {
+    console.log(defaultValue, name, 11);
     setListValues(defaultValue);
-  }, [defaultValue]);
+  }, [defaultValue, name]);
 
   return (
     <>
@@ -73,7 +69,11 @@ const ListMultiInput: FC<Props> = ({
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "space-between",
-                margin: "0 10px ",
+                outline: "2px solid",
+                outlineColor: (theme) => `${theme.palette.primary.main}`,
+                borderRadius: "100px",
+                padding: "0 10px",
+                m: "10px 0",
               }}
             >
               <Typography>{listItem}</Typography>
@@ -89,7 +89,10 @@ const ListMultiInput: FC<Props> = ({
               >
                 <Close
                   sx={{
-                    color: "red",
+                    color: "gray",
+                    "&:hover": {
+                      color: "red",
+                    },
                   }}
                 />
               </IconButton>
@@ -101,6 +104,13 @@ const ListMultiInput: FC<Props> = ({
               label={title}
               inputRef={inputRef}
               size="small"
+              multiline={true}
+              onKeyDown={(event) => {
+                if (event.key === "Enter") {
+                  handleAdd();
+                }
+              }}
+              sx={{ m: "10px 0" }}
             />
           )}
         </Box>

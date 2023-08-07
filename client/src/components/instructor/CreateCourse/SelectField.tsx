@@ -1,4 +1,12 @@
-import { Box, FormControl, InputLabel, MenuItem, Select } from "@mui/material";
+import {
+  Box,
+  FormControl,
+  InputLabel,
+  MenuItem,
+  Select,
+  SxProps,
+  Theme,
+} from "@mui/material";
 import { UseFormRegister } from "react-hook-form";
 import { FormValuesType } from "./CreateCourse";
 
@@ -7,6 +15,7 @@ type SelectProps = {
   register: UseFormRegister<FormValuesType>;
   title: string;
   options: string[];
+  sx?: SxProps<Theme>;
 };
 
 const SelectField = ({
@@ -14,15 +23,11 @@ const SelectField = ({
   register,
   title,
   options,
+  sx,
   ...props
 }: SelectProps) => {
   return (
-    <Box
-      sx={{
-        width: "300px",
-        m: "10px",
-      }}
-    >
+    <Box sx={sx}>
       <FormControl fullWidth required>
         <InputLabel
           id="label-id"

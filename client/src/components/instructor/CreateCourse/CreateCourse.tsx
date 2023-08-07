@@ -17,7 +17,7 @@ export type FormValuesType = GeneralInfoType &
 
 const CreateCourse = ({ courseData }: { courseData?: FormValuesType }) => {
   const { id } = useParams();
-  const { register, handleSubmit, setValue, watch } = useForm<FormValuesType>({
+  const { register, handleSubmit, setValue } = useForm<FormValuesType>({
     defaultValues: courseData
       ? { ...courseData }
       : {
@@ -103,14 +103,14 @@ const CreateCourse = ({ courseData }: { courseData?: FormValuesType }) => {
             name="requirements"
             defaultValue={courseData?.requirements || []}
             setValue={setValue}
-            watch={watch}
+            // watch={watch}
           />
           <ListMultiInput
             title="What You will learn"
             name="what_you_will_learn"
             defaultValue={courseData?.what_you_will_learn || []}
             setValue={setValue}
-            watch={watch}
+            // watch={watch}
           />
           <ButtonGroup
             sx={{
