@@ -34,8 +34,7 @@ const ReviewBody: FC<Props> = ({
   const [currentReview, setCurrentReview] = useState<{
     rating: number;
     comment: string;
-  }>({ rating: 0, comment: "" });
-
+  }>({ rating: 2.5, comment: "" });
   const [backup, setBackup] = useState<{
     rating: number;
     comment: string;
@@ -69,6 +68,7 @@ const ReviewBody: FC<Props> = ({
         }
       );
       setEditMode(false);
+      toast.success("Review Updated Successfully");
     } catch {
       toast.error(
         "Something unexpected just happened, please try again later!"
@@ -102,7 +102,7 @@ const ReviewBody: FC<Props> = ({
         </Typography>
         <Rating
           readOnly={!editable || !editMode}
-          value={currentReview.rating || 1}
+          value={currentReview.rating || 2.5}
           precision={0.5}
           onChange={(_event, newValue) => {
             setCurrentReview((prevState) => ({
