@@ -42,8 +42,8 @@ const Reviews = () => {
       {user !== null && (
         <ReviewBody
           username={`${user.first_name} ${user.last_name}`}
-          rating={0}
-          comment="Awesome"
+          rating={2.5}
+          comment="My Review"
           editable={true}
           created_at="2023-08-05T21:39:12.926Z"
         />
