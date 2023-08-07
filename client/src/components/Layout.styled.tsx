@@ -14,7 +14,7 @@ export const StyledLayoutPage = styled(Box)<BoxProps>(() => ({
 }));
 
 export const StyledContentContainer = styled(Box)<BoxProps>(() => ({
-  width: "70%",
+  width: "clamp(300px,97%,1200px)",
   padding: "20px",
   flex: "1",
   margin: "20px",

@@ -75,7 +75,7 @@ const Reading = () => {
       >
         {editMode ? (
           <>
-            <Box>
+            <Box sx={{ width: "100%" }}>
               <ReactQuill theme="snow" value={value} onChange={setValue} />
             </Box>
 

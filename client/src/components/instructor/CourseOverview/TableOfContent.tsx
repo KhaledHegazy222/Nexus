@@ -45,6 +45,7 @@ import { SubmitHandler, useForm } from "react-hook-form";
 import useAuth from "@/contexts/useAuth";
 import { serverAxios } from "@/utils/axios";
 import { AxiosError } from "axios";
+import { toast } from "react-toastify";
 
 export type LessonValueType = {
   id: string;
@@ -147,13 +148,12 @@ const TableOfContent = () => {
                 id: lesson.id,
                 type: lesson.type,
                 title: lesson.title,
-                is_public: lesson.is_public,
+                is_public: Boolean(lesson.is_public),
               })
             ),
           })
         ),
       };
-      console.log(JSON.stringify(requestBody, null, 2));
       await serverAxios.patch(`/course/${id}`, requestBody, {
         headers: {
           Authorization: `Bearer ${token}`,
@@ -161,8 +161,9 @@ const TableOfContent = () => {
       });
       setTableOfContentBackup(tableOfContent);
       setEditMode(false);
+      toast.success("Content Saved Successfully");
     } catch (error) {
-      console.log(error);
+      toast.error("Can't have Weeks with zero lessons.");
     }
 
     setEditMode(false);
