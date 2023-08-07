@@ -23,6 +23,7 @@ import CourseImage from "@/assets/images/course.jpg";
 import TableOfContent from "./TableOfContent";
 import useAuth from "@/contexts/useAuth";
 import { serverAxios } from "@/utils/axios";
+import { toast } from "react-toastify";
 type CourseValueType = GeneralInfoType &
   RequirementsType &
   WhatYouWillLearnType & {
@@ -47,8 +48,18 @@ const CourseOverview = () => {
   const [courseData, setCourseData] =
     useState<CourseValueType>(CourseInitialValue);
   const [showAcceptDialog, setShowAcceptDialog] = useState(false);
-  const handlePublish = () => {
-    setCourseData((prevData) => ({ ...prevData, isPublished: true }));
+  const handlePublish = async () => {
+    try {
+      await serverAxios.patch(
+        `/course/${id}/publish`,
+        {},
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      setCourseData((prevData) => ({ ...prevData, isPublished: true }));
+      toast.success("Course Published Successfully");
+    } catch {
+      /* empty */
+    }
   };
   useEffect(() => {
     loadData();

@@ -62,42 +62,58 @@ const ListMultiInput: FC<Props> = ({ title, name, setValue, defaultValue }) => {
         </Box>
         <hr />
         <Box>
-          {listValues.map((listItem: string, index: number) => (
-            <Box
-              key={index}
-              sx={{
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "space-between",
-                outline: "2px solid",
-                outlineColor: (theme) => `${theme.palette.primary.main}`,
-                borderRadius: "100px",
-                padding: "0 10px",
-                m: "10px 0",
-              }}
-            >
-              <Typography>{listItem}</Typography>
-              <IconButton
-                onClick={() =>
-                  setListValues((prevList) =>
-                    prevList.filter(
-                      (prevListItem, prevIndex) =>
-                        prevListItem !== listItem || prevIndex !== index
-                    )
-                  )
-                }
+          <Box
+            sx={
+              listValues.length
+                ? {
+                    minHeight: "50px",
+                    maxHeight: "300px",
+                    p: "10px",
+                    overflow: "auto",
+                    outline: "1px solid",
+                    borderRadius: "5px",
+                    outlineColor: (theme) => `${theme.palette.primary.main}`,
+                  }
+                : {}
+            }
+          >
+            {listValues.map((listItem: string, index: number) => (
+              <Box
+                key={index}
+                sx={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  outline: "2px solid",
+                  outlineColor: (theme) => `${theme.palette.primary.main}`,
+                  borderRadius: "100px",
+                  padding: "0 10px",
+                  m: "10px 0",
+                }}
               >
-                <Close
-                  sx={{
-                    color: "gray",
-                    "&:hover": {
-                      color: "red",
-                    },
-                  }}
-                />
-              </IconButton>
-            </Box>
-          ))}
+                <Typography>{listItem}</Typography>
+                <IconButton
+                  onClick={() =>
+                    setListValues((prevList) =>
+                      prevList.filter(
+                        (prevListItem, prevIndex) =>
+                          prevListItem !== listItem || prevIndex !== index
+                      )
+                    )
+                  }
+                >
+                  <Close
+                    sx={{
+                      color: "gray",
+                      "&:hover": {
+                        color: "red",
+                      },
+                    }}
+                  />
+                </IconButton>
+              </Box>
+            ))}
+          </Box>
           {collectInput && (
             <StyledTextField
               fullWidth
