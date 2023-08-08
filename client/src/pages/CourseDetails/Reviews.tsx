@@ -1,7 +1,18 @@
+/* eslint-disable */
+import { useEffect, useState } from "react";
 import ReviewBody from "./ReviewBody";
 import useAuth from "@/contexts/useAuth";
-
-const othersReviews = [
+import { toast } from "react-toastify";
+import { serverAxios } from "@/utils/axios";
+import { useParams } from "react-router-dom";
+type Review = {
+  id: number;
+  username: string;
+  rating: number;
+  comment: string;
+  created_at: string;
+};
+const othersReviews: Review[] = [
   {
     id: 1,
     username: "Caroline I.",
@@ -37,15 +48,57 @@ const othersReviews = [
 ];
 const Reviews = () => {
   const { user } = useAuth();
+
+  const { courseId } = useParams();
+  const [loadedReviews, setLoadedReviews] = useState<Review[]>(othersReviews);
+  const myReview = loadedReviews.find((elem) => elem.id === user?.id);
+  console.log(myReview);
+  // useEffect(() => {
+  //   loadData();
+  //   async function loadData() {
+  //     try {
+  //       const response = await serverAxios.get(
+  //         `/review/filters?courseid=${courseId}`
+  //       );
+  //       setLoadedReviews(
+  //         response.data.map(
+  //           ({
+  //             id,
+  //             first_name,
+  //             last_name,
+  //             rate,
+  //             content,
+  //             created_at,
+  //           }: {
+  //             id: number;
+  //             first_name: string;
+  //             last_name: string;
+  //             rate: string;
+  //             content: string;
+  //             created_at: string;
+  //           }): Review => ({
+  //             id: id,
+  //             username: `${first_name} ${last_name}`,
+  //             comment: content,
+  //             created_at,
+  //             rating: Number(rate),
+  //           })
+  //         )
+  //       );
+  //     } catch {
+  //       toast.error("Couldn't load reviews. try again later");
+  //     }
+  //   }
+  // }, [courseId]);
   return (
     <>
       {user !== null && (
         <ReviewBody
           username={`${user.first_name} ${user.last_name}`}
-          rating={2.5}
-          comment="My Review"
+          rating={myReview?.rating ?? 2.5}
+          comment={myReview?.comment ?? "My Review"}
           editable={true}
-          created_at="2023-08-05T21:39:12.926Z"
+          created_at={myReview?.created_at ?? "2023-08-05T21:39:12.926Z"}
         />
       )}
       {othersReviews.map((review) => (
