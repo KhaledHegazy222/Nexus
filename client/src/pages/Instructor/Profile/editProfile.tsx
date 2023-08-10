@@ -239,7 +239,13 @@ const EditableTable = ({
                       inputRef={contactRef}
                     />
                   </TableCell>
-                  <TableCell>
+                  <TableCell
+                    sx={{
+                      display: "flex",
+                      justifyContent: "center",
+                      flexWrap: "nowrap",
+                    }}
+                  >
                     <IconButton
                       onClick={() => {
                         updateContact(
