@@ -10,6 +10,7 @@ import {
   checkAuthor,
   checkPurchase
 } from '../middleware/courseMW'
+import { imageUploader } from '../util/awsInterface'
 const { body, validationResult } = require('express-validator')
 const { v4: uuidv4 } = require('uuid')
 
@@ -297,6 +298,32 @@ export const coursePublishPatch = [
       return _res.sendStatus(500)
     }
   }
+]
+
+export const courseImagePost = [
+  authenticateToken,
+  checkAuthor,
+  async (_req: Request, _res: Response, _next: NextFunction) => {
+    try {
+      const courseId = _req.params.courseId
+      const imageId = _req.params.imageId
+
+      const queryResp = await dbQuery(queryList.GET_COURSE, [courseId])
+      if (queryResp.rows.length === 0) return _res.sendStatus(404)
+
+      if (queryResp.rows[0].pic_id === null) {
+        await dbQuery(queryList.ADD_COURSE_IMAGE, [courseId, imageId])
+      } else if (queryResp.rows[0].pic_id !== imageId) {
+        return _res.sendStatus(400)
+      }
+
+      _next()
+    } catch {
+      return _res.sendStatus(500)
+    }
+  },
+  imageUploader.single('image'),
+  (_req: Request, _res: Response) => _res.sendStatus(200)
 ]
 
 export const coursePurchasePost = [

@@ -9,7 +9,7 @@ export const queryList = {
   GET_STUDENT_ACCOUNT_DETAILS_BY_ID:
     'select id, mail, role, first_name, last_name from account where id = $1',
   GET_INSTRUCTOR_ACCOUNT_DETAILS_BY_ID:
-    'select bio, contacts from instructor_data where account_id = $1',
+    'select bio, contacts, pic_id from instructor_data where account_id = $1',
   GET_ACCOUNT_DETAILS_BY_MAIL:
     'select id, mail, role, first_name, last_name from account where mail = $1',
   GET_ACCOUNT_ROLE: 'select role from account where id = $1',
@@ -20,6 +20,10 @@ export const queryList = {
     'insert into instructor_data(account_id, bio, contacts) values($1, $2, $3)',
   UPDATE_INSTRUCTOR_DATA:
     'update instructor_data set bio = $1, contacts = $2 where account_id = $3',
+  ADD_INSTRUCTOR_IMAGE:
+    'insert into instructor_data(account_id, pic_id) values($1, $2)',
+  UPDATE_INSTRUCTOR_IMAGE:
+    'update instructor_data set pic_id = $2 where account_id = $1',
 
   ADD_VERIFICATION_ID:
     "insert into verification values((SELECT currval('account_id_seq')), $1)",
@@ -40,6 +44,7 @@ export const queryList = {
     'insert into course(author_id, title, level, field, department, price, discount, discount_last_date, description, what_you_will_learn, requirements) values($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)',
   UPDATE_COURSE:
     'update course set title = $1, level = $2, field = $3, department = $4, price = $5, discount = $6, discount_last_date = $7, description = $8, what_you_will_learn = $9, requirements = $10 where id = $11',
+  ADD_COURSE_IMAGE: 'update course set pic_id = $2 where id = $1',
   PUBLISH_COURSE: 'update course set publish = true where id = $1',
   CHECK_COURSE_AUTHOR:
     'select exists(select id from course where id = $1 and author_id = $2)',
@@ -65,14 +70,15 @@ export const queryList = {
 
   GET_COURSE: 'select * from course where id = $1',
   GET_LAST_ADDED_COURSE_ID: "SELECT currval('course_id_seq')",
-  GET_UNPUBLISHED_INSTRUCTOR_COURSES:
-    'select c.id, c.title, c.price, a.first_name, a.last_name from (select id, author_id, title, price from course where author_id = $1 and publish = false) as c inner join account as a on c.author_id = a.id order by id',
+  GET_INSTRUCTOR_COURSES:
+    'select c.id, c.title, c.pic_id AS image, c.price, a.first_name, a.last_name from (select id, author_id, title, pic_id, price from course where author_id = $1) as c inner join account as a on c.author_id = a.id order by id',
   GET_PUBLISHED_INSTRUCTOR_COURSES:
-    'select c.id, c.title, c.price, a.first_name, a.last_name from (select id, author_id, title, price from course where author_id = $1 and publish = true) as c inner join account as a on c.author_id = a.id order by id',
+    'select c.id, c.title, c.pic_id AS image, c.price, a.first_name, a.last_name from (select id, author_id, title, pic_id, price from course where author_id = $1 and publish = true) as c inner join account as a on c.author_id = a.id order by id',
   GET_STUDENT_COURSES: `
 select
   c.id,
   c.title,
+  c.pic_id AS image, 
   ac.first_name,
   ac.last_name,
   COALESCE(SUM(CASE WHEN lc.account_id = p.account_id THEN 100 ELSE 0 END) / COUNT(l.lesson_id), 0) AS completion_percentage
@@ -92,6 +98,7 @@ completion_percentage;`,
 SELECT
   c.id,
   c.title,
+  c.pic_id AS image,
   c.price,
   a.first_name,
   a.last_name,
@@ -153,9 +160,9 @@ ORDER BY purchase_count DESC;
     'insert into review(account_id, course_id, content, rate) values($1, $2, $3, $4)',
   DELETE_REVIEW: 'delete from review where account_id = $1 and course_id = $2',
   GET_COURSE_REVIEWS:
-    'select a.first_name, a.last_name, r.rate, r.content, r.created_at from ((select account_id, rate, content, created_at from review where course_id = $1) as r inner join account as a on a.id = r.account_id) order by r.created_at',
+    'select a.id, a.first_name, a.last_name, r.rate, r.content, r.created_at from ((select account_id, rate, content, created_at from review where course_id = $1) as r inner join account as a on a.id = r.account_id) order by r.created_at',
   GET_REVIEWS:
-    'select a.first_name, a.last_name, r.rate, r.content, r.created_at from ((select account_id, rate, content, created_at from review) as r inner join account as a on a.id = r.account_id) order by r.created_at',
+    'select a.id, a.first_name, a.last_name, r.rate, r.content, r.created_at from ((select account_id, rate, content, created_at from review) as r inner join account as a on a.id = r.account_id) order by r.created_at',
 
   ACCOUNT_COUNT:
     "select count(*) from account where role <> 'admin' and created_at > $1",
