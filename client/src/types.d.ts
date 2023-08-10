@@ -5,7 +5,7 @@ type User = {
   mail: string;
   role: "student" | "admin";
   bio?: string;
-  contacts?: string[];
+  contacts?: object;
 };
 
 type Lesson = {
