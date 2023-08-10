@@ -25,10 +25,13 @@ const useCourses = () => {
             first_name: string;
             last_name: string;
             completion_percentage?: string;
+            image: string | null;
           }): courseType => ({
             id: elem.id,
             description: "Learn Learn Learn",
-            image: courseImage,
+            image: elem.image
+              ? `https://nexus-platform-s3.s3.amazonaws.com/image/${elem.image}`
+              : courseImage,
             title: elem.title,
             progress: Number(elem.completion_percentage),
           })
