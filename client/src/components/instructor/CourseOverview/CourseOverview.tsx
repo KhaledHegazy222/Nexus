@@ -1,6 +1,7 @@
-import { useEffect, useState } from "react";
+import { LegacyRef, useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { GeneralInfoType } from "../CreateCourse/GeneralInfo";
+import { v4 as uuid } from "uuid";
 import {
   RequirementsType,
   WhatYouWillLearnType,
@@ -28,6 +29,8 @@ type CourseValueType = GeneralInfoType &
   RequirementsType &
   WhatYouWillLearnType & {
     isPublished: boolean;
+  } & {
+    image?: string | null;
   };
 
 const CourseInitialValue: CourseValueType = {
@@ -39,6 +42,7 @@ const CourseInitialValue: CourseValueType = {
   requirements: [],
   what_you_will_learn: [],
   isPublished: false,
+  image: null,
 };
 
 const CourseOverview = () => {
@@ -61,6 +65,27 @@ const CourseOverview = () => {
       /* empty */
     }
   };
+  const inputImageRef = useRef<HTMLInputElement>();
+  const [, setDummyBoolean] = useState(true);
+  const handleImageUpload: React.ChangeEventHandler<HTMLInputElement> = async (
+    event
+  ) => {
+    try {
+      const requestBody = new FormData();
+      requestBody.append("image", event.target.files![0]);
+      await serverAxios.post(
+        `/course/${id}/image/${courseData.image ?? uuid()}`,
+        requestBody,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+      setDummyBoolean((prev) => !prev);
+      toast.success("Image Updated Successfully");
+    } catch {
+      toast.error("Something went wrong,please try again later");
+    }
+  };
   useEffect(() => {
     loadData();
     async function loadData() {
@@ -76,6 +101,7 @@ const CourseOverview = () => {
         price,
         what_you_will_learn,
         publish,
+        pic_id,
       } = response.data;
       setCourseData({
         title,
@@ -86,6 +112,7 @@ const CourseOverview = () => {
         requirements: requirements.body,
         what_you_will_learn: what_you_will_learn.body,
         isPublished: publish,
+        image: pic_id,
       });
     }
   }, [id, token]);
@@ -101,9 +128,21 @@ const CourseOverview = () => {
         <Typography variant="h4" textAlign="center">
           {courseData.title}
         </Typography>
-
+        <input
+          type="file"
+          accept="image/*"
+          ref={inputImageRef as LegacyRef<HTMLInputElement>}
+          onChange={handleImageUpload}
+          style={{ display: "none" }}
+        />
         <img
-          src={CourseImage}
+          src={
+            courseData.image
+              ? `https://nexus-platform-s3.s3.amazonaws.com/image/${
+                  courseData.image
+                }?date=${new Date()}`
+              : CourseImage
+          }
           style={{
             margin: "30px auto",
             display: "block",
@@ -111,13 +150,22 @@ const CourseOverview = () => {
             maxWidth: "600px",
           }}
         />
+        <Button
+          variant="contained"
+          color="secondary"
+          sx={{ display: "block", m: "auto" }}
+          onClick={() => {
+            inputImageRef.current?.click();
+          }}
+        >
+          Change Course Image
+        </Button>
         <Typography variant="h5">Description</Typography>
         <List>
           <ListItem>
             <Typography>{courseData.description}</Typography>
           </ListItem>
         </List>
-
         <Typography variant="h6">Level</Typography>
         <List>
           <ListItem>
@@ -130,7 +178,6 @@ const CourseOverview = () => {
             <Typography>{courseData.field}</Typography>
           </ListItem>
         </List>
-
         <Typography variant="h5">Requirements</Typography>
         <List>
           {courseData.requirements.map((requirement) => (
