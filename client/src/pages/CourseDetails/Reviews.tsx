@@ -53,43 +53,43 @@ const Reviews = () => {
   const [loadedReviews, setLoadedReviews] = useState<Review[]>(othersReviews);
   const myReview = loadedReviews.find((elem) => elem.id === user?.id);
   console.log(myReview);
-  // useEffect(() => {
-  //   loadData();
-  //   async function loadData() {
-  //     try {
-  //       const response = await serverAxios.get(
-  //         `/review/filters?courseid=${courseId}`
-  //       );
-  //       setLoadedReviews(
-  //         response.data.map(
-  //           ({
-  //             id,
-  //             first_name,
-  //             last_name,
-  //             rate,
-  //             content,
-  //             created_at,
-  //           }: {
-  //             id: number;
-  //             first_name: string;
-  //             last_name: string;
-  //             rate: string;
-  //             content: string;
-  //             created_at: string;
-  //           }): Review => ({
-  //             id: id,
-  //             username: `${first_name} ${last_name}`,
-  //             comment: content,
-  //             created_at,
-  //             rating: Number(rate),
-  //           })
-  //         )
-  //       );
-  //     } catch {
-  //       toast.error("Couldn't load reviews. try again later");
-  //     }
-  //   }
-  // }, [courseId]);
+  useEffect(() => {
+    loadData();
+    async function loadData() {
+      try {
+        const response = await serverAxios.get(
+          `/review/filters?courseid=${courseId}`
+        );
+        setLoadedReviews(
+          response.data.map(
+            ({
+              id,
+              first_name,
+              last_name,
+              rate,
+              content,
+              created_at,
+            }: {
+              id: number;
+              first_name: string;
+              last_name: string;
+              rate: string;
+              content: string;
+              created_at: string;
+            }): Review => ({
+              id: id,
+              username: `${first_name} ${last_name}`,
+              comment: content,
+              created_at,
+              rating: Number(rate),
+            })
+          )
+        );
+      } catch {
+        toast.error("Couldn't load reviews. try again later");
+      }
+    }
+  }, [courseId]);
   return (
     <>
       {user !== null && (
@@ -101,15 +101,17 @@ const Reviews = () => {
           created_at={myReview?.created_at ?? "2023-08-05T21:39:12.926Z"}
         />
       )}
-      {othersReviews.map((review) => (
-        <ReviewBody
-          key={review.id}
-          username={review.username}
-          rating={review.rating}
-          comment={review.comment}
-          created_at={review.created_at}
-        />
-      ))}
+      {loadedReviews
+        .filter((review) => review.id !== user?.id)
+        .map((review) => (
+          <ReviewBody
+            key={review.id}
+            username={review.username}
+            rating={review.rating}
+            comment={review.comment}
+            created_at={review.created_at}
+          />
+        ))}
     </>
   );
 };
