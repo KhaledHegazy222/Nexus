@@ -53,6 +53,7 @@ CREATE TABLE instructor_data (
 CREATE TABLE course (
   id SERIAL PRIMARY KEY,
   author_id INT NOT NULL,
+  pic_id VARCHAR(255),
   title VARCHAR(255) NOT NULL,
   level VARCHAR(255),
   field VARCHAR(255),
@@ -67,7 +68,6 @@ CREATE TABLE course (
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (author_id) REFERENCES account (id)
 );
-
 -- Create the 'course_weeks' table
 CREATE TABLE course_weeks (
   week_id VARCHAR(255) NOT NULL,

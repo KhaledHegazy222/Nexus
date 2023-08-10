@@ -10,7 +10,7 @@ import {
   checkPurchase
 } from '../middleware/courseMW'
 import {
-  uploader,
+  videoUploader,
   getReading,
   uploadReading,
   createAWSStream,
@@ -32,7 +32,9 @@ export const streamTokenGet = [
       const queryResp = await dbQuery(queryList.GET_VIDEO_ID, [publicId])
       if (queryResp.rows.length === 0) return _res.sendStatus(403)
 
-      const isExist = await checkVideoExist(queryResp.rows[0].hidden_id)
+      const isExist = await checkVideoExist(
+        'lesson/' + String(queryResp.rows[0].hidden_id)
+      )
       if (!isExist) return _res.sendStatus(404)
 
       const token = uuidv4()
@@ -66,7 +68,9 @@ export const videoStreamGet = [
           dbQuery(queryList.DELETE_LESSON_TOKEN, [token])
         ])
         if (queryResp[0].rows.length === 0) return _res.sendStatus(400)
-        const stream = await createAWSStream(queryResp[0].rows[0].hidden_id)
+        const stream = await createAWSStream(
+          'lesson/' + String(queryResp[0].rows[0].hidden_id)
+        )
         // Pipe it into the _response
         stream.pipe(_res)
       } else {
@@ -95,7 +99,7 @@ export const videoUploadPost = [
       return _res.sendStatus(500)
     }
   },
-  uploader.single('file'),
+  videoUploader.single('file'),
   function (_req: Request, _res: Response) {
     return _res.sendStatus(200)
   }
@@ -109,7 +113,7 @@ export const readingUploadPost = [
     if (_res.locals.lessonType !== 'reading') return _res.sendStatus(400)
 
     try {
-      await uploadReading(_req.params.publicId, _req.body.content)
+      await uploadReading('lesson/' + _req.params.publicId, _req.body.content)
       return _res.sendStatus(201)
     } catch {
       return _res.sendStatus(500)
@@ -123,7 +127,7 @@ export const readingGet = [
   getLessonData,
   async (_req: Request, _res: Response, _next: NextFunction) => {
     if (_res.locals.lessonType !== 'reading') return _res.sendStatus(400)
-    const resp = await getReading(_req.params.publicId)
+    const resp = await getReading('lesson/' + _req.params.publicId)
     if (resp.ok === true) {
       return _res.status(200).json({ content: resp.str })
     } else {

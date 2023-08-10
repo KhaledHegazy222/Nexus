@@ -253,7 +253,7 @@ export const deleteLesson = async (
   if (type === 'quiz') return
 
   await deleteElement(
-    type === 'video' ? await getVideoHiddenId(publicId) : publicId
+    'lesson/' + type === 'video' ? await getVideoHiddenId(publicId) : publicId
   )
 }
 

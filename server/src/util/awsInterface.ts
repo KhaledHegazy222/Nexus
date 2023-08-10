@@ -87,7 +87,22 @@ export const createAWSStream = async (
   return stream
 }
 
-export const uploader = multer({
+export const imageUploader = multer({
+  storage: multerS3({
+    s3: client,
+    bucket: BUCKET,
+    acl: 'public-read',
+    metadata: function (_req: Request, file: any, cb: any) {
+      cb(null, { fieldName: file.fieldname })
+    },
+    key: async function (_req: Request, _file: any, cb: any) {
+      console.log('uploading...')
+      cb(null, 'image/' + _req.params.imageId)
+    }
+  })
+})
+
+export const videoUploader = multer({
   storage: multerS3({
     s3: client,
     bucket: BUCKET,
@@ -98,7 +113,7 @@ export const uploader = multer({
       const publicId: string = _req.params.publicId
       const queryResp = await dbQuery(queryList.GET_VIDEO_ID, [publicId])
       console.log('uploading...')
-      cb(null, queryResp.rows[0].hidden_id)
+      cb(null, 'lesson/' + String(queryResp.rows[0].hidden_id))
     }
   })
 })
