@@ -39,10 +39,7 @@ const ReviewBody: FC<Props> = ({
     rating: number;
     comment: string;
   }>();
-  // useEffect(() => {
-  //   try {
-  //     }
-  // },[courseId])
+
   useEffect(() => {
     setCurrentReview({ rating, comment });
   }, [rating, comment, setCurrentReview]);
@@ -71,7 +68,7 @@ const ReviewBody: FC<Props> = ({
       toast.success("Review Updated Successfully");
     } catch {
       toast.error(
-        "Something unexpected just happened, please try again later!"
+        "You may need to enroll in the course first to leave a review!"
       );
     }
   };
