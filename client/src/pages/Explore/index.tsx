@@ -22,7 +22,6 @@ function Explore() {
     fetchData();
     async function fetchData() {
       const response = await serverAxios.get(`/course`);
-
       setExploreCourses(
         response.data.map(
           (elem: {
@@ -31,10 +30,13 @@ function Explore() {
             price: string;
             first_name: string;
             last_name: string;
+            image: string | null;
           }): Course => ({
             id: elem.id,
             title: elem.title,
-            image: courseImage,
+            image: elem.image
+              ? `https://nexus-platform-s3.s3.amazonaws.com/image/${elem.image}`
+              : courseImage,
             rating: 3.5,
             price: Number(elem.price),
             instructor: `${elem.first_name} ${elem.last_name}`,
@@ -98,7 +100,7 @@ function Explore() {
               >
                 <CourseCard
                   title={course.title}
-                  image={courseImage}
+                  image={course.image}
                   link={`/course/${course.id}`}
                   rating={3.5}
                   instructorName={course.instructor}

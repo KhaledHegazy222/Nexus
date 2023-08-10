@@ -1,4 +1,4 @@
-import { Box, Button, Fab, Grid, Tooltip, Typography } from "@mui/material";
+import { Button, Grid } from "@mui/material";
 import Skeleton from "@/components/Skeleton";
 import { StyledCard, StyledGridItem, StyledTitle } from "./MyCourses.styled";
 import useCourses from "@/hooks/useCourses";
@@ -77,28 +77,6 @@ const MyCourses = () => {
           </>
         )}
       </Grid>
-
-      <Box
-        sx={{
-          position: "fixed",
-          right: "5%",
-          bottom: "5%",
-        }}
-      >
-        <Tooltip
-          title={<Typography sx={{ fontSize: "1rem" }}>New course</Typography>}
-          placement="top"
-          arrow
-        >
-          <Fab
-            variant="circular"
-            color="primary"
-            onClick={() => navigate("/instructor/course/new")}
-          >
-            <Add />
-          </Fab>
-        </Tooltip>
-      </Box>
     </>
   );
 };
