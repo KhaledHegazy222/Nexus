@@ -7,8 +7,7 @@ import { authenticateToken } from '../middleware/authMW'
 import {
   getCourseContent,
   updateContent,
-  checkAuthor,
-  checkPurchase
+  checkAuthor
 } from '../middleware/courseMW'
 import { imageUploader } from '../util/awsInterface'
 const { body, validationResult } = require('express-validator')
@@ -226,6 +225,64 @@ export const courseEditContentPatch = [
 
 export const courseDetailsGet = [
   getCourseContent,
+  async (_req: Request, _res: Response, _next: NextFunction) => {
+    try {
+      const queryResp1 = await dbQuery(queryList.GET_COURSE, [
+        _req.params.courseId
+      ])
+      if (queryResp1.rows.length === 0) return _res.sendStatus(404)
+      const course = queryResp1.rows[0]
+
+      if (course.publish === false) {
+        _next()
+        return
+      }
+
+      const queryResp2 = await dbQuery(queryList.GET_COURSE_RATE, [
+        _req.params.courseId
+      ])
+      if (queryResp2.rows.length === 0) return _res.sendStatus(404)
+      course.rate = queryResp2.rows[0].avg
+
+      const queryResp3 = await dbQuery(queryList.GET_COURSE_PURCHASES_COUNT, [
+        _req.params.courseId
+      ])
+      if (queryResp3.rows.length === 0) return _res.sendStatus(404)
+      course.purchase_count = queryResp3.rows[0].count
+
+      course.content = _res.locals.courseContent
+
+      // get author data
+      const queryResp4 = await Promise.all([
+        dbQuery(queryList.GET_STUDENT_ACCOUNT_DETAILS_BY_ID, [
+          course.author_id
+        ]),
+        dbQuery(queryList.GET_INSTRUCTOR_ACCOUNT_DETAILS_BY_ID, [
+          course.author_id
+        ])
+      ])
+      if (queryResp4[0].rows.length === 0) return _res.sendStatus(404)
+
+      const accData = queryResp4[0].rows[0]
+      accData.bio = ''
+      accData.image = null
+      accData.contacts = {}
+
+      if (queryResp4[1].rows.length !== 0) {
+        accData.bio = queryResp4[1].rows[0].bio
+        accData.contacts = queryResp4[1].rows[0].contacts
+        accData.image = queryResp4[1].rows[0].pic_id
+      }
+
+      course.author = accData
+
+      return _res.status(200).json(course)
+    } catch {
+      return _res.sendStatus(500)
+    }
+  },
+  authenticateToken,
+  checkAuthor,
   async (_req: Request, _res: Response) => {
     try {
       const queryResp1 = await dbQuery(queryList.GET_COURSE, [
@@ -261,11 +318,13 @@ export const courseDetailsGet = [
 
       const accData = queryResp4[0].rows[0]
       accData.bio = ''
+      accData.image = null
       accData.contacts = {}
 
       if (queryResp4[1].rows.length !== 0) {
         accData.bio = queryResp4[1].rows[0].bio
         accData.contacts = queryResp4[1].rows[0].contacts
+        accData.image = queryResp4[1].rows[0].pic_id
       }
 
       course.author = accData
@@ -338,37 +397,85 @@ export const coursePurchasePost = [
     }
 
     try {
-      if (_res.locals.role !== 'admin') return _res.sendStatus(403)
-
-      const queryResp = await Promise.all([
-        dbQuery(queryList.GET_ACCOUNT_DETAILS_BY_MAIL, [_req.body.mail]),
-        dbQuery(queryList.GET_COURSE, [_req.params.courseId])
-      ])
-
-      if (queryResp[0].rows.length === 0 || queryResp[1].rows.length === 0) {
-        return _res.sendStatus(404)
-      }
-      if (
-        queryResp[0].rows[0].role !== 'student' ||
-        queryResp[1].rows[0].publish === false
-      ) {
-        return _res.sendStatus(400)
-      }
-
-      const queryResp2 = await dbQuery(queryList.CHECK_PURCHASE, [
-        queryResp[0].rows[0].id,
-        _req.params.courseId
-      ])
-
-      if (queryResp2.rows[0].exists === false) {
-        await dbQuery(queryList.ADD_PURCHASE, [
-          queryResp[0].rows[0].id,
-          _req.params.courseId,
-          _req.body.paid
+      if (_res.locals.role === 'admin') {
+        const queryResp = await Promise.all([
+          dbQuery(queryList.GET_ACCOUNT_DETAILS_BY_MAIL, [_req.body.mail]),
+          dbQuery(queryList.GET_COURSE, [_req.params.courseId])
         ])
+
+        if (queryResp[0].rows.length === 0 || queryResp[1].rows.length === 0) {
+          return _res.sendStatus(404)
+        }
+        if (
+          queryResp[0].rows[0].role !== 'student' ||
+          queryResp[1].rows[0].publish === false
+        ) {
+          return _res.sendStatus(400)
+        }
+
+        const queryResp2 = await dbQuery(queryList.CHECK_PURCHASE, [
+          queryResp[0].rows[0].id,
+          _req.params.courseId
+        ])
+
+        if (queryResp2.rows[0].exists === false) {
+          await dbQuery(queryList.ADD_PURCHASE, [
+            queryResp[0].rows[0].id,
+            _req.params.courseId,
+            _req.body.paid
+          ])
+        }
+
+        return _res.sendStatus(200)
       }
 
-      return _res.sendStatus(200)
+      if (_res.locals.role === 'student') {
+        const queryResp = await Promise.all([
+          dbQuery(queryList.GET_ACCOUNT_DETAILS_BY_MAIL, [_req.body.mail]),
+          dbQuery(queryList.GET_COURSE, [_req.params.courseId])
+        ])
+
+        if (queryResp[0].rows.length === 0 || queryResp[1].rows.length === 0) {
+          return _res.sendStatus(404)
+        }
+        const coursePrice: number = queryResp[1].rows[0].price
+        const courseDiscount: number = queryResp[1].rows[0].discount
+        const discountDeadline: Date = queryResp[1].rows[0].discount_last_date
+
+        let price = coursePrice
+        if (
+          new Date().getTime() < discountDeadline.getTime() &&
+          Number(courseDiscount) === 100
+        ) {
+          price = 0
+        }
+
+        if (
+          Number(queryResp[0].rows[0].id) !== Number(_res.locals.accountId) ||
+          queryResp[1].rows[0].publish === false ||
+          _req.body.paid !== 0 ||
+          Number(price) !== 0
+        ) {
+          return _res.sendStatus(400)
+        }
+
+        const queryResp2 = await dbQuery(queryList.CHECK_PURCHASE, [
+          queryResp[0].rows[0].id,
+          _req.params.courseId
+        ])
+
+        if (queryResp2.rows[0].exists === false) {
+          await dbQuery(queryList.ADD_PURCHASE, [
+            queryResp[0].rows[0].id,
+            _req.params.courseId,
+            _req.body.paid
+          ])
+        }
+
+        return _res.sendStatus(200)
+      }
+
+      return _res.sendStatus(400)
     } catch {
       return _res.sendStatus(500)
     }
@@ -377,7 +484,6 @@ export const coursePurchasePost = [
 
 export const progressGet = [
   authenticateToken,
-  checkPurchase,
   getCourseContent,
   async (_req: Request, _res: Response) => {
     interface Lesson {
@@ -398,14 +504,22 @@ export const progressGet = [
       const courseId = _req.params.courseId
       const courseContent: Week[] = _res.locals.courseContent
 
-      const queryResp = await dbQuery(queryList.GET_COMPLETED, [
+      const queryResp1 = await dbQuery(queryList.CHECK_PURCHASE, [
+        accountId,
+        courseId
+      ])
+      if (queryResp1.rows[0].exists === false) {
+        return _res.status(200).json({ content: courseContent })
+      }
+
+      const queryResp2 = await dbQuery(queryList.GET_COMPLETED, [
         accountId,
         courseId
       ])
 
       for (const week of courseContent) {
         for (const lesson of week.content) {
-          const completed = queryResp.rows.findIndex(
+          const completed = queryResp2.rows.findIndex(
             (row: any) => row.lesson_id === lesson.id
           )
 

@@ -110,6 +110,8 @@ export const getCourseContent = async (
   try {
     const courseId = _req.params.courseId
 
+    if (!/^[0-9]+$/.test(courseId)) return _res.sendStatus(400)
+
     const queryResp = await dbQuery(queryList.GET_COURSE_CONTENT, [courseId])
 
     const courseContent: LessonBlock[] = queryResp.rows
