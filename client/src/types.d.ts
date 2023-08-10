@@ -4,8 +4,9 @@ type User = {
   last_name: string;
   mail: string;
   role: "student" | "admin";
-  bio?: string;
-  contacts?: object;
+  bio?: string | null;
+  contacts?: object | null;
+  image?: string | null;
 };
 
 type Lesson = {
