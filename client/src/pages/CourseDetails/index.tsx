@@ -8,12 +8,13 @@ import {
   ListItemIcon,
   ListItemText,
   Button,
+  Avatar,
 } from "@mui/material";
 
 import { useEffect, useState } from "react";
 import { StyledSection, StyledSectionTitle } from "./CourseDetails.styled";
 import { StyledLayoutPage } from "@/components/Layout.styled";
-import { useParams } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 import { serverAxios } from "@/utils/axios";
 import TableOfContent from "./TableOfContent";
 import Reviews from "./Reviews";
@@ -24,7 +25,10 @@ type CourseValueType = {
   field: string;
   level: string;
   rating: number;
+  instructorId: number;
   instructorName: string;
+  bio: string;
+  image: string | null;
   price: number;
   requirements: string[];
   whatYouWillLearn: string[];
@@ -38,6 +42,7 @@ const CourseInitialValue: CourseValueType = {
   level: "Beginner",
   rating: 3.5,
   instructorName: "Omar El-Sayed",
+
   price: 11,
   requirements: [
     "You Have to know C/C++",
@@ -67,7 +72,7 @@ const CourseDetails = () => {
         description,
         what_you_will_learn: { body: what_you_will_learn },
         requirements: { body: requirements },
-        author: { first_name, last_name },
+        author: { first_name, last_name, bio, image, id },
         content,
       } = response.data;
 
@@ -81,6 +86,9 @@ const CourseDetails = () => {
         whatYouWillLearn: what_you_will_learn,
         rating: Number(rating) || 3.4,
         instructorName: `${first_name} ${last_name}`,
+        bio,
+        image,
+        instructorId: id,
       });
       setTableOfContent(
         content.map(
@@ -198,6 +206,29 @@ const CourseDetails = () => {
                 </ListItem>
               ))}
             </List>
+          </StyledSection>
+          <StyledSection>
+            <StyledSectionTitle>About Instructor</StyledSectionTitle>
+
+            <Avatar
+              sx={{ width: "80px", height: "80px", margin: "auto" }}
+              src={`https://nexus-platform-s3.s3.amazonaws.com/image/${courseData.image}`}
+              alt={courseData.instructorName}
+            />
+            <Box sx={{}}>
+              <Link
+                to={`/instructor/profile/${courseData.instructorId}`}
+                style={{
+                  fontWeight: "600",
+                  fontSize: "1.2rem",
+                }}
+              >
+                {courseData.instructorName}
+              </Link>
+            </Box>
+            <Typography sx={{ color: "#555", p: "10px" }}>
+              {courseData.bio}
+            </Typography>
           </StyledSection>
           <StyledSection>
             <StyledSectionTitle>Reviews</StyledSectionTitle>
