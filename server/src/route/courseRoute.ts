@@ -7,6 +7,7 @@ import {
   coursePublishPatch,
   courseImagePost,
   progressGet,
+  courseCertificateGet,
   coursePurchasePost
 } from '../controller/courseController'
 const express = require('express')
@@ -23,6 +24,7 @@ router.post('/:courseId/image/:imageId', courseImagePost)
 
 router.get('', exploreGet)
 router.get('/:courseId', courseDetailsGet)
+router.get('/:courseId/certificate', courseCertificateGet)
 router.get('/:courseId/progress', progressGet)
 
 export = router
