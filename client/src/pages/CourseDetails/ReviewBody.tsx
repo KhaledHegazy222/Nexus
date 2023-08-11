@@ -90,9 +90,9 @@ const ReviewBody: FC<Props> = ({
           m: "10px 0",
         }}
       >
-        <Avatar />
+        <Avatar src="#" alt={username} />
         <Typography sx={{ fontSize: "1.5rem", fontWeight: "600", flex: "1" }}>
-          {username}
+          {username} 
         </Typography>
         <Typography variant="subtitle2" color="gray">
           {new Date(created_at).toLocaleDateString("en-GB")}

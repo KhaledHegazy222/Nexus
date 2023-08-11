@@ -1,3 +1,4 @@
+/* eslint-disable */
 import {
   Box,
   Card,
@@ -19,6 +20,7 @@ type CourseProps = {
   rating?: number;
   instructorName?: string;
   progress?: number;
+  discount?: number;
 };
 
 const CourseCard: FC<CourseProps> = ({
@@ -30,6 +32,7 @@ const CourseCard: FC<CourseProps> = ({
   rating,
   progress,
   link,
+  discount,
 }) => {
   return (
     <Link
@@ -85,7 +88,7 @@ const CourseCard: FC<CourseProps> = ({
                     flex: "1",
                   }}
                 >
-                  {`${price} EGP`}{" "}
+                  {`${discount ? discount * price : price} EGP`}{" "}
                 </Typography>
               )}
               {rating !== undefined && (

@@ -25,44 +25,26 @@ type CourseValueType = {
   field: string;
   level: string;
   rating: number;
-  instructorId: number;
+  instructorId?: number;
   instructorName: string;
-  bio: string;
-  image: string | null;
+  bio?: string;
+  image?: string | null;
   price: number;
   requirements: string[];
   whatYouWillLearn: string[];
-};
-
-const CourseInitialValue: CourseValueType = {
-  title: "Learn Python in Three Seconds",
-  description:
-    "Learn Python like a Professional Start from the basics and go all the way to creating your own applications and games",
-  field: "Software",
-  level: "Beginner",
-  rating: 3.5,
-  instructorName: "Omar El-Sayed",
-
-  price: 11,
-  requirements: [
-    "You Have to know C/C++",
-    "You must be an expert competitive programmer on Codeforces",
-  ],
-  whatYouWillLearn: [
-    "You Have to know C/C++",
-    "You must be an expert competitive programmer on Codeforces",
-  ],
+  discount?: number;
+  discount_last_date?: string;
 };
 
 const CourseDetails = () => {
   const { courseId } = useParams();
-  const [courseData, setCourseData] =
-    useState<CourseValueType>(CourseInitialValue);
+  const [courseData, setCourseData] = useState<Partial<CourseValueType>>({});
   const [tableOfContent, setTableOfContent] = useState<Week[]>([]);
   useEffect(() => {
     fetchData();
     async function fetchData() {
       const response = await serverAxios.get(`/course/${courseId}`);
+
       const {
         title,
         level,
@@ -74,6 +56,8 @@ const CourseDetails = () => {
         requirements: { body: requirements },
         author: { first_name, last_name, bio, image, id },
         content,
+        discount,
+        discount_last_date,
       } = response.data;
 
       setCourseData({
@@ -89,6 +73,8 @@ const CourseDetails = () => {
         bio,
         image,
         instructorId: id,
+        discount: Number(discount),
+        discount_last_date,
       });
       setTableOfContent(
         content.map(
@@ -110,6 +96,7 @@ const CourseDetails = () => {
       );
     }
   }, [courseId]);
+  console.log(courseData.discount);
 
   return (
     <>
@@ -142,19 +129,72 @@ const CourseDetails = () => {
               sx={{
                 display: "flex",
                 alignItems: "center",
-                justifyContent: "flex-start",
+                justifyContent: "flex-end",
                 gap: "10px",
               }}
             >
-              <Typography>{courseData.rating}</Typography>
-              <Rating value={courseData.rating} precision={0.1} readOnly />
+              <Typography
+                sx={{ color: "#faaf00", fontWeight: "600", fontSize: "1.1rem" }}
+              >
+                {courseData.rating}
+              </Typography>
+              <Rating
+                value={courseData.rating ?? 3.4}
+                precision={0.1}
+                readOnly
+              />
             </Box>
-            <Typography
-              variant="h5"
-              sx={{
-                fontWeight: "600",
-              }}
-            >{`${courseData.price} EGP`}</Typography>
+            {courseData.discount ? (
+              <>
+                <Box
+                  sx={{
+                    display: "flex",
+                    justifyContent: "center",
+                    alignItems: "center",
+                    gap: "10px",
+                  }}
+                >
+                  <Typography
+                    variant="h5"
+                    sx={{
+                      fontWeight: "600",
+                    }}
+                  >{`${(
+                    ((100 - courseData.discount) / 100) *
+                    Number(courseData?.price)
+                  ).toFixed(2)} EGP`}</Typography>
+                  <Typography
+                    variant="h5"
+                    sx={{
+                      textDecoration: "line-through",
+                      color: "gray",
+                      fontSize: "0.9rem",
+                    }}
+                  >{`${courseData.price} EGP`}</Typography>
+                </Box>
+                <Typography
+                  sx={{
+                    display: "flex",
+                    justifyContent: "center",
+                    alignItems: "center",
+                    mb: "20px",
+                    color: "primary.main",
+                  }}
+                >{`This Offer is available until ${new Date(
+                  courseData.discount_last_date as string
+                ).toLocaleDateString("en-GB")}`}</Typography>
+              </>
+            ) : (
+              <Typography
+                variant="h5"
+                sx={{
+                  fontWeight: "600",
+
+                  textAlign: "center",
+                  mb: "20px",
+                }}
+              >{`${courseData.price} EGP`}</Typography>
+            )}
             <Button
               variant="contained"
               sx={{
@@ -168,7 +208,7 @@ const CourseDetails = () => {
           <StyledSection>
             <StyledSectionTitle>What you&apos;ll learn</StyledSectionTitle>
             <List>
-              {courseData.whatYouWillLearn.map((elem) => (
+              {courseData.whatYouWillLearn?.map((elem) => (
                 <ListItem key={elem} disablePadding>
                   <ListItemIcon
                     sx={{
@@ -191,7 +231,7 @@ const CourseDetails = () => {
           <StyledSection>
             <StyledSectionTitle>Requirements</StyledSectionTitle>
             <List>
-              {courseData.requirements.map((elem) => (
+              {courseData.requirements?.map((elem) => (
                 <ListItem key={elem} disablePadding>
                   <ListItemIcon
                     sx={{
@@ -211,7 +251,7 @@ const CourseDetails = () => {
             <StyledSectionTitle>About Instructor</StyledSectionTitle>
 
             <Avatar
-              sx={{ width: "80px", height: "80px", margin: "auto" }}
+              sx={{ width: "170px", height: "170px", margin: "auto" }}
               src={`https://nexus-platform-s3.s3.amazonaws.com/image/${courseData.image}`}
               alt={courseData.instructorName}
             />
