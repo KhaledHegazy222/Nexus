@@ -7,9 +7,11 @@ import { authenticateToken } from '../middleware/authMW'
 import {
   getCourseContent,
   updateContent,
-  checkAuthor
+  checkAuthor,
+  checkPurchase
 } from '../middleware/courseMW'
 import { imageUploader } from '../util/awsInterface'
+import { sendCertificateRequestMail } from '../middleware/mailMW'
 const { body, validationResult } = require('express-validator')
 const { v4: uuidv4 } = require('uuid')
 
@@ -532,6 +534,12 @@ export const progressGet = [
       return _res.sendStatus(500)
     }
   }
+]
+
+export const courseCertificateGet = [
+  authenticateToken,
+  checkPurchase,
+  sendCertificateRequestMail
 ]
 
 export const exploreGet = [
