@@ -1,12 +1,13 @@
 import useAuth from "@/contexts/useAuth";
 import { serverAxios } from "@/utils/axios";
 import { Box, CircularProgress } from "@mui/material";
-import { useCallback, useEffect, useState } from "react";
+import { FC, useCallback, useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import LessonButtons from "./LessonButtons";
 import { AxiosError } from "axios";
+import { LessonProps } from ".";
 
-const Video = () => {
+const Video: FC<LessonProps> = ({ setShowUnFreeError }) => {
   const { token } = useAuth();
   const { lessonId } = useParams();
   const [completed, setCompleted] = useState(false);
@@ -27,13 +28,15 @@ const Video = () => {
           import.meta.env.VITE_API_ROOT_URL
         }/api/v1/lesson/video/${lessonId}?token=${videoToken}`
       );
+      setShowUnFreeError(false);
     } catch (error) {
       console.log((error as AxiosError).message);
+      setShowUnFreeError(true);
     } finally {
       setLoadFetching(false);
     }
     setLoadFetching(false);
-  }, [token, lessonId]);
+  }, [token, lessonId, setShowUnFreeError]);
   const toggleCompleted = () => {
     setCompleted(!completed);
   };

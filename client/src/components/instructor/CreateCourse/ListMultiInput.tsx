@@ -32,12 +32,10 @@ const ListMultiInput: FC<Props> = ({ title, name, setValue, defaultValue }) => {
     }
   };
   useEffect(() => {
-    console.log("What");
     setValue(name, listValues);
   }, [listValues, setValue, name]);
 
   useEffect(() => {
-    console.log(defaultValue, name, 11);
     setListValues(defaultValue);
   }, [defaultValue, name]);
 

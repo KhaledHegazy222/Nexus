@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { FC, useEffect, useState } from "react";
 import LessonButtons from "./LessonButtons";
 import {
   Box,
@@ -16,8 +16,10 @@ import { useParams } from "react-router-dom";
 import { serverAxios } from "@/utils/axios";
 import { useForm } from "react-hook-form";
 import { Check, Close } from "@mui/icons-material";
+import { LessonProps } from ".";
+import { AxiosError } from "axios";
 
-const Quiz = () => {
+const Quiz: FC<LessonProps> = ({ setShowUnFreeError }) => {
   const { token } = useAuth();
   const { courseId, lessonId } = useParams();
   const [questions, setQuestions] = useState<Quiz[]>([]);
@@ -57,26 +59,32 @@ const Quiz = () => {
   useEffect(() => {
     fetchData();
     async function fetchData() {
-      const response = await serverAxios.get(`/lesson/quiz/${lessonId}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      setQuestions(
-        response.data.questions.map(
-          (question: {
-            title: string;
-            options: { content: string[] };
-          }): Quiz => ({
-            title: question.title,
-            options: question.options.content,
-          })
-        )
-      );
-      setDegree({
-        result: response.data.last_result,
-        total: response.data.total,
-      });
+      try {
+        const response = await serverAxios.get(`/lesson/quiz/${lessonId}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        setQuestions(
+          response.data.questions.map(
+            (question: {
+              title: string;
+              options: { content: string[] };
+            }): Quiz => ({
+              title: question.title,
+              options: question.options.content,
+            })
+          )
+        );
+        setDegree({
+          result: response.data.last_result,
+          total: response.data.total,
+        });
+        setShowUnFreeError(false);
+      } catch (error) {
+        console.log((error as AxiosError).message);
+        setShowUnFreeError(true);
+      }
     }
-  }, [token, lessonId, courseId]);
+  }, [token, lessonId, courseId, setShowUnFreeError]);
   return (
     <>
       <Paper
@@ -89,7 +97,7 @@ const Quiz = () => {
           position: "relative",
         }}
       >
-        {degree.total && (
+        {Boolean(degree.total) && (
           <Box
             sx={{
               display: "flex",
