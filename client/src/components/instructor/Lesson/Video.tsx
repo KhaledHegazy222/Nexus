@@ -58,7 +58,6 @@ const Video = () => {
             Authorization: `Bearer ${token}`,
           },
           onUploadProgress: (event) => {
-            console.log(Math.round((100 * event.loaded) / event.total!));
             setUploadedPercentage(
               Math.round((100 * event.loaded) / event.total!)
             );

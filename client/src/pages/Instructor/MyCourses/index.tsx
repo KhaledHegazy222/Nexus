@@ -66,7 +66,7 @@ const MyCourses = () => {
               >
                 <CourseCard
                   link={`/instructor/course/${course.id}`}
-                  image={course.image}
+                  image={course.image!}
                   title={course.title}
                   description={course.description}
                   price={199.9}

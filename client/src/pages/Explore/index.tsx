@@ -100,7 +100,7 @@ function Explore() {
               >
                 <CourseCard
                   title={course.title}
-                  image={course.image}
+                  image={course.image!}
                   link={`/course/${course.id}`}
                   rating={3.5}
                   instructorName={course.instructor}

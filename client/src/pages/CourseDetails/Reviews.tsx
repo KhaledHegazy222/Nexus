@@ -52,7 +52,7 @@ const Reviews = () => {
   const { courseId } = useParams();
   const [loadedReviews, setLoadedReviews] = useState<Review[]>(othersReviews);
   const myReview = loadedReviews.find((elem) => elem.id === user?.id);
-  console.log(myReview);
+
   useEffect(() => {
     loadData();
     async function loadData() {

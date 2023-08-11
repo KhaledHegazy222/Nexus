@@ -1,14 +1,16 @@
 import { Box, CircularProgress, Paper } from "@mui/material";
-import { useEffect, useState } from "react";
+import { FC, useEffect, useState } from "react";
 import LessonButtons from "./LessonButtons";
 import { useParams } from "react-router-dom";
 import { serverAxios } from "@/utils/axios";
 import useAuth from "@/contexts/useAuth";
+import { LessonProps } from ".";
+import { AxiosError } from "axios";
 
 const textInitialValue: string =
   '<h1>Lesson Title</h1><h2><strong>Lesson Subtitle </strong></h2><p>Lesson paragraph</p><p><br></p><h3>Main topics</h3><ol><li>Topic one</li><li>Topic two</li><li>Topic three</li><li>Topic four</li></ol><h3><strong>Reference:</strong></h3><ul><li><a href="https://www.wikipedia.org/" rel="noopener noreferrer" target="_blank">Wikipedia</a></li><li><a href="https://www.youtube.com/" rel="noopener noreferrer" target="_blank">Video Playlist</a></li></ul>';
 
-const Reading = () => {
+const Reading: FC<LessonProps> = ({ setShowUnFreeError }) => {
   const { lessonId } = useParams();
   const { token } = useAuth();
   const [text, setText] = useState(textInitialValue);
@@ -26,13 +28,15 @@ const Reading = () => {
           headers: { Authorization: `Bearer ${token}` },
         });
         setText(response.data.content);
-      } catch {
-        /* empty */
+        setShowUnFreeError(false);
+      } catch (error) {
+        console.log((error as AxiosError).message);
+        setShowUnFreeError(true);
       } finally {
         setLoading(false);
       }
     }
-  }, [token, lessonId]);
+  }, [token, lessonId, setShowUnFreeError]);
   return (
     <>
       {loading ? (

@@ -63,7 +63,7 @@ const Quiz = () => {
         setQuizQuestions((prevState) => {
           const copy = structuredClone(prevState);
           copy[selectedQuestion] = question;
-          console.log(JSON.stringify(copy, null, 2));
+
           return copy;
         });
       }
