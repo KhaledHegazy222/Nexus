@@ -24,7 +24,7 @@ import {
   TextField,
   Typography,
 } from "@mui/material";
-import { ArrowRight, Discount, Edit } from "@mui/icons-material";
+import { Add, ArrowRight, Discount, Edit } from "@mui/icons-material";
 import CourseImage from "@/assets/images/course.jpg";
 
 import TableOfContent from "./TableOfContent";
@@ -64,6 +64,11 @@ const CourseOverview = () => {
   const discountPercentageInputRef = useRef<HTMLInputElement | null>(null);
   const [expiryDate, setExpiryDate] = React.useState<Dayjs | null>(null);
   const [showDiscountDialog, setShowDiscountDialog] = useState(false);
+
+  const addStudentMailInputRef = useRef<HTMLInputElement | null>(null);
+  const addStudentPaymentInputRef = useRef<HTMLInputElement | null>(null);
+  const [showAddStudentDialog, setShowAddStudentDialog] =
+    useState<boolean>(false);
   const handlePublish = async () => {
     try {
       await serverAxios.patch(
@@ -413,7 +418,66 @@ const CourseOverview = () => {
           </ButtonGroup>
         </DialogActions>
       </Dialog>
-
+      <Dialog open={showAddStudentDialog}>
+        <DialogTitle>Add Student</DialogTitle>
+        <DialogContent>
+          <TextField
+            type="email"
+            label="Student mail"
+            fullWidth
+            sx={{
+              m: "10px 0",
+              "& label": {
+                color: "gray",
+              },
+            }}
+            inputRef={addStudentMailInputRef}
+          />
+          <TextField
+            type="number"
+            label="Payment in EGP"
+            fullWidth
+            sx={{
+              m: "10px 0",
+              "& label": {
+                color: "gray",
+              },
+            }}
+          />
+        </DialogContent>
+        <DialogActions>
+          <ButtonGroup sx={{ m: "auto", mb: "20px" }}>
+            <Button
+              variant="contained"
+              color="primary"
+              onClick={async () => {
+                try {
+                  await serverAxios.post(
+                    `/course/${id}`,
+                    {
+                      mail: addStudentMailInputRef.current?.value,
+                      paid: addStudentPaymentInputRef.current?.value,
+                    },
+                    { headers: { Authorization: `Bearer ${token}` } }
+                  );
+                  toast.success("Enrolled Student Successfully");
+                } catch {
+                  toast.error("Something went wrong, please try again later");
+                }
+              }}
+            >
+              Add
+            </Button>
+            <Button
+              variant="contained"
+              color="error"
+              onClick={() => setShowAddStudentDialog(false)}
+            >
+              Cancel
+            </Button>
+          </ButtonGroup>
+        </DialogActions>
+      </Dialog>
       <Box
         sx={{
           position: "fixed",
@@ -437,6 +501,9 @@ const CourseOverview = () => {
           }}
         >
           <Edit />
+        </Fab>
+        <Fab color="primary" onClick={() => setShowAddStudentDialog(true)}>
+          <Add />
         </Fab>
       </Box>
     </>
