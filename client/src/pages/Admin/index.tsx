@@ -23,6 +23,7 @@ import useAuth from "@/contexts/useAuth";
 import { serverAxios } from "@/utils/axios";
 import { TopCoursesTable } from "./TopCoursesTable";
 import { OverridableComponent } from "@mui/material/OverridableComponent";
+import withAuth from "@/HOCs/withAuth";
 
 type AdminStatistics = {
   brief: {
@@ -210,4 +211,4 @@ const Admin = () => {
   );
 };
 
-export default Admin;
+export default withAuth(Admin);

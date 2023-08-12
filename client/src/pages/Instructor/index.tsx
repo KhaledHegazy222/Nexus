@@ -9,6 +9,7 @@ import {
   StyledPaper,
 } from "@/components/Layout.styled";
 import Profile from "./Profile";
+import withAuth from "@/HOCs/withAuth";
 
 const Instructor = () => {
   return (
@@ -29,4 +30,4 @@ const Instructor = () => {
   );
 };
 
-export default Instructor;
+export default withAuth(Instructor);
