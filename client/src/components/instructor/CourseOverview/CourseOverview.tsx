@@ -79,7 +79,7 @@ const CourseOverview = () => {
       setCourseData((prevData) => ({ ...prevData, isPublished: true }));
       toast.success("Course Published Successfully");
     } catch {
-      /* empty */
+      toast.error("Can't Publish Course with no content");
     }
   };
   const inputImageRef = useRef<HTMLInputElement>();
@@ -443,6 +443,7 @@ const CourseOverview = () => {
                 color: "gray",
               },
             }}
+            inputRef={addStudentPaymentInputRef}
           />
         </DialogContent>
         <DialogActions>
@@ -456,13 +457,15 @@ const CourseOverview = () => {
                     `/course/${id}`,
                     {
                       mail: addStudentMailInputRef.current?.value,
-                      paid: addStudentPaymentInputRef.current?.value,
+                      paid: Number(addStudentPaymentInputRef.current?.value),
                     },
                     { headers: { Authorization: `Bearer ${token}` } }
                   );
                   toast.success("Enrolled Student Successfully");
                 } catch {
                   toast.error("Something went wrong, please try again later");
+                } finally {
+                  setShowAddStudentDialog(false);
                 }
               }}
             >

@@ -97,6 +97,7 @@ const Profile = () => {
   useEffect(() => {
     fetchProfileData();
   }, [userId]);
+
   return (
     <>
       <Box
@@ -124,6 +125,7 @@ const Profile = () => {
             onClick={() => {
               inputRef.current?.click();
             }}
+            disabled={currentUser?.id !== Number(userId)}
           >
             <Avatar
               sx={{

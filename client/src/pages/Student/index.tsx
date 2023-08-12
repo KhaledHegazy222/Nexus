@@ -7,6 +7,7 @@ import {
 import { Route, Routes } from "react-router-dom";
 import MyCourses from "./MyCourses";
 import StudyPage from "./StudyPage";
+import withAuth from "@/HOCs/withAuth";
 
 const Student = () => {
   return (
@@ -24,4 +25,4 @@ const Student = () => {
   );
 };
 
-export default Student;
+export default withAuth(Student);
