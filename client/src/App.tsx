@@ -14,6 +14,8 @@ import { ToastContainer } from "react-toastify";
 function App() {
   const { loading } = useAuth();
 
+  console.log(import.meta.env.VITE_API_ROOT_URL);
+  console.log(import.meta.env.VITE_GOOGLE_OAUTH_CLIENT_ID);
   return (
     <>
       <ThemeProvider theme={lightTheme}>
