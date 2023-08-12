@@ -37,8 +37,9 @@ type CourseValueType = GeneralInfoType &
   RequirementsType &
   WhatYouWillLearnType & {
     isPublished: boolean;
-  } & {
     image?: string | null;
+    discount?: number;
+    discount_last_date?: string;
   };
 
 const CourseInitialValue: CourseValueType = {
@@ -61,9 +62,7 @@ const CourseOverview = () => {
     useState<CourseValueType>(CourseInitialValue);
   const [showAcceptDialog, setShowAcceptDialog] = useState(false);
   const discountPercentageInputRef = useRef<HTMLInputElement | null>(null);
-  const [expiryDate, setExpiryDate] = React.useState<Dayjs | null>(
-    dayjs("2022-04-17")
-  );
+  const [expiryDate, setExpiryDate] = React.useState<Dayjs | null>(null);
   const [showDiscountDialog, setShowDiscountDialog] = useState(false);
   const handlePublish = async () => {
     try {
@@ -115,6 +114,8 @@ const CourseOverview = () => {
         what_you_will_learn,
         publish,
         pic_id,
+        discount,
+        discount_last_date,
       } = response.data;
       setCourseData({
         title,
@@ -126,7 +127,10 @@ const CourseOverview = () => {
         what_you_will_learn: what_you_will_learn.body,
         isPublished: publish,
         image: pic_id,
+        discount: Number(discount),
+        discount_last_date: discount_last_date,
       });
+      setExpiryDate(dayjs(new Date(discount_last_date)));
     }
   }, [id, token]);
 
@@ -173,6 +177,58 @@ const CourseOverview = () => {
         >
           Change Course Image
         </Button>
+        <Typography variant="h5">Price</Typography>
+        <List>
+          <ListItem>
+            {courseData.discount ? (
+              <>
+                <Box
+                  sx={{ display: "flex", gap: "10px", alignItems: "center" }}
+                >
+                  <Typography
+                    sx={{
+                      color: "primary.main",
+                      fontWeight: "600",
+                      fontSize: "1.2rem",
+                    }}
+                  >
+                    {(
+                      ((100 - courseData.discount) / 100) *
+                      courseData.price
+                    ).toFixed(2)}{" "}
+                    EGP
+                  </Typography>
+                  <Typography
+                    sx={{
+                      color: "gray",
+                      fontSize: "0.9rem",
+                      textDecoration: "line-through",
+                    }}
+                  >
+                    {courseData.price} EGP
+                  </Typography>
+                  <Typography sx={{ color: "red", fontWeight: "600" }}>
+                    (Available for{" "}
+                    {new Date(
+                      courseData.discount_last_date!
+                    ).toLocaleDateString("en-GB")}
+                    )
+                  </Typography>
+                </Box>
+              </>
+            ) : (
+              <Typography
+                sx={{
+                  color: "primary.main",
+                  fontWeight: "600",
+                  fontSize: "1.3rem",
+                }}
+              >
+                {courseData.price} EGP
+              </Typography>
+            )}
+          </ListItem>
+        </List>
         <Typography variant="h5">Description</Typography>
         <List>
           <ListItem>
@@ -292,7 +348,7 @@ const CourseOverview = () => {
             }}
             required
             inputProps={{ min: 0, max: 100 }}
-            defaultValue={0}
+            defaultValue={courseData.discount}
             inputRef={discountPercentageInputRef}
           />
 
@@ -306,6 +362,8 @@ const CourseOverview = () => {
               }}
               value={expiryDate}
               onChange={(value) => setExpiryDate(value)}
+              defaultValue={dayjs("2022-04-17")}
+              // defaultValue={dayjs(new Date(courseData.discount_last_date))}
             />
           </LocalizationProvider>
         </DialogContent>
