@@ -2,6 +2,10 @@ import { LegacyRef, useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { GeneralInfoType } from "../CreateCourse/GeneralInfo";
 import { v4 as uuid } from "uuid";
+import * as React from "react";
+import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
+import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
+import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import {
   RequirementsType,
   WhatYouWillLearnType,
@@ -9,6 +13,7 @@ import {
 import {
   Box,
   Button,
+  ButtonGroup,
   Dialog,
   DialogActions,
   DialogContent,
@@ -16,15 +21,18 @@ import {
   Fab,
   List,
   ListItem,
+  TextField,
   Typography,
 } from "@mui/material";
-import { ArrowRight, Edit } from "@mui/icons-material";
+import { ArrowRight, Discount, Edit } from "@mui/icons-material";
 import CourseImage from "@/assets/images/course.jpg";
 
 import TableOfContent from "./TableOfContent";
 import useAuth from "@/contexts/useAuth";
 import { serverAxios } from "@/utils/axios";
 import { toast } from "react-toastify";
+import dayjs, { Dayjs } from "dayjs";
+import { AxiosError } from "axios";
 type CourseValueType = GeneralInfoType &
   RequirementsType &
   WhatYouWillLearnType & {
@@ -52,6 +60,11 @@ const CourseOverview = () => {
   const [courseData, setCourseData] =
     useState<CourseValueType>(CourseInitialValue);
   const [showAcceptDialog, setShowAcceptDialog] = useState(false);
+  const discountPercentageInputRef = useRef<HTMLInputElement | null>(null);
+  const [expiryDate, setExpiryDate] = React.useState<Dayjs | null>(
+    dayjs("2022-04-17")
+  );
+  const [showDiscountDialog, setShowDiscountDialog] = useState(false);
   const handlePublish = async () => {
     try {
       await serverAxios.patch(
@@ -234,7 +247,7 @@ const CourseOverview = () => {
             sx={{ color: "red", fontWeight: "bold" }}
           >
             IRREVERSIBLE
-          </Typography>{" "}
+          </Typography>
           action, also this will allow users to enroll and view the current
           content of this course. Do you want to proceed ?
         </DialogContent>
@@ -258,23 +271,116 @@ const CourseOverview = () => {
           </Button>
         </DialogActions>
       </Dialog>
-      <Fab
+      <Dialog open={showDiscountDialog}>
+        <DialogTitle sx={{ textAlign: "center" }}>Add Discount</DialogTitle>
+        <DialogContent
+          sx={{
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+          }}
+        >
+          <TextField
+            fullWidth
+            label="Percentage"
+            type="number"
+            sx={{
+              m: "10px 0",
+              "& label": {
+                color: "gray",
+              },
+            }}
+            required
+            inputProps={{ min: 0, max: 100 }}
+            defaultValue={0}
+            inputRef={discountPercentageInputRef}
+          />
+
+          <LocalizationProvider dateAdapter={AdapterDayjs}>
+            <DatePicker
+              label="Expiry Date"
+              sx={{
+                "& label": {
+                  color: "gray",
+                },
+              }}
+              value={expiryDate}
+              onChange={(value) => setExpiryDate(value)}
+            />
+          </LocalizationProvider>
+        </DialogContent>
+        <DialogActions>
+          <ButtonGroup
+            sx={{
+              m: "auto",
+              mb: "15px",
+            }}
+          >
+            <Button
+              variant="contained"
+              onClick={async () => {
+                try {
+                  await serverAxios.put(
+                    `/course/${id}`,
+                    {
+                      ...courseData,
+                      discount: discountPercentageInputRef.current?.value,
+                      discount_last_date: expiryDate?.toISOString(),
+                      what_you_will_learn: {
+                        body: courseData.what_you_will_learn,
+                      },
+                      requirements: { body: courseData.requirements },
+                    },
+                    { headers: { Authorization: `Bearer ${token}` } }
+                  );
+
+                  setShowDiscountDialog(false);
+                  toast.success("Discount Added Successfully");
+                } catch (error) {
+                  console.log((error as AxiosError).response?.data);
+                }
+              }}
+            >
+              Save
+            </Button>
+            <Button
+              variant="contained"
+              color="error"
+              onClick={() => {
+                setShowDiscountDialog(false);
+              }}
+            >
+              Cancel
+            </Button>
+          </ButtonGroup>
+        </DialogActions>
+      </Dialog>
+
+      <Box
         sx={{
           position: "fixed",
           right: "5%",
           bottom: "5%",
-        }}
-        color="primary"
-        onClick={() => {
-          navigate(`/instructor/course/edit/${id}`, {
-            state: {
-              courseData,
-            },
-          });
+          display: "flex",
+          gap: "20px",
         }}
       >
-        <Edit />
-      </Fab>
+        <Fab color="primary" onClick={() => setShowDiscountDialog(true)}>
+          <Discount />
+        </Fab>
+        <Fab
+          color="primary"
+          onClick={() => {
+            navigate(`/instructor/course/edit/${id}`, {
+              state: {
+                courseData,
+              },
+            });
+          }}
+        >
+          <Edit />
+        </Fab>
+      </Box>
     </>
   );
 };
