@@ -52,12 +52,15 @@ const CourseDetails = () => {
     } else {
       const whatsappUrl = new URL("https://wa.me/201271950277");
       const queryParams = new URLSearchParams();
+
       const coursePrice =
-        courseData.price! * (100 - Number(courseData.discount ?? 0) / 100);
+        courseData.price! * ((100 - Number(courseData.discount ?? 0)) / 100);
       queryParams.append(
         "text",
         `Hello Nexus,
-        I would like to enroll in "${courseData.title}" which costs currently costs ${coursePrice}EGP.
+        I would like to enroll in "${
+          courseData.title
+        }" which costs currently costs (${coursePrice.toFixed(2)}EGP).
 
         My name is ${user.first_name} ${user.last_name}
         and my email is ${user.mail}
