@@ -2,13 +2,18 @@ import useAuth from "@/contexts/useAuth";
 import { serverAxios } from "@/utils/axios";
 import { Add, Close, DeleteOutline, Edit, Save } from "@mui/icons-material";
 import {
+  Box,
   Button,
   Dialog,
   DialogActions,
   DialogContent,
   DialogTitle,
+  FormControl,
   IconButton,
+  InputLabel,
+  MenuItem,
   Paper,
+  Select,
   Table,
   TableCell,
   TableContainer,
@@ -226,11 +231,29 @@ const EditableTable = ({
               {key === selectedEditKey ? (
                 <>
                   <TableCell>
-                    <TextField
-                      size="small"
-                      defaultValue={key}
-                      inputRef={entryRef}
-                    />
+                    <Box sx={{ minWidth: "130px" }}>
+                      <FormControl
+                        fullWidth
+                        sx={{
+                          "& label": {
+                            color: "gray",
+                          },
+                        }}
+                      >
+                        <InputLabel id="contact-label">Contact</InputLabel>
+                        <Select
+                          label="Select Contact"
+                          labelId="contact-label"
+                          inputRef={entryRef}
+                          defaultValue={key}
+                        >
+                          <MenuItem value="gmail">Gmail</MenuItem>
+                          <MenuItem value="facebook">Facebook</MenuItem>
+                          <MenuItem value="linkedin">Linkedin</MenuItem>
+                          <MenuItem value="whatsapp">WhatsApp</MenuItem>
+                        </Select>
+                      </FormControl>
+                    </Box>
                   </TableCell>
                   <TableCell>
                     <TextField
@@ -261,7 +284,7 @@ const EditableTable = ({
                     </IconButton>
                     <IconButton
                       onClick={() => {
-                        setSelectedEditKey("");
+                        setSelectedEditKey("None");
                       }}
                       color="error"
                     >
