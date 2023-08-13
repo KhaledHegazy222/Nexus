@@ -1,6 +1,7 @@
 import {
   Box,
   Button,
+  CircularProgress,
   Dialog,
   DialogActions,
   DialogContent,
@@ -28,7 +29,7 @@ import { useParams } from "react-router-dom";
 import useAuth from "@/contexts/useAuth";
 import useMenu from "@/hooks/useMenu";
 import { toast } from "react-toastify";
-
+import noQuestionFound from "@/assets/images/nocourses.jpg";
 export type questionType = {
   title: string;
   options: string[];
@@ -38,6 +39,7 @@ export type questionType = {
 const Quiz = () => {
   const { courseId, lessonId } = useParams();
   const { token } = useAuth();
+  const [loading, setLoading] = useState(true);
   const [quizQuestions, setQuizQuestions] = useState<questionType[]>([]);
   const [openNewQuiz, setOpenNewQuiz] = useState<boolean>(false);
   const [selectedQuestion, setSelectedQuestion] = useState(-1);
@@ -119,6 +121,7 @@ const Quiz = () => {
   useEffect(() => {
     loadData();
     async function loadData() {
+      setLoading(true);
       const response = await serverAxios.get(`/lesson/quiz/${lessonId}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -132,9 +135,14 @@ const Quiz = () => {
           })
         )
       );
+      setTimeout(() => setLoading(false), 2000);
     }
   }, [courseId, lessonId, token]);
-  return (
+  return loading ? (
+    <>
+      <CircularProgress />
+    </>
+  ) : (
     <>
       <Grid
         container
@@ -143,109 +151,121 @@ const Quiz = () => {
           placeContent: "center",
         }}
       >
-        {quizQuestions.map((question, index) => (
-          <Grid item key={question.title} sx={{}}>
-            <ListItem sx={{ height: "100%" }}>
-              <Paper
-                sx={{
-                  m: "10px auto",
-                  p: "20px",
-                  height: "100%",
-                  display: "flex",
-                  flexDirection: "column",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                }}
-              >
-                <Box
+        {quizQuestions.length ? (
+          quizQuestions.map((question, index) => (
+            <Grid item key={question.title} sx={{}}>
+              <ListItem sx={{ height: "100%" }}>
+                <Paper
                   sx={{
-                    width: "100%",
+                    m: "10px auto",
+                    p: "20px",
+                    height: "100%",
                     display: "flex",
-                    alignItems: "flex-start",
+                    flexDirection: "column",
                     justifyContent: "space-between",
+                    alignItems: "center",
                   }}
                 >
-                  <Tooltip
-                    title={
-                      <Typography sx={{ fontWeight: "600" }}>
+                  <Box
+                    sx={{
+                      width: "100%",
+                      display: "flex",
+                      alignItems: "flex-start",
+                      justifyContent: "space-between",
+                    }}
+                  >
+                    <Tooltip
+                      title={
+                        <Typography sx={{ fontWeight: "600" }}>
+                          {question.title}
+                        </Typography>
+                      }
+                    >
+                      <Typography
+                        variant="h5"
+                        sx={{
+                          fontWeight: "700",
+                          whiteSpace: "nowrap",
+                          width: "200px",
+                          overflow: "hidden",
+                        }}
+                      >
                         {question.title}
                       </Typography>
-                    }
-                  >
-                    <Typography
-                      variant="h5"
-                      sx={{
-                        fontWeight: "700",
-                        whiteSpace: "nowrap",
-                        width: "200px",
-                        overflow: "hidden",
+                    </Tooltip>
+                    <IconButton
+                      onClick={(event) => {
+                        setSelectedQuestion(index);
+                        handleClick(event);
                       }}
+                      sx={{ ml: "30px" }}
                     >
-                      {question.title}
-                    </Typography>
-                  </Tooltip>
-                  <IconButton
-                    onClick={(event) => {
-                      setSelectedQuestion(index);
-                      handleClick(event);
-                    }}
-                    sx={{ ml: "30px" }}
-                  >
-                    <MoreHoriz />
-                  </IconButton>
-                  <Menu
-                    open={open && selectedQuestion === index}
-                    onClose={() => handleClose()}
-                    anchorEl={menuAnchor}
-                  >
-                    <MenuItem
-                      onClick={() => {
-                        handleClose();
-                        handleEdit(question, index);
-                      }}
+                      <MoreHoriz />
+                    </IconButton>
+                    <Menu
+                      open={open && selectedQuestion === index}
+                      onClose={() => handleClose()}
+                      anchorEl={menuAnchor}
                     >
-                      Edit
-                    </MenuItem>
-                    <MenuItem
-                      onClick={() => {
-                        handleClose();
-                        handleDelete(index);
-                      }}
-                    >
-                      Delete
-                    </MenuItem>
-                  </Menu>
-                </Box>
-                <List>
-                  {question.options.map((option) => (
-                    <ListItem
-                      key={option}
-                      sx={{
-                        outline: "1px solid",
-                        outlineColor: (theme) =>
-                          `${theme.palette.primary.main}`,
-                        width: "140px",
-                        justifyContent: "center",
-                        margin: "20px 40px",
-                        borderRadius: "5px",
-                        backgroundColor:
-                          option === question.answer
-                            ? "primary.main"
-                            : "transparent",
-                        color:
-                          option === question.answer
-                            ? "white"
-                            : (theme) => `${theme.palette.text.primary}`,
-                      }}
-                    >
-                      {option}
-                    </ListItem>
-                  ))}
-                </List>
-              </Paper>
-            </ListItem>
-          </Grid>
-        ))}
+                      <MenuItem
+                        onClick={() => {
+                          handleClose();
+                          handleEdit(question, index);
+                        }}
+                      >
+                        Edit
+                      </MenuItem>
+                      <MenuItem
+                        onClick={() => {
+                          handleClose();
+                          handleDelete(index);
+                        }}
+                      >
+                        Delete
+                      </MenuItem>
+                    </Menu>
+                  </Box>
+                  <List>
+                    {question.options.map((option) => (
+                      <ListItem
+                        key={option}
+                        sx={{
+                          outline: "1px solid",
+                          outlineColor: (theme) =>
+                            `${theme.palette.primary.main}`,
+                          width: "140px",
+                          justifyContent: "center",
+                          margin: "20px 40px",
+                          borderRadius: "5px",
+                          backgroundColor:
+                            option === question.answer
+                              ? "primary.main"
+                              : "transparent",
+                          color:
+                            option === question.answer
+                              ? "white"
+                              : (theme) => `${theme.palette.text.primary}`,
+                        }}
+                      >
+                        {option}
+                      </ListItem>
+                    ))}
+                  </List>
+                </Paper>
+              </ListItem>
+            </Grid>
+          ))
+        ) : (
+          <>
+            <img
+              src={noQuestionFound}
+              style={{
+                maxWidth: "70%",
+                maxHeight: "70vh",
+              }}
+            />
+          </>
+        )}
       </Grid>
       <Box
         sx={{

@@ -14,6 +14,7 @@ import {
   Box,
   Button,
   ButtonGroup,
+  CircularProgress,
   Dialog,
   DialogActions,
   DialogContent,
@@ -58,6 +59,7 @@ const CourseOverview = () => {
   const { id } = useParams();
   const { token } = useAuth();
   const navigate = useNavigate();
+  const [loading, setLoading] = useState(true);
   const [courseData, setCourseData] =
     useState<CourseValueType>(CourseInitialValue);
   const [showAcceptDialog, setShowAcceptDialog] = useState(false);
@@ -106,6 +108,7 @@ const CourseOverview = () => {
   useEffect(() => {
     loadData();
     async function loadData() {
+      setLoading(true);
       const response = await serverAxios.get(`/course/${id}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -136,10 +139,15 @@ const CourseOverview = () => {
         discount_last_date: discount_last_date,
       });
       setExpiryDate(dayjs(new Date(discount_last_date)));
+      setLoading(false);
     }
   }, [id, token]);
 
-  return (
+  return loading ? (
+    <>
+      <CircularProgress />
+    </>
+  ) : (
     <>
       <Box
         sx={{
@@ -188,7 +196,11 @@ const CourseOverview = () => {
             {courseData.discount ? (
               <>
                 <Box
-                  sx={{ display: "flex", gap: "10px", alignItems: "center" }}
+                  sx={{
+                    display: "flex",
+                    gap: "10px",
+                    alignItems: "center",
+                  }}
                 >
                   <Typography
                     sx={{

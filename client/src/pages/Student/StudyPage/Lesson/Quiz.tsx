@@ -51,7 +51,10 @@ const Quiz: FC<LessonProps> = ({ setShowUnFreeError }) => {
       degreeResult += Number(result.is_correct!);
     });
     setQuizResult(responseResult);
-    setDegree({ result: degreeResult, total: degree.total });
+    setDegree({
+      result: degreeResult,
+      total: response.data.body.length,
+    });
   };
   const toggleCompleted = () => {
     setCompleted(!completed);
