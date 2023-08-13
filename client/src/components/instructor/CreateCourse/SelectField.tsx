@@ -16,6 +16,7 @@ type SelectProps = {
   title: string;
   options: string[];
   sx?: SxProps<Theme>;
+  defaultValue: string;
 };
 
 const SelectField = ({
@@ -24,6 +25,7 @@ const SelectField = ({
   title,
   options,
   sx,
+  defaultValue,
   ...props
 }: SelectProps) => {
   return (
@@ -37,7 +39,13 @@ const SelectField = ({
         >
           {title}
         </InputLabel>
-        <Select label={title} labelId="label-id" {...register(name)} {...props}>
+        <Select
+          label={title}
+          labelId="label-id"
+          {...register(name)}
+          {...props}
+          defaultValue={defaultValue}
+        >
           {options.map((option, index) => (
             <MenuItem key={index} value={option}>
               {option}

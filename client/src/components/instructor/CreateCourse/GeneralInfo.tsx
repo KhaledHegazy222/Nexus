@@ -17,9 +17,11 @@ export type GeneralInfoType = {
 
 type GeneralInfoProps = {
   register: UseFormRegister<FormValuesType>;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  courseData: any;
 };
 
-const GeneralInfo: FC<GeneralInfoProps> = ({ register }) => {
+const GeneralInfo: FC<GeneralInfoProps> = ({ register, courseData }) => {
   return (
     <Box
       sx={{
@@ -71,6 +73,7 @@ const GeneralInfo: FC<GeneralInfoProps> = ({ register }) => {
         <StyledGridCell item xs={6}>
           <SelectField
             register={register}
+            defaultValue={courseData?.level}
             name="level"
             title="Level"
             options={["Beginner", "Intermediate", "Advanced"]}
@@ -82,6 +85,7 @@ const GeneralInfo: FC<GeneralInfoProps> = ({ register }) => {
         <StyledGridCell item xs={6}>
           <SelectField
             register={register}
+            defaultValue={courseData?.field}
             name="field"
             title="Field"
             options={["Software", "Hardware", "Mechanical"]}

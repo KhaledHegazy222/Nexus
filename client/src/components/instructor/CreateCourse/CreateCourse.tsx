@@ -7,7 +7,7 @@ import { SubmitHandler, useForm } from "react-hook-form";
 import { serverAxios } from "@/utils/axios";
 import useAuth from "@/contexts/useAuth";
 import { useNavigate, useParams } from "react-router-dom";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import ListMultiInput from "./ListMultiInput";
 import { AxiosError } from "axios";
 
@@ -64,6 +64,7 @@ const CreateCourse = ({ courseData }: { courseData?: FormValuesType }) => {
     }
   };
   const handleCancel = () => navigate(-1);
+  const [dataReady, setDataReady] = useState(false);
   useEffect(() => {
     if (courseData) {
       Object.entries(courseData).forEach((pair) => {
@@ -80,73 +81,77 @@ const CreateCourse = ({ courseData }: { courseData?: FormValuesType }) => {
           value
         );
       });
+      setDataReady(true);
+    } else {
+      setDataReady(true);
     }
   }, [courseData, setValue]);
-
   return (
     <>
-      <Box
-        sx={{
-          width: "70%",
-        }}
-      >
-        <StyledTitle>New Course</StyledTitle>
-        <form
-          onSubmit={handleSubmit(onSubmit)}
-          onKeyDown={(event) => {
-            if (event.key === "Enter") event.preventDefault();
+      {dataReady && (
+        <Box
+          sx={{
+            width: "70%",
           }}
         >
-          <GeneralInfo register={register} />
-          <ListMultiInput
-            title="Requirements"
-            name="requirements"
-            defaultValue={courseData?.requirements || []}
-            setValue={setValue}
-            // watch={watch}
-          />
-          <ListMultiInput
-            title="What You will learn"
-            name="what_you_will_learn"
-            defaultValue={courseData?.what_you_will_learn || []}
-            setValue={setValue}
-            // watch={watch}
-          />
-          <ButtonGroup
-            sx={{
-              m: "60px auto",
-              display: "flex",
-              justifyContent: "center",
-              alignItems: "center",
+          <StyledTitle>New Course</StyledTitle>
+          <form
+            onSubmit={handleSubmit(onSubmit)}
+            onKeyDown={(event) => {
+              if (event.key === "Enter") event.preventDefault();
             }}
           >
-            <Button
-              type="submit"
-              variant="contained"
+            <GeneralInfo courseData={courseData} register={register} />
+            <ListMultiInput
+              title="Requirements"
+              name="requirements"
+              defaultValue={courseData?.requirements || []}
+              setValue={setValue}
+              // watch={watch}
+            />
+            <ListMultiInput
+              title="What You will learn"
+              name="what_you_will_learn"
+              defaultValue={courseData?.what_you_will_learn || []}
+              setValue={setValue}
+              // watch={watch}
+            />
+            <ButtonGroup
               sx={{
-                fontSize: "1.3rem",
-                textTransform: "none",
-                fontWeight: "600",
+                m: "60px auto",
+                display: "flex",
+                justifyContent: "center",
+                alignItems: "center",
               }}
             >
-              Save Course
-            </Button>
-            <Button
-              variant="contained"
-              color="error"
-              type="button"
-              onClick={handleCancel}
-              sx={{
-                fontSize: "1.3rem",
-                textTransform: "none",
-                fontWeight: "600",
-              }}
-            >
-              Cancel
-            </Button>
-          </ButtonGroup>
-        </form>
-      </Box>
+              <Button
+                type="submit"
+                variant="contained"
+                sx={{
+                  fontSize: "1.3rem",
+                  textTransform: "none",
+                  fontWeight: "600",
+                }}
+              >
+                Save Course
+              </Button>
+              <Button
+                variant="contained"
+                color="error"
+                type="button"
+                onClick={handleCancel}
+                sx={{
+                  fontSize: "1.3rem",
+                  textTransform: "none",
+                  fontWeight: "600",
+                }}
+              >
+                Cancel
+              </Button>
+            </ButtonGroup>
+          </form>
+        </Box>
+      )}
     </>
   );
 };
