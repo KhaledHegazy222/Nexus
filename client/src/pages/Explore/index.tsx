@@ -35,7 +35,7 @@ function Explore() {
             id: elem.id,
             title: elem.title,
             image: elem.image
-              ? `https://nexus-platform-s3.s3.amazonaws.com/image/${elem.image}`
+              ? `https://nexus-platform-s3.s3.amazonaws.com/image/${elem.image}?date=${new Date()}`
               : courseImage,
             rating: 3.5,
             price: Number(elem.price),

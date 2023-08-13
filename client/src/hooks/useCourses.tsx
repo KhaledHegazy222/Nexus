@@ -30,7 +30,7 @@ const useCourses = () => {
             id: elem.id,
             description: "Learn Learn Learn",
             image: elem.image
-              ? `https://nexus-platform-s3.s3.amazonaws.com/image/${elem.image}`
+              ? `https://nexus-platform-s3.s3.amazonaws.com/image/${elem.image}?date=${new Date()}`
               : courseImage,
             title: elem.title,
             progress: Number(elem.completion_percentage),
