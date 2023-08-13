@@ -25,6 +25,8 @@ import whatsappIcon from "@/assets/svg/whatsapp.svg";
 import { toast } from "react-toastify";
 import { v4 as uuid } from "uuid";
 
+
+
 const iconsLookUpTable: { [key: string]: string } = {
   gmail: gmailIcon,
   linkedin: linkedIcon,
