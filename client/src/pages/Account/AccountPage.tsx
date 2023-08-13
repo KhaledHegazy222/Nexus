@@ -9,9 +9,18 @@ import {
 } from "./Account.styled";
 import { useForm, Controller, SubmitHandler } from "react-hook-form";
 
-import { Button, Divider, Typography } from "@mui/material";
+import {
+  Button,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  Divider,
+  TextField,
+  Typography,
+} from "@mui/material";
 import GoogleLogin from "./Google";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import useAuth from "@/contexts/useAuth";
 import { serverAxios } from "@/utils/axios";
 import { useNavigate } from "react-router-dom";
@@ -183,15 +192,18 @@ const AccountPage = ({ login = false }: AccountPageProps) => {
       /* empty */
     }
   };
+  const forgetPasswordInputRef = useRef<HTMLInputElement | null>(null);
+  const [showForgetPassword, setShowForgetPassword] = useState(false);
   const resentResetPassword = async () => {
     try {
       await serverAxios.post(`/auth/reset-password`, {
-        mail: watch("email"),
+        mail: forgetPasswordInputRef.current?.value,
       });
       toast.success("Check your email to reset your password", {
         autoClose: 2000,
         position: "top-right",
       });
+      setShowForgetPassword(false);
     } catch {
       /* empty */
     }
@@ -244,7 +256,7 @@ const AccountPage = ({ login = false }: AccountPageProps) => {
               <Typography
                 variant="subtitle2"
                 color="primary"
-                onClick={resentResetPassword}
+                onClick={() => setShowForgetPassword(true)}
                 sx={{
                   alignSelf: "flex-end",
                   textTransform: "none",
@@ -365,6 +377,43 @@ const AccountPage = ({ login = false }: AccountPageProps) => {
           </StyledFormContainer>
         )}
       </StyledAccountBody>
+      <Dialog open={showForgetPassword}>
+        <DialogTitle>Send Reset Email</DialogTitle>
+        <DialogContent>
+          <TextField
+            type="email"
+            inputRef={forgetPasswordInputRef}
+            label="Email"
+            fullWidth
+            sx={{
+              maxWidth: "100%",
+              width: "300px",
+              m: "5px",
+              "& label": {
+                color: "gray",
+              },
+            }}
+          />
+        </DialogContent>
+        <DialogActions
+          sx={{ p: "20px", display: "flex", justifyContent: "center" }}
+        >
+          <Button
+            variant="contained"
+            color="primary"
+            onClick={resentResetPassword}
+          >
+            Reset
+          </Button>
+          <Button
+            variant="contained"
+            color="error"
+            onClick={() => setShowForgetPassword(true)}
+          >
+            Cancel
+          </Button>
+        </DialogActions>
+      </Dialog>
     </>
   );
 };

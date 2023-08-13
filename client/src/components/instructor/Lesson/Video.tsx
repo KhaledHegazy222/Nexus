@@ -7,6 +7,7 @@ import {
   LinearProgress,
   Typography,
 } from "@mui/material";
+import noVideoFound from "@/assets/images/nocourses.jpg";
 
 import React, { useCallback, useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
@@ -136,9 +137,10 @@ const Video = () => {
         <>
           {videoStreamUrl === null ? (
             <>
-              <Typography>
-                {"Sorry But it seems like you didn't upload any video yet"}
-              </Typography>
+              <img
+                src={noVideoFound}
+                style={{ maxHeight: "70vh", maxWidth: "70%" }}
+              />
             </>
           ) : (
             <>
