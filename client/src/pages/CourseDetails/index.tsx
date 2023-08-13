@@ -157,7 +157,7 @@ const CourseDetails = () => {
                 <img
                   src={
                     courseData.courseImage
-                      ? `https://nexus-platform-s3.s3.amazonaws.com/image/${courseData.image}`
+                      ? `https://nexus-platform-s3.s3.amazonaws.com/image/${courseData.courseImage}?date=${new Date()}`
                       : courseImage
                   }
                   style={{
@@ -318,7 +318,7 @@ const CourseDetails = () => {
 
                 <Avatar
                   sx={{ width: "170px", height: "170px", margin: "auto" }}
-                  src={`https://nexus-platform-s3.s3.amazonaws.com/image/${courseData.image}`}
+                  src={`https://nexus-platform-s3.s3.amazonaws.com/image/${courseData.image}?date=${new Date()}`}
                 />
                 <Box sx={{}}>
                   <Link

@@ -25,8 +25,6 @@ import whatsappIcon from "@/assets/svg/whatsapp.svg";
 import { toast } from "react-toastify";
 import { v4 as uuid } from "uuid";
 
-
-
 const iconsLookUpTable: { [key: string]: string } = {
   gmail: gmailIcon,
   linkedin: linkedIcon,
@@ -46,6 +44,7 @@ const Profile = () => {
       last_name: string;
       price: string;
       title: string;
+      image: string | null;
     }[]
   >([]);
   const handleEditData = (bio: string, contacts: object) => {
@@ -221,7 +220,13 @@ const Profile = () => {
                     }}
                   >
                     <CourseCard
-                      image={courseImage}
+                      image={
+                        course.image
+                          ? `https://nexus-platform-s3.s3.amazonaws.com/image/${
+                              course.image
+                            }?date=${new Date()}`
+                          : courseImage
+                      }
                       link={`/course/${course.id}`}
                       title={course.title}
                       price={Number(course.price)}

@@ -12,6 +12,7 @@ import {
 import {
   Box,
   Button,
+  CircularProgress,
   Collapse,
   Dialog,
   DialogActions,
@@ -27,8 +28,12 @@ import {
 } from "@mui/material";
 import { useCallback, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import { serverAxios } from "@/utils/axios";
+import useAuth from "@/contexts/useAuth";
+import { toast } from "react-toastify";
 
 const Sidebar = () => {
+  const { token } = useAuth();
   const { courseId, lessonId } = useParams();
   const { courseData } = useCourse();
   const navigate = useNavigate();
@@ -160,8 +165,15 @@ const Sidebar = () => {
               <Button
                 variant="contained"
                 color="secondary"
-                onClick={() => {
+                onClick={async () => {
+                  await serverAxios.get(`/course/${courseId}/certificate`, {
+                    headers: { Authorization: `Bearer ${token}` },
+                  });
                   setShowGetCertificate(false);
+                  toast.success(
+                    "Your Certificate Request Has been sent, you will receive it in mail soon",
+                    { autoClose: false, position: "top-right" }
+                  );
                 }}
               >
                 Get Certificate
@@ -171,7 +183,55 @@ const Sidebar = () => {
         ) : (
           <>
             <DialogContent>
-              Complete all the lessons first to get your certificate
+              <Box sx={{ textAlign: "center", position: "relative" }}>
+                <CircularProgress
+                  variant="determinate"
+                  value={(completed / total) * 100}
+                  size={60}
+                />
+                <Typography
+                  sx={{
+                    position: "absolute",
+                    top: 0,
+                    bottom: 0,
+                    left: 0,
+                    right: 0,
+                    display: "flex",
+                    justifyContent: "center",
+                    alignItems: "center",
+                    transform: "translateY(-4px)",
+                    fontSize: "1.2rem",
+                  }}
+                >
+                  <Typography
+                    component={"span"}
+                    sx={{
+                      color: "primary.main",
+                      fontWeight: "600",
+                      fontSize: "inherit",
+                      m: "0 2px",
+                    }}
+                  >
+                    {completed}{" "}
+                  </Typography>
+                  /
+                  <Typography
+                    component={"span"}
+                    sx={{
+                      color: "primary.main",
+                      fontWeight: "600",
+                      fontSize: "inherit",
+                      m: "0 2px",
+                    }}
+                  >
+                    {" "}
+                    {total}
+                  </Typography>
+                </Typography>
+              </Box>
+              <Typography>
+                Complete all the lessons first to get your certificate
+              </Typography>
             </DialogContent>
             <DialogActions>
               <Button
@@ -180,6 +240,7 @@ const Sidebar = () => {
                 onClick={() => {
                   setShowGetCertificate(false);
                 }}
+                sx={{ m: "10px" }}
               >
                 Continue Learning
               </Button>
