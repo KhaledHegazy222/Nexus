@@ -46,6 +46,9 @@ services:
       
   https-portal:
     image: steveltn/https-portal:1
+    depends_on:
+      - server
+      - client
     ports:
       - "80:80"
       - "443:443"
